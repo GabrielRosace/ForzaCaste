@@ -1,0 +1,54 @@
+# ------------------------------------------------------------------ #
+#                                                                    #
+# Per runnare i due servizi cosi come sono:                          #
+#                                                                    #
+#                          docker-compose up                         #
+#                                                                    #
+# N.B. Questo comando fa in modo che il container web esegua         #
+#      il file index.js e poi termini(non sarà possibile riavviare)  #
+#                                                                    #
+# Per runnare il servizio web e interagire con la shell:             #
+#                                                                    #
+#               docker-compose run --service-ports web               #
+#                                                                    #
+# -------------------------------------------------------------------#
+
+# Potrebbe essere necessario specificare il nome utente di mongo
+# e la password
+# https://hub.docker.com/_/mongo
+
+version: "3"
+services:
+  web:
+    container_name: "taw_nodejs"
+    build: .
+    user: "node"
+    working_dir: /home/node/app
+    ports:
+      - "8080:8080"
+      - "4200:4200"
+    depends_on:
+      - database
+    networks:
+      - default
+    volumes: 
+      - ./:/home/node/app
+    restart: "always"
+    command: 
+      "bash"
+# ----------------------------------------- #
+  database:
+    container_name: "taw_mongo"
+    image: mongo:bionic
+    ports:
+      - "27017:27017"
+    restart: "always"
+    networks:
+      - default
+    volumes: 
+      - ./mongo-volume:/data/db
+# ------------------------------------------#
+networks:
+  default:
+    driver: "bridge"
+# ------------------------------------------#
