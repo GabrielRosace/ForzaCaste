@@ -27,8 +27,8 @@ services:
     ports:
       - "8080:8080"
       - "4200:4200"
-    depends_on:
-      - database
+    # depends_on:
+    #   - database
     networks:
       - default
     volumes: 
@@ -37,16 +37,16 @@ services:
     command: 
       "bash"
 # ----------------------------------------- #
-  database:
-    container_name: "taw_mongo"
-    image: mongo:bionic
-    ports:
-      - "27017:27017"
-    restart: "always"
-    networks:
-      - default
-    volumes: 
-      - ./mongo-volume:/data/db
+  # database:
+  #   container_name: "taw_mongo"
+  #   image: mongo:bionic
+  #   ports:
+  #     - "27017:27017"
+  #   restart: "always"
+  #   networks:
+  #     - default
+  #   volumes: 
+  #     - ./mongo-volume:/data/db
 # ------------------------------------------#
 networks:
   default:
