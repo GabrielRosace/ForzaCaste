@@ -104,4 +104,8 @@ dist
 .tern-port
 
 
+
+# Our ignored files
 mongo-volume/*
+.vscode/
+*.map
