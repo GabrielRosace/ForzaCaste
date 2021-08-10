@@ -1,11 +1,29 @@
 {
   "name": "backend",
+  "main": "index",
   "version": "1.0.0",
-  "description": "Connect-4 backend",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "",
-  "license": "ISC"
+  "description": "Connect-4 backend",
+  "scripts": {
+    "compile": "tsc",
+    "start": "node index.js"
+  },
+  "private": true,
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^16.4.13"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "colors": "^1.4.0",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "express-jwt": "^6.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.13.6",
+    "passport": "^0.4.1",
+    "passport-http": "^0.3.0",
+    "socket.io": "^2.3.0"
+  }
 }
