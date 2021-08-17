@@ -1,15 +1,15 @@
 import mongoose = require('mongoose');
 
 
-export interface Statistics {
-    nGamesWon: Number,
-    nGamesLost: Number,
-    nGamesPlayed: Number,
-    nTotalMoves: Number,
-    getGamesDrawn: ()=>Number,
+export interface Statistics extends mongoose.Document{
+    nGamesWon: number,
+    nGamesLost: number,
+    nGamesPlayed: number,
+    nTotalMoves: number,
+    getGamesDrawn: () => number,
 }
 
-var statisticsSchema = new mongoose.Schema( {
+var statisticsSchema = new mongoose.Schema<Statistics>( {
     nGamesWon:  {
         type: mongoose.SchemaTypes.Number,
         required: true,
@@ -33,7 +33,7 @@ var statisticsSchema = new mongoose.Schema( {
 })
 
 statisticsSchema.methods.getGamesDrawn = function(){
-    return this.nGamesPlayed-(this.nGamesLost+this.nGamesLost);
+    return (this.nGamesPlayed - (this.nGamesLost + this.nGamesLost));
 }
 
 export function getSchema() { return statisticsSchema; }

@@ -1,7 +1,7 @@
 import mongoose = require('mongoose');
 
 // A notification has a type of notification, some text content and a string that identify the sender
-export interface Notification {
+export interface Notification extends mongoose.Document{
     type: string,
     text: string,
     sender: string,
@@ -13,7 +13,7 @@ export function isNotification(arg: any): arg is Notification {
     return arg && arg.text && typeof(arg.text) == 'string' && arg.type && Array.isArray(arg.tags) && arg.timestamp && arg.timestamp instanceof Date && arg.authormail && typeof(arg.authormail) == 'string' ;
 }*/
 
-var notificationSchema = new mongoose.Schema( {
+var notificationSchema = new mongoose.Schema<Notification>( {
     type: {
         type: mongoose.SchemaTypes.String,
         required: true

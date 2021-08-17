@@ -1,7 +1,9 @@
 import mongoose = require('mongoose');
 import crypto = require('crypto');
 import {Notification} from './Notification';
+import * as notification from './Notification'
 import { Statistics } from './Statistics';
+import * as statistics from './Statistics' 
 
 export interface User extends mongoose.Document {
     readonly _id: mongoose.Schema.Types.ObjectId,
@@ -24,7 +26,7 @@ export interface User extends mongoose.Document {
     setModerator: ()=>void,
 }
 
-var userSchema = new mongoose.Schema( {
+var userSchema = new mongoose.Schema<User>( {
     username: {
         type: mongoose.SchemaTypes.String,
         required: true
@@ -55,11 +57,11 @@ var userSchema = new mongoose.Schema( {
         required: true 
     },
     inbox:  {
-        type: [mongoose.SchemaTypes.Notification],
+        type: [notification.getSchema],
         required: false 
     },
     statistics: {
-        type: mongoose.SchemaTypes.Statistics,
+        type: statistics.getSchema,
         required: true,
     },
     salt:  {

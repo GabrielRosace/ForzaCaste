@@ -11,7 +11,7 @@ export interface PrivateChat extends Message {
     msg: Message[]
 }
 
-var privateChatSchema = new mongoose.Schema( {
+var privateChatSchema = new mongoose.Schema<PrivateChat>( {
     user1: {
         type: mongoose.SchemaTypes.ObjectId,
         required: true
@@ -21,7 +21,7 @@ var privateChatSchema = new mongoose.Schema( {
         required: true 
     },
     msg: {
-        type: [mongoose.SchemaTypes.Message],
+        type: [message.getSchema()],
         required: false
     }
 })
