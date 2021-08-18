@@ -6,6 +6,9 @@ const crypto = require("crypto");
 const notification = require("./Notification");
 const statistics = require("./Statistics");
 var userSchema = new mongoose.Schema({
+    // _id: {
+    //   type: mongoose.Schema.Types.ObjectId  
+    // },
     username: {
         type: mongoose.SchemaTypes.String,
         required: true
@@ -36,11 +39,11 @@ var userSchema = new mongoose.Schema({
         required: true
     },
     inbox: {
-        type: [notification.getSchema],
+        type: [notification.getSchema()],
         required: false
     },
     statistics: {
-        type: statistics.getSchema,
+        type: statistics.getSchema(),
         required: true,
     },
     salt: {
@@ -117,4 +120,5 @@ function newUser(data) {
     return user;
 }
 exports.newUser = newUser;
+//* Qui può servire una funzione per cambiare lo stato dello User e che salvi il cambiamento
 //# sourceMappingURL=User.js.map

@@ -1,0 +1,102 @@
+{
+	"info": {
+		"_postman_id": "d6e0caa6-a3ea-4ad6-acec-7ad123123534",
+		"name": "TAW",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Api Version & Endpoints list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080",
+					"host": [
+						"localhost"
+					],
+					"port": "8080"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "gabriel",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "gabriel@mail.it",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/login",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "invalidEndpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/invalid",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"invalid"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Sign In",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"gabriel\",\n    \"name\": \"gabriel\",\n    \"surname\": \"rosace\",\n    \"avatarImgURL\": \"img.url\",\n    \"mail\": \"gabriel@mail.it\",\n    \"password\":\"gabriel\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/users",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
