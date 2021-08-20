@@ -1,11 +1,15 @@
 /**
  * HTTP REST server + MongoDB(Mongoose) + Express
  * 
- * Endpoints            Attributes            Method            Description
+ * Endpoints            Attributes              Method          Description
  * 
- *    /                     -                   GET             Returns the version and a list of available endpoints
- *  /login                  -                   GET             login an existing user, returning a JWT
- *  /users                  -                   POST            signin a user
+ *  /                       -                   GET             Returns the version and a list of available endpoints
+ *  /login                  -                   GET             Login an existing user, returning a JWT
+ * 
+ *  /users                  -                   POST            Signin a new user
+ *  /users/:username        -                   DELETE          Deletion of standard players from moderators
+ * 
+ *  /users/mod              -                   POST            Create a new moderator, only moderator can do it
  * 
  * 
  * 
@@ -61,6 +65,7 @@ import * as user from './User';
 
 import { Statistics } from './Statistics'
 import * as statistics from './Statistics'
+import { decode } from 'punycode';
 
 
 
@@ -90,7 +95,7 @@ var app = express();
   If the token is valid, req.user will be set with the JSON object
   decoded to be used by later middleware for authentication and access control.
 */
-var auth = jwt({ secret: process.env.JWT_SECRET, algorithms: ['RS256'] });
+var auth = jwt({ secret: process.env.JWT_SECRET, algorithms: ['HS256'] });
 
 app.use(cors());
 
@@ -112,11 +117,12 @@ app.use((req, res, next) => {
 //* Add API routes to express application
 
 app.get("/", (req, res) => {
-  res.status(200).json({ api_version: "1.0", endpoints: ["/","/login","/users"] }); //TODO setta gli endpoints
+  res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users"] }); //TODO setta gli endpoints
 });
 
 // Login endpoint uses passport middleware to check
 // user credentials before generating a new JWT
+//TODO quando si connette per la prima volta un mod devi fare modificare le impostazioni
 app.get("/login", passport.authenticate('basic', { session: false }), (req, res, next) => {
 
   // If we reach this point, the user is successfully authenticated and
@@ -125,6 +131,7 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
   // We now generate a JWT with the useful user data
   // and return it as response
 
+  //TODO: add useful info to JWT
   var tokendata = {
     username: req.user.username,
     roles: req.user.roles,
@@ -141,6 +148,7 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
 
 });
 
+// Create new user
 app.post('/users', (req, res, next) => {
 
   const basicStats = new (statistics.getModel())({
@@ -149,7 +157,7 @@ app.post('/users', (req, res, next) => {
     nGamesPlayed: 0
   })
 
-  const model = user.getModel()
+  // const model = user.getModel()
 
   console.log("Request Body".blue)
   console.log(req.body)
@@ -159,23 +167,24 @@ app.post('/users', (req, res, next) => {
   }
 
 
-  const doc = new model({
-    username: req.body.username,
-    name: req.body.name,
-    surname: req.body.surname,
-    avatarImgURL: req.body.avatarImgURL,
-    mail: req.body.mail,
-    state: 'logged',
-    statistics: basicStats
-  })
+  const doc = createNewUser(basicStats, req.body)
+  // const doc = new model({
+  //   username: req.body.username,
+  //   name: req.body.name,
+  //   surname: req.body.surname,
+  //   avatarImgURL: req.body.avatarImgURL,
+  //   mail: req.body.mail,
+  //   state: 'logged',
+  //   statistics: basicStats
+  // })
 
 
-  doc.setPassword(req.body.password)
+  // doc.setPassword(req.body.password)
 
   // doc.setAdmin()
-  
+
   doc.save().then((data) => {
-    console.log("New signin attempt from ".green + data.mail)
+    console.log("New creation of user, email is ".green + data.mail)
     return res.status(200).json({ error: false, errormessage: "", id: data._id });
   }).catch((reason) => {
     if (reason.code === 11000)
@@ -184,7 +193,92 @@ app.post('/users', (req, res, next) => {
   })
 });
 
+// Create a new moderator, only mod can do it
+app.post("/users/mod", auth, (req, res, next) => {
+  // const decoded = decodeJWT(req, res)
+  // if(decoded == null) return res.status(401).json({error:true,message:"Cannot decode JWT"})
+  // const decoded = req.user
+  user.getModel().findOne({ username: req.user.username }).then((u: User) => {
+    if (u.hasModeratorRole()) {
+      const basicStats = new (statistics.getModel())({
+        nGamesWon: 0,
+        nGamesLost: 0,
+        nGamesPlayed: 0
+      })
 
+      console.log("Request Body".blue)
+      console.log(req.body)
+
+      if (!req.body.password || !req.body.username) {
+        return next({ statusCode: 404, error: true, errormessage: "Some field missing, signin cannot be possibile" })
+      }
+
+      const doc = createNewUser(basicStats, req.body)
+
+      doc.setModerator()
+
+      doc.save().then((data) => {
+        console.log("New signin attempt from ".green + data.mail)
+        return res.status(200).json({ error: false, errormessage: "", id: data._id });
+      }).catch((reason) => {
+        if (reason.code === 11000)
+          return next({ statusCode: 404, error: true, errormessage: "User already exists" });
+        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+      })
+    } else {
+      return res.status(401).json({ error: true, errormessage: "Operation not permitted" });
+    }
+  })
+})
+
+function createNewUser(statistics, bodyRequest) {
+  const model = user.getModel()
+  const doc = new model({
+    username: bodyRequest.username,
+    name: bodyRequest.name,
+    surname: bodyRequest.surname,
+    avatarImgURL: bodyRequest.avatarImgURL,
+    mail: bodyRequest.mail,
+    state: 'logged',
+    statistics: statistics
+  })
+  doc.setPassword(bodyRequest.password)
+  return doc
+}
+
+app.delete("/users/:username", auth, (req, res, next) => {
+  console.log("Deleting user with username ".blue + req.params.username)
+
+  user.getModel().findOne({ username: req.user.username }).then(
+    (u: User) => {
+      if (u.hasModeratorRole()) {
+        user.getModel().findOne({ username: req.params.username }).then((u) => {
+          if (u.hasModeratorRole()) {
+            return res.status(401).json({ error: true, errormessage: "You cannot delete a mod" })
+          } else {
+            user.getModel().deleteOne({ username: req.params.username }).then(
+              (q) => {
+                if (q.deletedCount > 0) {
+                  return res.status(200).json({ error: false, errormessage: "" })
+                } else {
+                  return res.status(404).json({ error: true, errormessage: "Invalid username" })
+                }
+              }
+            ).catch((reason) => {
+              return next({ statusCode: 404, error: true, errormessage: "DB error " + reason })
+            })
+          }
+        }).catch((reason) => {
+          return res.status(404).json({ error: true, errormessage: "DB error " + reason })
+        })
+      } else {
+        return res.status(401).json({ error: true, errormessage: "You cannot do it, you aren't a mod!" })
+      }
+    })
+})
+
+
+//* END of API routes
 /*
   Configure HTTP basic authentication strategy
   through passport middleware.
@@ -194,7 +288,7 @@ passport.use(new passportHTTP.BasicStrategy(
     // Delegate function we provide to passport middleware to verify user credentials
     console.log("New login attempt from ".green + username);
 
-    user.getModel().findOne({ mail: username }, (err, user) => {
+    user.getModel().findOne({ username: username }, (err, user) => {
       if (err) {
         return done({ statusCode: 500, error: true, errormessage: err });
       }

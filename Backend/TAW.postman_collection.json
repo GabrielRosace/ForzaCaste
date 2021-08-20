@@ -22,24 +22,42 @@
 		},
 		{
 			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.globals.set(\"JWT_TOKEN\",jsonData.token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "basic",
 					"basic": [
 						{
-							"key": "password",
-							"value": "gabriel",
+							"key": "username",
+							"value": "gabriel_mod1",
 							"type": "string"
 						},
 						{
-							"key": "username",
-							"value": "gabriel@mail.it",
+							"key": "password",
+							"value": "gabriel",
 							"type": "string"
 						}
 					]
 				},
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
 				"url": {
 					"raw": "localhost:8080/login",
 					"host": [
@@ -72,13 +90,13 @@
 			"response": []
 		},
 		{
-			"name": "Sign In",
+			"name": "Add a new user",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"username\": \"gabriel\",\n    \"name\": \"gabriel\",\n    \"surname\": \"rosace\",\n    \"avatarImgURL\": \"img.url\",\n    \"mail\": \"gabriel@mail.it\",\n    \"password\":\"gabriel\"\n}",
+					"raw": "{\n    \"username\": \"prova\",\n    \"name\": \"prova\",\n    \"surname\": \"prova\",\n    \"avatarImgURL\": \"img.url\",\n    \"mail\": \"tommy@mail.it\",\n    \"password\":\"tommy\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -93,6 +111,84 @@
 					"port": "8080",
 					"path": [
 						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add a new moderator",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\" : \"gabriel_mod2\",\n    \"password\" : \"gabriel\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/users/mod",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users",
+						"mod"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Deletion of standard players",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/users/prova",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users",
+						"prova"
 					]
 				}
 			},

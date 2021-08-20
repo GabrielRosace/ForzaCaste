@@ -23,7 +23,7 @@ services:
     container_name: "taw_nodejs"
     build: .
     user: "node"
-    working_dir: /home/node/app
+    working_dir: /home/node/app/Backend
     ports:
       - "8080:8080"
       - "4200:4200"

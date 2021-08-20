@@ -11,28 +11,29 @@ var userSchema = new mongoose.Schema({
     // },
     username: {
         type: mongoose.SchemaTypes.String,
-        required: true
-    },
-    name: {
-        type: mongoose.SchemaTypes.String,
-        required: true
-    },
-    surname: {
-        type: mongoose.SchemaTypes.String,
-        required: true
-    },
-    avatarImgURL: {
-        type: mongoose.SchemaTypes.String,
-        required: true
-    },
-    mail: {
-        type: mongoose.SchemaTypes.String,
         required: true,
         unique: true
     },
+    name: {
+        type: mongoose.SchemaTypes.String,
+        required: false
+    },
+    surname: {
+        type: mongoose.SchemaTypes.String,
+        required: false
+    },
+    avatarImgURL: {
+        type: mongoose.SchemaTypes.String,
+        required: false
+    },
+    mail: {
+        type: mongoose.SchemaTypes.String,
+        required: false,
+        // unique: true
+    },
     state: {
         type: mongoose.SchemaTypes.String,
-        required: true
+        required: false
     },
     roles: {
         type: [mongoose.SchemaTypes.String],
@@ -44,7 +45,7 @@ var userSchema = new mongoose.Schema({
     },
     statistics: {
         type: statistics.getSchema(),
-        required: true,
+        required: false,
     },
     salt: {
         type: mongoose.SchemaTypes.String,
