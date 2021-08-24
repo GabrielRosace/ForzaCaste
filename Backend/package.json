@@ -6,7 +6,8 @@
   "description": "Connect-4 backend",
   "scripts": {
     "compile": "tsc",
-    "start": "node index.js"
+    "start": "node index.js",
+    "auto": "(tsc --watch &) && nodemon index.js"
   },
   "private": true,
   "license": "ISC",
@@ -22,6 +23,7 @@
     "express-jwt": "^6.0.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.6",
+    "nodemod": "^2.8.4",
     "passport": "^0.4.1",
     "passport-http": "^0.3.0",
     "socket.io": "^2.3.0"

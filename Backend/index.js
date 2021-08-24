@@ -136,7 +136,7 @@ app.post('/users', (req, res, next) => {
 app.post("/users/mod", auth, (req, res, next) => {
     // const decoded = decodeJWT(req, res)
     // if(decoded == null) return res.status(401).json({error:true,message:"Cannot decode JWT"})
-    const decoded = req.user;
+    // const decoded = req.user
     user.getModel().findOne({ username: req.user.username }).then((u) => {
         if (u.hasModeratorRole()) {
             const basicStats = new (statistics.getModel())({
