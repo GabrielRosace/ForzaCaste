@@ -34,18 +34,21 @@
 					}
 				}
 			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
 				"auth": {
 					"type": "basic",
 					"basic": [
 						{
-							"key": "username",
-							"value": "gabriel_mod1",
+							"key": "password",
+							"value": "admin",
 							"type": "string"
 						},
 						{
-							"key": "password",
-							"value": "gabriel",
+							"key": "username",
+							"value": "admin",
 							"type": "string"
 						}
 					]
@@ -58,6 +61,10 @@
 						"type": "text"
 					}
 				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
 					"raw": "localhost:8080/login",
 					"host": [
@@ -140,7 +147,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"username\" : \"gabriel_mod2\",\n    \"password\" : \"gabriel\"\n}",
+					"raw": "{\n    \"username\" : \"gabriel_mod4\",\n    \"password\" : \"gabriel\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -189,6 +196,43 @@
 					"path": [
 						"users",
 						"prova"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update user information",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"prova_mod1\",\n    \"name\": \"prova\",\n    \"surname\": \"prova\",\n    \"avatarImgURL\": \"img.url\",\n    \"mail\": \"gabriel_mod1@mail.it\",\n    \"password\":\"gabriel\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/users",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users"
 					]
 				}
 			},

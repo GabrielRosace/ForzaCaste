@@ -8,6 +8,7 @@
  *  /login                  -                   GET             Login an existing user, returning a JWT
  *
  *  /users                  -                   POST            Signin a new user
+ *  /users                  -                   PUT             Update user information
  *  /users/:username        -                   DELETE          Deletion of standard players from moderators
  *
  *  /users/mod              -                   POST            Create a new moderator, only moderator can do it
@@ -74,141 +75,6 @@ app.use((req, res, next) => {
     console.log("Method:" + req.method);
     next();
 });
-//* Add API routes to express application
-app.get("/", (req, res) => {
-    res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users"] }); //TODO setta gli endpoints
-});
-// Login endpoint uses passport middleware to check
-// user credentials before generating a new JWT
-//TODO quando si connette per la prima volta un mod devi fare modificare le impostazioni
-app.get("/login", passport.authenticate('basic', { session: false }), (req, res, next) => {
-    // If we reach this point, the user is successfully authenticated and
-    // has been injected into req.user
-    // We now generate a JWT with the useful user data
-    // and return it as response
-    //TODO: add useful info to JWT
-    var tokendata = {
-        username: req.user.username,
-        roles: req.user.roles,
-        mail: req.user.mail,
-        id: req.user.id
-    };
-    console.log("Login granted. Generating token");
-    var token_signed = jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '1h' });
-    // Note: You can manually check the JWT content at https://jwt.io
-    return res.status(200).json({ error: false, errormessage: "", token: token_signed });
-});
-// Create new user
-app.post('/users', (req, res, next) => {
-    const basicStats = new (statistics.getModel())({
-        nGamesWon: 0,
-        nGamesLost: 0,
-        nGamesPlayed: 0
-    });
-    // const model = user.getModel()
-    console.log("Request Body".blue);
-    console.log(req.body);
-    if (!req.body.password || !req.body.username || !req.body.name || !req.body.surname || !req.body.mail || !req.body.avatarImgURL) {
-        return next({ statusCode: 404, error: true, errormessage: "Some field missing, signin cannot be possibile" });
-    }
-    const doc = createNewUser(basicStats, req.body);
-    // const doc = new model({
-    //   username: req.body.username,
-    //   name: req.body.name,
-    //   surname: req.body.surname,
-    //   avatarImgURL: req.body.avatarImgURL,
-    //   mail: req.body.mail,
-    //   state: 'logged',
-    //   statistics: basicStats
-    // })
-    // doc.setPassword(req.body.password)
-    // doc.setAdmin()
-    doc.save().then((data) => {
-        console.log("New creation of user, email is ".green + data.mail);
-        return res.status(200).json({ error: false, errormessage: "", id: data._id });
-    }).catch((reason) => {
-        if (reason.code === 11000)
-            return next({ statusCode: 404, error: true, errormessage: "User already exists" });
-        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-    });
-});
-// Create a new moderator, only mod can do it
-app.post("/users/mod", auth, (req, res, next) => {
-    // const decoded = decodeJWT(req, res)
-    // if(decoded == null) return res.status(401).json({error:true,message:"Cannot decode JWT"})
-    // const decoded = req.user
-    user.getModel().findOne({ username: req.user.username }).then((u) => {
-        if (u.hasModeratorRole()) {
-            const basicStats = new (statistics.getModel())({
-                nGamesWon: 0,
-                nGamesLost: 0,
-                nGamesPlayed: 0
-            });
-            console.log("Request Body".blue);
-            console.log(req.body);
-            if (!req.body.password || !req.body.username) {
-                return next({ statusCode: 404, error: true, errormessage: "Some field missing, signin cannot be possibile" });
-            }
-            const doc = createNewUser(basicStats, req.body);
-            doc.setModerator();
-            doc.save().then((data) => {
-                console.log("New signin attempt from ".green + data.mail);
-                return res.status(200).json({ error: false, errormessage: "", id: data._id });
-            }).catch((reason) => {
-                if (reason.code === 11000)
-                    return next({ statusCode: 404, error: true, errormessage: "User already exists" });
-                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-            });
-        }
-        else {
-            return res.status(401).json({ error: true, errormessage: "Operation not permitted" });
-        }
-    });
-});
-function createNewUser(statistics, bodyRequest) {
-    const model = user.getModel();
-    const doc = new model({
-        username: bodyRequest.username,
-        name: bodyRequest.name,
-        surname: bodyRequest.surname,
-        avatarImgURL: bodyRequest.avatarImgURL,
-        mail: bodyRequest.mail,
-        state: 'logged',
-        statistics: statistics
-    });
-    doc.setPassword(bodyRequest.password);
-    return doc;
-}
-app.delete("/users/:username", auth, (req, res, next) => {
-    console.log("Deleting user with username ".blue + req.params.username);
-    user.getModel().findOne({ username: req.user.username }).then((u) => {
-        if (u.hasModeratorRole()) {
-            user.getModel().findOne({ username: req.params.username }).then((u) => {
-                if (u.hasModeratorRole()) {
-                    return res.status(401).json({ error: true, errormessage: "You cannot delete a mod" });
-                }
-                else {
-                    user.getModel().deleteOne({ username: req.params.username }).then((q) => {
-                        if (q.deletedCount > 0) {
-                            return res.status(200).json({ error: false, errormessage: "" });
-                        }
-                        else {
-                            return res.status(404).json({ error: true, errormessage: "Invalid username" });
-                        }
-                    }).catch((reason) => {
-                        return next({ statusCode: 404, error: true, errormessage: "DB error " + reason });
-                    });
-                }
-            }).catch((reason) => {
-                return res.status(404).json({ error: true, errormessage: "DB error " + reason });
-            });
-        }
-        else {
-            return res.status(401).json({ error: true, errormessage: "You cannot do it, you aren't a mod!" });
-        }
-    });
-});
-//* END of API routes
 /*
   Configure HTTP basic authentication strategy
   through passport middleware.
@@ -230,6 +96,177 @@ passport.use(new passportHTTP.BasicStrategy(function (username, password, done) 
     });
     // return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid password" });
 }));
+//TODO add console.log
+//* Add API routes to express application
+app.get("/", (req, res) => {
+    res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users"] }); //TODO setta gli endpoints
+});
+// Login endpoint uses passport middleware to check
+// user credentials before generating a new JWT
+app.get("/login", passport.authenticate('basic', { session: false }), (req, res, next) => {
+    // If we reach this point, the user is successfully authenticated and
+    // has been injected into req.user
+    // We now generate a JWT with the useful user data
+    // and return it as response
+    // if (!req.user.mail) {
+    //   console.log("It's your first login, please change your info".red)
+    //   // return done(null, false, {statusCode: 403, error: true, errormessage: "It's your first login, please change your info"})
+    //   return res.status(401).json({error: true, errormessage: "It's your first login, please change your info"})
+    // }
+    //TODO: add useful info to JWT
+    var tokendata = {
+        username: req.user.username,
+        roles: req.user.roles,
+        mail: req.user.mail,
+        id: req.user.id,
+        state: req.user.state
+    };
+    console.log("Login granted. Generating token");
+    var token_signed = jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // Note: You can manually check the JWT content at https://jwt.io
+    return res.status(200).json({ error: false, errormessage: "", token: token_signed });
+});
+// Create new user
+app.post('/users', (req, res, next) => {
+    const basicStats = new (statistics.getModel())({
+        nGamesWon: 0,
+        nGamesLost: 0,
+        nGamesPlayed: 0
+    });
+    console.log("Request Body".blue);
+    console.log(req.body);
+    if (!req.body.password || !req.body.username || !req.body.name || !req.body.surname || !req.body.mail || !req.body.avatarImgURL) {
+        return next({ statusCode: 404, error: true, errormessage: "Some field missing, signin cannot be possibile" });
+    }
+    const doc = createNewUser(basicStats, req.body);
+    doc.setUser();
+    doc.save().then((data) => {
+        console.log("New creation of user, email is ".green + data.mail);
+        return res.status(200).json({ error: false, errormessage: "", id: data._id });
+    }).catch((reason) => {
+        if (reason.code === 11000)
+            return next({ statusCode: 404, error: true, errormessage: "User already exists" });
+        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+    });
+});
+// Create a new moderator, only mod can do it
+app.post("/users/mod", auth, (req, res, next) => {
+    // Check if user who request is a moderator
+    user.getModel().findOne({ username: req.user.username, deleted: false }).then((u) => {
+        if (u.hasModeratorRole()) {
+            const basicStats = new (statistics.getModel())({
+                nGamesWon: 0,
+                nGamesLost: 0,
+                nGamesPlayed: 0
+            });
+            console.log("Request Body".blue);
+            console.log(req.body);
+            if (!req.body.password || !req.body.username) {
+                return next({ statusCode: 404, error: true, errormessage: "Some field missing, signin cannot be possibile" });
+            }
+            const doc = createNewUser(basicStats, req.body);
+            doc.setNonRegisteredMod();
+            doc.save().then((data) => {
+                console.log("New creation of non registered moderator attempt from ".green + data.mail);
+                return res.status(200).json({ error: false, errormessage: "", id: data._id });
+            }).catch((reason) => {
+                if (reason.code === 11000)
+                    return next({ statusCode: 404, error: true, errormessage: "User already exists" });
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+            });
+        }
+        else {
+            return res.status(401).json({ error: true, errormessage: "Operation not permitted" });
+        }
+    }).catch((reason) => {
+        return res.status(401).json({ error: true, errormessage: "DB error: " + reason.errmsg });
+    });
+});
+function createNewUser(statistics, bodyRequest) {
+    const model = user.getModel();
+    const doc = new model({
+        username: bodyRequest.username,
+        name: bodyRequest.name,
+        surname: bodyRequest.surname,
+        avatarImgURL: bodyRequest.avatarImgURL,
+        mail: bodyRequest.mail,
+        state: 'logged',
+        statistics: statistics,
+        deleted: false
+    });
+    doc.setPassword(bodyRequest.password);
+    return doc;
+}
+app.delete("/users/:username", auth, (req, res, next) => {
+    console.log("Deleting user with username ".blue + req.params.username);
+    // Check if user who request is a moderator
+    user.getModel().findOne({ username: req.user.username, deleted: false }).then((u) => {
+        if (u.hasModeratorRole()) {
+            user.getModel().findOne({ username: req.params.username }).then((d) => {
+                if (d.hasModeratorRole()) {
+                    return res.status(401).json({ error: true, errormessage: "You cannot delete a mod" });
+                }
+                else {
+                    //! Eliminazione Fisica
+                    // user.getModel().deleteOne({ username: req.params.username }).then(
+                    //   (q) => {
+                    //     if (q.deletedCount > 0) {
+                    //       return res.status(200).json({ error: false, errormessage: "" })
+                    //     } else {
+                    //       return res.status(404).json({ error: true, errormessage: "Invalid username" })
+                    //     }
+                    //   }
+                    // ).catch((reason) => {
+                    //   return next({ statusCode: 404, error: true, errormessage: "DB error " + reason })
+                    // })
+                    //! Eliminazione Logica
+                    d.deleteUser();
+                    d.save().then((data) => {
+                        console.log(data.username + " deleted".blue);
+                        return res.status(200).json({ error: false, errormessage: "" });
+                    }).catch((reason) => {
+                        return res.status(401).json({ error: true, errormessage: "DB error " + reason });
+                    });
+                }
+            }).catch((reason) => {
+                return res.status(404).json({ error: true, errormessage: "DB error " + reason });
+            });
+        }
+        else {
+            return res.status(401).json({ error: true, errormessage: "You cannot do it, you aren't a mod!" });
+        }
+    }).catch((reason) => {
+        return res.status(401).json({ error: true, errormessage: "DB error " + reason });
+    });
+});
+app.put("/users", auth, (req, res, next) => {
+    console.log("Update user information for ".blue + req.user.username);
+    console.log("Request Body".blue);
+    console.log(req.body);
+    if (!req.body.password || !req.body.name || !req.body.surname || !req.body.mail || !req.body.avatarImgURL) {
+        return next({ statusCode: 404, error: true, errormessage: "Some field missing, update cannot be possibile" });
+    }
+    const doc = user.getModel().findOne({ username: req.user.username, deleted: false }).then((u) => {
+        u.name = req.body.name;
+        u.surname = req.body.surname;
+        u.mail = req.body.mail;
+        u.avatarImgURL = req.body.avatarImgURL;
+        u.setPassword(req.body.password);
+        if (u.hasNonRegisteredModRole()) {
+            console.log("Changing user role to moderator, now all operations are permitted".blue);
+            u.setModerator();
+        }
+        u.save().then((data) => {
+            console.log("Data saved successfully".blue);
+            return res.status(200).json({ error: false, errormessage: "" });
+        }).catch((reason) => {
+            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+        });
+    }).catch((reason) => {
+        return res.status(401).json({ error: true, errormessage: "DB error: " + reason });
+    });
+});
+//* END of API routes
 // Add error handling middleware
 app.use(function (err, req, res, next) {
     console.log("Request error: ".red + JSON.stringify(err));
@@ -248,32 +285,32 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     useCreateIndex: true
 }).then(() => {
     console.log("Connected to MongoDB".green);
-}) /*.then(
-  () => {
-    console.log("Creating admin user");
-
-    const basicStats = new (statistics.getModel())({
-      nGamesWon: 0,
-      nGamesLost: 0,
-      nGamesPlayed: 0
-    })
-
-    const model = user.getModel()
-    const doc = new model({
-      username: "admin",
-      name: "admin",
-      surname: "admin",
-      avatarImgURL: 'https://dt2sdf0db8zob.cloudfront.net/wp-content/uploads/2019/12/9-Best-Online-Avatars-and-How-to-Make-Your-Own-for-Free-image1-5.png',
-      mail: "admin@mail.it",
-      state: 'logged',
-      statistics: basicStats
-    })
-    doc.setPassword("admin")
-    doc.setAdmin()
-    doc.save()
-  }
-)*/
-    .then(() => {
+    return user.getModel().findOne({ username: "admin" });
+}).then((u) => {
+    if (!u) {
+        console.log("Creating admin user".blue);
+        const basicStats = new (statistics.getModel())({
+            nGamesWon: 0,
+            nGamesLost: 0,
+            nGamesPlayed: 0
+        });
+        const d = {
+            username: "admin",
+            name: "admin",
+            surname: "admin",
+            avatarImgURL: 'https://dt2sdf0db8zob.cloudfront.net/wp-content/uploads/2019/12/9-Best-Online-Avatars-and-How-to-Make-Your-Own-for-Free-image1-5.png',
+            mail: "admin@mail.it",
+            password: "admin"
+        };
+        const doc = createNewUser(basicStats, d);
+        // doc.setAdmin() //! Sicuri che serva?
+        doc.setModerator();
+        doc.save();
+    }
+    else {
+        console.log("Admin user already exists".blue);
+    }
+}).then(() => {
     // console.log("Fatto".green)
     let server = http.createServer(app);
     ios = io(server);

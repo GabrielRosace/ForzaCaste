@@ -7,7 +7,7 @@
   "scripts": {
     "compile": "tsc",
     "start": "node index.js",
-    "auto": "(tsc --watch &) && nodemon index.js"
+    "auto": "npm i && (tsc --watch &) && nodemon index.js"
   },
   "private": true,
   "license": "ISC",

@@ -54,6 +54,10 @@ var userSchema = new mongoose.Schema({
     digest: {
         type: mongoose.SchemaTypes.String,
         required: false
+    },
+    deleted: {
+        type: mongoose.SchemaTypes.Boolean,
+        required: false
     }
 });
 // Here we add some methods to the user Schema
@@ -83,26 +87,53 @@ userSchema.methods.validatePassword = function (pwd) {
     return (this.digest === digest);
 };
 userSchema.methods.hasAdminRole = function () {
-    for (var roleidx in this.roles) {
-        if (this.roles[roleidx] === 'ADMIN')
-            return true;
-    }
-    return false;
-};
-userSchema.methods.setAdmin = function () {
-    if (!this.hasAdminRole())
-        this.roles.push("ADMIN");
+    // for (var roleidx in this.roles) {
+    //   if (this.roles[roleidx] === 'ADMIN')
+    //     return true;
+    // }
+    // return false;
+    return this.roles.includes("ADMIN");
 };
 userSchema.methods.hasModeratorRole = function () {
-    for (var roleidx in this.roles) {
-        if (this.roles[roleidx] === 'MODERATOR')
-            return true;
+    // for (var roleidx in this.roles) {
+    //   if (this.roles[roleidx] === 'MODERATOR')
+    //     return true;
+    // }
+    // return false;
+    return this.roles.includes("MODERATOR");
+};
+userSchema.methods.hasNonRegisteredModRole = function () {
+    return this.roles.includes("NONREGMOD");
+};
+userSchema.methods.hasUserRole = function () {
+    return this.roles.includes("USER");
+};
+userSchema.methods.setAdmin = function () {
+    if (!this.hasAdminRole()) {
+        this.roles = [];
+        this.roles.push("ADMIN");
     }
-    return false;
 };
 userSchema.methods.setModerator = function () {
-    if (!this.hasModeratorRole())
+    if (!this.hasModeratorRole()) {
+        this.roles = [];
         this.roles.push("MODERATOR");
+    }
+};
+userSchema.methods.setNonRegisteredMod = function () {
+    if (!this.hasNonRegisteredModRole()) {
+        this.roles = [];
+        this.roles.push("NONREGMOD");
+    }
+};
+userSchema.methods.setUser = function () {
+    if (!this.hasUserRole()) {
+        this.roles = [];
+        this.roles.push("USER");
+    }
+};
+userSchema.methods.deleteUser = function () {
+    this.deleted = true;
 };
 function getSchema() { return userSchema; }
 exports.getSchema = getSchema;

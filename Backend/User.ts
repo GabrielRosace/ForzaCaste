@@ -6,12 +6,6 @@ import { Statistics } from './Statistics';
 import * as statistics from './Statistics'
 
 
-//! Mongoose Docs:
-//! This approach works, 
-//! but we recommend your document interface not extend Document.
-//! Using extends Document makes it difficult for Mongoose to infer which properties are present on query filters, 
-//! lean documents, and other cases.
-
 export interface User extends mongoose.Document {
   // readonly _id: mongoose.Schema.Types.ObjectId,
   username: string,
@@ -20,17 +14,26 @@ export interface User extends mongoose.Document {
   mail?: string,
   state?: string,
   avatarImgURL?: string,
-  roles: string[],
+  roles: string[], //? Perchè ruolo è un'array di stringhe??
   inbox?: Notification[], //? Non è più giusto che sia facoltativo? Oppure Si mette array vuoto?
   statistics?: Statistics,
   salt?: string,    // salt is a random string that will be mixed with the actual password before hashing
   digest?: string,  // this is the hashed password (digest of the password)
+  deleted?: boolean,
   setPassword: (pwd: string) => void,
   validatePassword: (pwd: string) => boolean,
-  hasAdminRole: () => boolean,
-  setAdmin: () => void,
+  // Role management
+  hasAdminRole: () => boolean, //! Serve?
+  setAdmin: () => void, //! Serve?
   hasModeratorRole: () => boolean,
   setModerator: () => void,
+  hasNonRegisteredModRole: () => boolean,
+  setNonRegisteredMod: () => void,
+  hasUserRole:() => boolean,
+  setUser: () => void
+
+  //User management
+  deleteUser: () => void 
 }
 
 var userSchema = new mongoose.Schema<User>({
@@ -82,6 +85,10 @@ var userSchema = new mongoose.Schema<User>({
   digest: {
     type: mongoose.SchemaTypes.String,
     required: false
+  },
+  deleted: {
+    type: mongoose.SchemaTypes.Boolean,
+    required: false
   }
 })
 
@@ -118,29 +125,62 @@ userSchema.methods.validatePassword = function (pwd: string): boolean {
 }
 
 userSchema.methods.hasAdminRole = function (): boolean {
-  for (var roleidx in this.roles) {
-    if (this.roles[roleidx] === 'ADMIN')
-      return true;
-  }
-  return false;
+  // for (var roleidx in this.roles) {
+  //   if (this.roles[roleidx] === 'ADMIN')
+  //     return true;
+  // }
+  // return false;
+  return this.roles.includes("ADMIN")
+}
+
+
+userSchema.methods.hasModeratorRole = function (): boolean {
+  // for (var roleidx in this.roles) {
+  //   if (this.roles[roleidx] === 'MODERATOR')
+  //     return true;
+  // }
+  // return false;
+  return this.roles.includes("MODERATOR")
+}
+
+userSchema.methods.hasNonRegisteredModRole = function (): boolean {
+  return this.roles.includes("NONREGMOD")
+}
+
+userSchema.methods.hasUserRole = function (): boolean{
+  return this.roles.includes("USER")
 }
 
 userSchema.methods.setAdmin = function () {
-  if (!this.hasAdminRole())
+  if (!this.hasAdminRole()) {
+    this.roles = []
     this.roles.push("ADMIN");
-}
-
-userSchema.methods.hasModeratorRole = function (): boolean { //! Forse è meglio usare includes("MODERATOR")
-  for (var roleidx in this.roles) {
-    if (this.roles[roleidx] === 'MODERATOR')
-      return true;
   }
-  return false;
 }
 
 userSchema.methods.setModerator = function () {
-  if (!this.hasModeratorRole())
-    this.roles.push("MODERATOR");
+  if (!this.hasModeratorRole()) {
+    this.roles = []
+    this.roles.push("MODERATOR")
+  }
+}
+
+userSchema.methods.setNonRegisteredMod = function () {
+  if (!this.hasNonRegisteredModRole()) {
+    this.roles = []
+    this.roles.push("NONREGMOD")
+  }
+}
+
+userSchema.methods.setUser = function () {
+  if (!this.hasUserRole()) {
+    this.roles = []
+    this.roles.push("USER")
+  }
+}
+
+userSchema.methods.deleteUser = function () {
+  this.deleted = true
 }
 
 export function getSchema() { return userSchema; }
