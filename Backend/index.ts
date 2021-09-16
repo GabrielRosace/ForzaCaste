@@ -344,6 +344,11 @@ app.put("/users", auth, (req, res, next) => {
   })
 })
 
+/*app.post('/newgame', (req, res, next) => {
+  Creazione di un match con avversario casuale: creare un match e mettere l'avversario a null (o codifica), creare prima una Notificatio o creare Requets
+  Mentre l'utente è in attesa, se l'avversario accetta la partita cosa accade? Come dice al client che inizia la partita
+}*/
+
 //* END of API routes
 
 
