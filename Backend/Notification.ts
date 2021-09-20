@@ -5,6 +5,7 @@ export interface Notification extends mongoose.Document{
     type: string,
     text: string,
     sender: string,
+    receiver: string,
     isFriendRequest: ()=>boolean,
 }
 
@@ -23,6 +24,10 @@ var notificationSchema = new mongoose.Schema<Notification>( {
         required: true 
     },
     sender: {
+        type: mongoose.SchemaTypes.ObjectId,
+        required: true
+    },
+    receiver: {
         type: mongoose.SchemaTypes.ObjectId,
         required: true
     }
