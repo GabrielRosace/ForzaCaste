@@ -71,7 +71,8 @@ import { decode } from 'punycode';
 import { Notification } from './Notification'
 import * as notification from './Notification'
 
-
+import { Match } from './Match'
+import * as match from './Match'
 
 
 
@@ -348,8 +349,14 @@ app.put("/users", auth, (req, res, next) => {
 })
 
 app.post('/randomgame', (req, auth,  res, next) => {
-  const username = req.user.username
-  createNewGameRequest(req.body, username)
+  const matchRequest = notification.getModel().findOne({type: "randomMatchmaking", reiver: null, deleted: false})
+  if(matchRequest != null){
+    
+  }
+  else{
+    const username = req.user.username
+    createNewGameRequest(req.body, username)
+  }
 })
 
 function createNewGameRequest(bodyRequest, username){
@@ -358,9 +365,36 @@ function createNewGameRequest(bodyRequest, username){
     type: bodyRequest.type,
     text: null,
     sender: username, 
-    receiver: null
+    receiver: null,
+    deleted: false
   })
   return doc
+}
+
+function createNewRandomMatch(player1, player2){
+  const model = match.getModel()
+  const doc = new model({
+    inProgress: true,
+    player1: player1,
+    player2: player2,
+    winner: null,
+    playground: createPlayground(),
+    chat: null ,//TODO
+    nTurns: 0
+  })
+}
+
+function createPlayground(){
+  const playground = new Array(6)
+  for(let i = 0; i < 6; i++){
+    playground[i] = new Array(7)
+  }
+  for(let i = 0; i < 6; i++){
+    for(let j = 0; j < 7; j++){
+      playground[i][j] = null
+    }
+  }
+  return playground
 }
 
 //* END of API routes

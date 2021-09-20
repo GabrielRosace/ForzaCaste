@@ -6,6 +6,7 @@ export interface Notification extends mongoose.Document{
     text: string,
     sender: string,
     receiver: string,
+    deleted: boolean,
     isFriendRequest: ()=>boolean,
 }
 
