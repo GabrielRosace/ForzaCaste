@@ -30,7 +30,7 @@ export function getSchema() { return privateChatSchema; }
 
 // Mongoose Model
 var privateChatModel;  // This is not exposed outside the model
-export function getModel() : mongoose.Model< mongoose.Document > { // Return Model as singleton
+export function getModel() : mongoose.Model< PrivateChat > { // Return Model as singleton
     if( !privateChatModel ) {
         privateChatModel = mongoose.model('PrivateChat', getSchema() )
     }

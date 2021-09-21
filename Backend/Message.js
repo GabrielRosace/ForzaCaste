@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getModel = exports.getSchema = exports.isMessage = void 0;
+exports.fromJSONtoMessage = exports.getModel = exports.getSchema = exports.isMessage = void 0;
 const mongoose = require("mongoose");
 // ----------------------------------------------
 // JSON schema validator using ajv
@@ -63,4 +63,14 @@ function getModel() {
     return messageModel;
 }
 exports.getModel = getModel;
+// Message conversion based on validation
+function fromJSONtoMessage(arg) {
+    if (isMessage(arg)) {
+        var _messageModel = getModel();
+        var msg = new _messageModel(arg);
+        return msg;
+    }
+    return null;
+}
+exports.fromJSONtoMessage = fromJSONtoMessage;
 //# sourceMappingURL=Message.js.map

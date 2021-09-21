@@ -92,7 +92,8 @@ userSchema.methods.hasAdminRole = function () {
     //     return true;
     // }
     // return false;
-    return this.roles.includes("ADMIN");
+    // return this.roles.includes("ADMIN")
+    return this.roles === "ADMIN";
 };
 userSchema.methods.hasModeratorRole = function () {
     // for (var roleidx in this.roles) {
@@ -100,36 +101,40 @@ userSchema.methods.hasModeratorRole = function () {
     //     return true;
     // }
     // return false;
-    return this.roles.includes("MODERATOR");
+    return this.roles === "MODERATOR";
 };
 userSchema.methods.hasNonRegisteredModRole = function () {
-    return this.roles.includes("NONREGMOD");
+    return this.roles === "NONREGMOD";
 };
 userSchema.methods.hasUserRole = function () {
-    return this.roles.includes("USER");
+    return this.roles === "USER";
 };
 userSchema.methods.setAdmin = function () {
     if (!this.hasAdminRole()) {
-        this.roles = [];
-        this.roles.push("ADMIN");
+        // this.roles = []
+        // this.roles.push("ADMIN");
+        this.roles = "ADMIN";
     }
 };
 userSchema.methods.setModerator = function () {
     if (!this.hasModeratorRole()) {
-        this.roles = [];
-        this.roles.push("MODERATOR");
+        //   this.roles = []
+        //   this.roles.push("MODERATOR")
+        this.roles = "MODERATOR";
     }
 };
 userSchema.methods.setNonRegisteredMod = function () {
     if (!this.hasNonRegisteredModRole()) {
-        this.roles = [];
-        this.roles.push("NONREGMOD");
+        // this.roles = []
+        // this.roles.push("NONREGMOD")
+        this.roles = "NONREGMOD";
     }
 };
 userSchema.methods.setUser = function () {
     if (!this.hasUserRole()) {
-        this.roles = [];
-        this.roles.push("USER");
+        // this.roles = []
+        // this.roles.push("USER")
+        this.roles = "USER";
     }
 };
 userSchema.methods.deleteUser = function () {

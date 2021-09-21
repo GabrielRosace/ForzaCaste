@@ -14,7 +14,7 @@ export interface User extends mongoose.Document {
   mail?: string,
   state?: string,
   avatarImgURL?: string,
-  roles: string[], //? Perchè ruolo è un'array di stringhe??
+  roles: string, //? Perchè ruolo è un'array di stringhe??
   inbox?: Notification[], //? Non è più giusto che sia facoltativo? Oppure Si mette array vuoto?
   statistics?: Statistics,
   salt?: string,    // salt is a random string that will be mixed with the actual password before hashing
@@ -130,7 +130,8 @@ userSchema.methods.hasAdminRole = function (): boolean {
   //     return true;
   // }
   // return false;
-  return this.roles.includes("ADMIN")
+  // return this.roles.includes("ADMIN")
+  return this.roles === "ADMIN"
 }
 
 
@@ -140,42 +141,46 @@ userSchema.methods.hasModeratorRole = function (): boolean {
   //     return true;
   // }
   // return false;
-  return this.roles.includes("MODERATOR")
+  return this.roles==="MODERATOR"
 }
 
 userSchema.methods.hasNonRegisteredModRole = function (): boolean {
-  return this.roles.includes("NONREGMOD")
+  return this.roles==="NONREGMOD"
 }
 
 userSchema.methods.hasUserRole = function (): boolean{
-  return this.roles.includes("USER")
+  return this.roles==="USER"
 }
 
 userSchema.methods.setAdmin = function () {
   if (!this.hasAdminRole()) {
-    this.roles = []
-    this.roles.push("ADMIN");
+    // this.roles = []
+    // this.roles.push("ADMIN");
+    this.roles = "ADMIN"
   }
 }
 
 userSchema.methods.setModerator = function () {
   if (!this.hasModeratorRole()) {
-    this.roles = []
-    this.roles.push("MODERATOR")
+  //   this.roles = []
+  //   this.roles.push("MODERATOR")
+    this.roles = "MODERATOR"
   }
 }
 
 userSchema.methods.setNonRegisteredMod = function () {
   if (!this.hasNonRegisteredModRole()) {
-    this.roles = []
-    this.roles.push("NONREGMOD")
+    // this.roles = []
+    // this.roles.push("NONREGMOD")
+    this.roles = "NONREGMOD"
   }
 }
 
 userSchema.methods.setUser = function () {
   if (!this.hasUserRole()) {
-    this.roles = []
-    this.roles.push("USER")
+    // this.roles = []
+    // this.roles.push("USER")
+    this.roles = "USER"
   }
 }
 

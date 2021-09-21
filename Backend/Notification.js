@@ -1,7 +1,26 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getModel = exports.getSchema = exports.isNotification = void 0;
+exports.fromJSONtoNotification = exports.isNotification = exports.getModel = exports.getSchema = void 0;
 const mongoose = require("mongoose");
+// ----------------------------------------------
+// JSON schema validator using ajv
+const ajv_formats_1 = require("ajv-formats");
+const Ajv = require("ajv");
+const ajv = new Ajv(); // options can be passed, e.g. {allErrors: true}
+ajv_formats_1.default(ajv);
+const validatorSchema = {
+    type: "object",
+    properties: {
+        type: { type: "string" },
+        text: { type: "string" },
+        sender: { type: "string" },
+        receiver: { type: "string" },
+        deleted: { type: "boolean" }
+    },
+    required: ["type", "sender", "deleted"],
+    additionalProperties: false
+};
+const validate = ajv.compile(validatorSchema);
 /*
 export function isNotification(arg: any): arg is Notification {
     return arg && arg.text && typeof(arg.text) == 'string' && arg.type && Array.isArray(arg.tags) && arg.timestamp && arg.timestamp instanceof Date && arg.authormail && typeof(arg.authormail) == 'string' ;
@@ -26,10 +45,9 @@ var notificationSchema = new mongoose.Schema({
         required: true
     }
 });
-function isNotification(arg) {
-    return arg && arg.content && typeof (arg.content) == 'string' && arg.timestamp && arg.timestamp instanceof Date && arg.sender && typeof (arg.sender) == 'string';
-}
-exports.isNotification = isNotification;
+// export function isNotification(arg: any): arg is Notification {
+//   return arg && arg.content && typeof (arg.content) == 'string' && arg.timestamp && arg.timestamp instanceof Date && arg.sender && typeof (arg.sender) == 'string';
+// }
 notificationSchema.methods.isFriendRequest = function () {
     var isFR = false;
     if (this.type == "FriendRequest") {
@@ -48,4 +66,17 @@ function getModel() {
     return notificationModel;
 }
 exports.getModel = getModel;
+function isNotification(arg) {
+    return validate(arg);
+}
+exports.isNotification = isNotification;
+function fromJSONtoNotification(arg) {
+    if (isNotification(arg)) {
+        var _NotificationModel = getModel();
+        var not = new _NotificationModel(arg);
+        return not;
+    }
+    return null;
+}
+exports.fromJSONtoNotification = fromJSONtoNotification;
 //# sourceMappingURL=Notification.js.map

@@ -29,7 +29,7 @@ const validate = ajv.compile(validatorSchema)
 export interface Message {
   content: string,
   timestamp: Date,
-  sender: mongoose.Schema.Types.ObjectId
+  sender: mongoose.Schema.Types.ObjectId,
 }
 
 // User defined type guard
@@ -42,6 +42,7 @@ export function isMessage(arg: any): arg is Message {
   // return arg && arg.content && typeof (arg.content) == 'string' && arg.timestamp && arg.timestamp instanceof Date && arg.sender && typeof (arg.sender) == 'string';
   return validate(arg)
 }
+
 
 // We use Mongoose to perform the ODM between our application and
 // mongodb. To do that we need to create a Schema and an associated
@@ -69,9 +70,19 @@ export function getSchema() { return messageSchema; }
 
 // Mongoose Model
 var messageModel;  // This is not exposed outside the model
-export function getModel(): mongoose.Model<mongoose.Document> { // Return Model as singleton
+export function getModel(): mongoose.Model<Message> { // Return Model as singleton
   if (!messageModel) {
     messageModel = mongoose.model('Message', getSchema())
   }
   return messageModel;
+}
+
+// Message conversion based on validation
+export function fromJSONtoMessage(arg: any): Message{
+  if (isMessage(arg)) {
+    var _messageModel = getModel()
+    var msg = new _messageModel(arg)
+    return msg
+  }
+  return null
 }
