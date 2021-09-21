@@ -74,7 +74,8 @@ import * as notification from './Notification'
 import { Match } from './Match'
 import * as match from './Match'
 
-
+import { Message } from './Message'
+import * as message from './Message'
 
 
 declare global { // TODO: Modifica questo
@@ -150,7 +151,7 @@ passport.use(new passportHTTP.BasicStrategy(
 //* Add API routes to express application
 
 app.get("/", (req, res) => {
-  res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users"] }); //TODO setta gli endpoints
+  res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/randomgame"] }); //TODO setta gli endpoints
 });
 
 
@@ -348,15 +349,42 @@ app.put("/users", auth, (req, res, next) => {
   })
 })
 
-app.post('/randomgame', (req, auth,  res, next) => {
-  const matchRequest = notification.getModel().findOne({type: "randomMatchmaking", reiver: null, deleted: false})
-  if(matchRequest != null){
-    
-  }
-  else{
-    const username = req.user.username
-    createNewGameRequest(req.body, username)
-  }
+app.post('/randomgame', auth, (req,  res, next) => {
+  const matchRequest = notification.getModel().findOne({type: "randomMatchmaking", sender: {$ne: req.user.username}, receiver: null, deleted: false}).then((n) => {
+    if(notification.isNotification(n)){ 
+      if(n != null){
+        const u = user.getModel().findOne({username: req.user.username}).then((us: User) => {
+          const randomMatch = createNewRandomMatch(n.sender, us._id)
+          console.log(randomMatch);
+          
+          randomMatch.save().then((data) => {
+            console.log("New creation of random match");
+            return res.status(200).json({error: false, errormessage: ""})
+          }).catch((reason) => {
+            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+          })
+          n.deleted = true
+        })
+      }
+      else{
+        const u = user.getModel().findOne({username: req.user.username}).then((us: User) => {
+          const doc = createNewGameRequest(req.body, us._id)
+          
+          doc.save().then((data) => {
+            if(notification.isNotification(data)){
+              console.log("New creation of matchmaking request, player1 is: " + data.sender)
+              return res.status(200).json({ error: false, errormessage: ""});
+            }
+          }).catch((reason) => {       
+            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+          })
+        })
+      }
+    }
+    n.save().then().catch((reason) => {
+      return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+    })
+  })
 })
 
 function createNewGameRequest(bodyRequest, username){
@@ -379,9 +407,10 @@ function createNewRandomMatch(player1, player2){
     player2: player2,
     winner: null,
     playground: createPlayground(),
-    chat: null ,//TODO
+    chat: new Array(),
     nTurns: 0
   })
+  return doc
 }
 
 function createPlayground(){
@@ -391,11 +420,12 @@ function createPlayground(){
   }
   for(let i = 0; i < 6; i++){
     for(let j = 0; j < 7; j++){
-      playground[i][j] = null
+      playground[i][j] = '/'
     }
   }
   return playground
 }
+
 
 //* END of API routes
 

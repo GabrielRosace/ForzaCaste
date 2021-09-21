@@ -26,9 +26,8 @@ var matchSchema = new mongoose.Schema( {
     },
     winner: {
         type: mongoose.SchemaTypes.ObjectId,
-        required: true
     },
-    playground: {
+    playground: { //TODO controllare dimensioni campo di gioco
         type: [[mongoose.SchemaTypes.String]],//[mongoose.SchemaTypes.String],
         //validate: [arrayLimit, '{PATH} exceeds the limit of 7'],
         required: true

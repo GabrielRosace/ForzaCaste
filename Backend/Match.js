@@ -18,7 +18,6 @@ var matchSchema = new mongoose.Schema({
     },
     winner: {
         type: mongoose.SchemaTypes.ObjectId,
-        required: true
     },
     playground: {
         type: [[mongoose.SchemaTypes.String]],

@@ -51,6 +51,8 @@ const cors = require("cors"); // Enable CORS middleware
 const io = require("socket.io"); // Socket.io websocket library
 const user = require("./User");
 const statistics = require("./Statistics");
+const notification = require("./Notification");
+const match = require("./Match");
 var ios = undefined;
 var app = express();
 /*
@@ -99,7 +101,7 @@ passport.use(new passportHTTP.BasicStrategy(function (username, password, done) 
 //TODO add console.log
 //* Add API routes to express application
 app.get("/", (req, res) => {
-    res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users"] }); //TODO setta gli endpoints
+    res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/randomgame"] }); //TODO setta gli endpoints
 });
 // Login endpoint uses passport middleware to check
 // user credentials before generating a new JWT
@@ -266,6 +268,77 @@ app.put("/users", auth, (req, res, next) => {
         return res.status(401).json({ error: true, errormessage: "DB error: " + reason });
     });
 });
+app.post('/randomgame', auth, (req, res, next) => {
+    const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", sender: { $ne: req.user.username }, receiver: null, deleted: false }).then((n) => {
+        if (notification.isNotification(n)) {
+            if (n != null) {
+                const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
+                    const randomMatch = createNewRandomMatch(n.sender, us._id);
+                    console.log(randomMatch);
+                    randomMatch.save().then((data) => {
+                        console.log("New creation of random match");
+                        return res.status(200).json({ error: false, errormessage: "" });
+                    }).catch((reason) => {
+                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                    });
+                    n.deleted = true;
+                });
+            }
+            else {
+                const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
+                    const doc = createNewGameRequest(req.body, us._id);
+                    doc.save().then((data) => {
+                        if (notification.isNotification(data)) {
+                            console.log("New creation of matchmaking request, player1 is: " + data.sender);
+                            return res.status(200).json({ error: false, errormessage: "" });
+                        }
+                    }).catch((reason) => {
+                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                    });
+                });
+            }
+        }
+        n.save().then().catch((reason) => {
+            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+        });
+    });
+});
+function createNewGameRequest(bodyRequest, username) {
+    const model = notification.getModel();
+    const doc = new model({
+        type: bodyRequest.type,
+        text: null,
+        sender: username,
+        receiver: null,
+        deleted: false
+    });
+    return doc;
+}
+function createNewRandomMatch(player1, player2) {
+    const model = match.getModel();
+    const doc = new model({
+        inProgress: true,
+        player1: player1,
+        player2: player2,
+        winner: null,
+        playground: createPlayground(),
+        chat: new Array(),
+        nTurns: 0
+    });
+    return doc;
+}
+function createPlayground() {
+    const playground = new Array(6);
+    for (let i = 0; i < 6; i++) {
+        playground[i] = new Array(7);
+    }
+    for (let i = 0; i < 6; i++) {
+        for (let j = 0; j < 7; j++) {
+            playground[i][j] = '/';
+        }
+    }
+    return playground;
+}
 //* END of API routes
 // Add error handling middleware
 app.use(function (err, req, res, next) {
