@@ -5,7 +5,10 @@ export interface Notification extends mongoose.Document{
     type: string,
     text: string,
     sender: string,
+    receiver: string,
+    deleted: boolean,
     isFriendRequest: ()=>boolean,
+    isNotification: () => boolean
 }
 
 /*
@@ -20,13 +23,23 @@ var notificationSchema = new mongoose.Schema<Notification>( {
     },
     text:  {
         type: mongoose.SchemaTypes.String,
-        required: true 
     },
     sender: {
         type: mongoose.SchemaTypes.ObjectId,
         required: true
+    },
+    receiver: {
+        type: mongoose.SchemaTypes.ObjectId,
+    },
+    deleted: {
+        type: mongoose.SchemaTypes.Boolean,
+        required: true
     }
 })
+
+export function isNotification(arg: any): arg is Notification {
+    return arg && arg.content && typeof(arg.content) == 'string' && arg.timestamp && arg.timestamp instanceof Date && arg.sender && typeof(arg.sender) == 'string' ;
+}
 
 notificationSchema.methods.isFriendRequest = function(): boolean {
     var isFR = false;
