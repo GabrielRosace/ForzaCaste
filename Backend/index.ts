@@ -67,6 +67,7 @@ import * as user from './User';
 import { Statistics } from './Statistics'
 import * as statistics from './Statistics'
 import { decode } from 'punycode';
+import { isMessage } from './Message';
 
 
 
@@ -146,6 +147,7 @@ passport.use(new passportHTTP.BasicStrategy(
 //* Add API routes to express application
 
 app.get("/", (req, res) => {
+  isMessage("prova")
   res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users"] }); //TODO setta gli endpoints
 });
 

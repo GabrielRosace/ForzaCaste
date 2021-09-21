@@ -107,5 +107,6 @@ dist
 
 # Our ignored files
 mongo-volume/*
-.vscode/
+.vscode/*
 *.map
+.vscodeignore

@@ -51,6 +51,7 @@ const cors = require("cors"); // Enable CORS middleware
 const io = require("socket.io"); // Socket.io websocket library
 const user = require("./User");
 const statistics = require("./Statistics");
+const Message_1 = require("./Message");
 var ios = undefined;
 var app = express();
 /*
@@ -99,6 +100,7 @@ passport.use(new passportHTTP.BasicStrategy(function (username, password, done) 
 //TODO add console.log
 //* Add API routes to express application
 app.get("/", (req, res) => {
+    Message_1.isMessage("prova");
     res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users"] }); //TODO setta gli endpoints
 });
 // Login endpoint uses passport middleware to check
@@ -266,6 +268,10 @@ app.put("/users", auth, (req, res, next) => {
         return res.status(401).json({ error: true, errormessage: "DB error: " + reason });
     });
 });
+/*app.post('/newgame', (req, res, next) => {
+  Creazione di un match con avversario casuale: creare un match e mettere l'avversario a null (o codifica), creare prima una Notificatio o creare Requets
+  Mentre l'utente è in attesa, se l'avversario accetta la partita cosa accade? Come dice al client che inizia la partita
+}*/
 //* END of API routes
 // Add error handling middleware
 app.use(function (err, req, res, next) {
