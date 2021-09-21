@@ -28,7 +28,7 @@
 					"script": {
 						"exec": [
 							"var jsonData = pm.response.json();",
-							"pm.globals.set(\"JWT_TOKEN\",jsonData.token);"
+							"pm.environment.set(\"JWT_TOKEN\",jsonData.token);"
 						],
 						"type": "text/javascript"
 					}
@@ -91,6 +91,34 @@
 					"port": "8080",
 					"path": [
 						"invalid"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logged User",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/whoami",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"whoami"
 					]
 				}
 			},

@@ -339,6 +339,12 @@ function createPlayground() {
     }
     return playground;
 }
+// TODO cancella sta cosa
+app.get("/whoami", auth, (req, res, next) => {
+    console.log(req.user);
+    // return next({ statusCode: 200, error: false, errormessage: "Ciao " + req.user.username })
+    return res.status(200).json({ error: false, errormessage: `L'utente loggato è ${req.user.username}` });
+});
 //* END of API routes
 // Add error handling middleware
 app.use(function (err, req, res, next) {
