@@ -269,10 +269,10 @@ app.put("/users", auth, (req, res, next) => {
     });
 });
 app.post('/randomgame', auth, (req, res, next) => {
-    const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", sender: { $ne: req.user.username }, receiver: null, deleted: false }).then((n) => {
-        if (notification.isNotification(n)) {
-            if (n != null) {
-                const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
+    const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
+        const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", sender: { $ne: us._id }, receiver: null, deleted: false }).then((n) => {
+            if (notification.isNotification(n)) {
+                if (n != null) {
                     const randomMatch = createNewRandomMatch(n.sender, us._id);
                     console.log(randomMatch);
                     randomMatch.save().then((data) => {
@@ -282,32 +282,35 @@ app.post('/randomgame', auth, (req, res, next) => {
                         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
                     });
                     n.deleted = true;
-                });
+                    if (n != null) {
+                        n.save().then().catch((reason) => {
+                            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                        });
+                    }
+                }
             }
             else {
                 const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
                     const doc = createNewGameRequest(req.body, us._id);
                     doc.save().then((data) => {
                         if (notification.isNotification(data)) {
-                            console.log("New creation of matchmaking request, player1 is: " + data.sender);
-                            return res.status(200).json({ error: false, errormessage: "" });
+                            console.log("New creation of matchmaking request, player1 is: ");
+                            return res.status(200).json({ error: false, message: "Waiting for other player..." });
                         }
                     }).catch((reason) => {
                         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
                     });
                 });
             }
-        }
-        n.save().then().catch((reason) => {
-            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
         });
     });
 });
 function createNewGameRequest(bodyRequest, username) {
+    console.log(typeof (bodyRequest.type) + bodyRequest.type);
     const model = notification.getModel();
     const doc = new model({
         type: bodyRequest.type,
-        text: null,
+        text: "",
         sender: username,
         receiver: null,
         deleted: false

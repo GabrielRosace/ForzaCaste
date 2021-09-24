@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 const ajv_formats_1 = require("ajv-formats");
 const Ajv = require("ajv");
 const ajv = new Ajv(); // options can be passed, e.g. {allErrors: true}
-ajv_formats_1.default(ajv);
+(0, ajv_formats_1.default)(ajv);
 const validatorSchema = {
     type: "object",
     properties: {
@@ -15,7 +15,8 @@ const validatorSchema = {
         text: { type: "string" },
         sender: { type: "string" },
         receiver: { type: "string" },
-        deleted: { type: "boolean" }
+        deleted: { type: "boolean" },
+        _id: { type: "string" }
     },
     required: ["type", "sender", "deleted"],
     additionalProperties: false
@@ -67,7 +68,9 @@ function getModel() {
 }
 exports.getModel = getModel;
 function isNotification(arg) {
+    console.log(validate(arg));
     return validate(arg);
+    //TODO
 }
 exports.isNotification = isNotification;
 function fromJSONtoNotification(arg) {

@@ -15,7 +15,8 @@ const validatorSchema = {
     text: { type: "string" },
     sender: { type: "string" },
     receiver: { type: "string" },
-    deleted: { type: "boolean" }
+    deleted: { type: "boolean" },
+    _id: {type: "string"}
   },
   required: ["type", "sender", "deleted"],
   additionalProperties: false
@@ -86,8 +87,11 @@ export function getModel(): mongoose.Model<Notification> { // Return Model as si
 }
 
 export function isNotification(arg: any): arg is Notification {
+  console.log(validate(arg));
+     
   return validate(arg)
-}
+  //TODO
+  }
 export function fromJSONtoNotification(arg: any): Notification {
   if (isNotification(arg)) {
     var _NotificationModel = getModel()
