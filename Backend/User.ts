@@ -67,7 +67,7 @@ var userSchema = new mongoose.Schema<User>({
     required: false
   },
   roles: {
-    type: [mongoose.SchemaTypes.String],
+    type: mongoose.SchemaTypes.String,
     required: true
   },
   inbox: {
