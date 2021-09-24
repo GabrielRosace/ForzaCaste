@@ -101,6 +101,14 @@ passport.use(new passportHTTP.BasicStrategy(function (username, password, done) 
 //TODO add console.log
 //* Add API routes to express application
 app.get("/", (req, res) => {
+    const doc = {
+        type: "randomMatchmaking",
+        text: null,
+        sender: "611cedfe90350a07fc9b519b",
+        receiver: null,
+        deleted: false
+    };
+    notification.isNotification(doc);
     res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/randomgame"] }); //TODO setta gli endpoints
 });
 // Login endpoint uses passport middleware to check

@@ -8,13 +8,13 @@ const ajv = new Ajv() // options can be passed, e.g. {allErrors: true}
 
 addFormats(ajv)
 
-const validatorSchema = {
+const validatorSchema = { //TODO aggiungere altri nullable se ce ne sono
   type: "object",
   properties: {
     type: { type: "string" },
-    text: { type: "string" },
+    text: { type: "string", nullable: true },
     sender: { type: "string" },
-    receiver: { type: "string" },
+    receiver: { type: "string", nullable: true },
     deleted: { type: "boolean" }
   },
   required: ["type", "sender", "deleted"],
@@ -67,11 +67,12 @@ var notificationSchema = new mongoose.Schema<Notification>({
 // }
 
 notificationSchema.methods.isFriendRequest = function (): boolean {
-  var isFR = false;
-  if (this.type == "FriendRequest") {
-    isFR = true;
-  }
-  return isFR;
+  // var isFR = false;
+  // if (this.type == "FriendRequest") {
+  //   isFR = true;
+  // }
+  // return isFR;
+  return this.type === "FriendRequest"
 }
 
 export function getSchema() { return notificationSchema; }
