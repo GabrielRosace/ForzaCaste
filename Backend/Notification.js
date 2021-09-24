@@ -12,11 +12,10 @@ const validatorSchema = {
     type: "object",
     properties: {
         type: { type: "string" },
-        text: { type: "string" },
+        text: { type: "string", nullable: true },
         sender: { type: "string" },
-        receiver: { type: "string" },
-        deleted: { type: "boolean" },
-        _id: { type: "string" }
+        receiver: { type: "string", nullable: true },
+        deleted: { type: "boolean" }
     },
     required: ["type", "sender", "deleted"],
     additionalProperties: false
@@ -50,11 +49,12 @@ var notificationSchema = new mongoose.Schema({
 //   return arg && arg.content && typeof (arg.content) == 'string' && arg.timestamp && arg.timestamp instanceof Date && arg.sender && typeof (arg.sender) == 'string';
 // }
 notificationSchema.methods.isFriendRequest = function () {
-    var isFR = false;
-    if (this.type == "FriendRequest") {
-        isFR = true;
-    }
-    return isFR;
+    // var isFR = false;
+    // if (this.type == "FriendRequest") {
+    //   isFR = true;
+    // }
+    // return isFR;
+    return this.type === "FriendRequest";
 };
 function getSchema() { return notificationSchema; }
 exports.getSchema = getSchema;
