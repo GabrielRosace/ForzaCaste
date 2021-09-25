@@ -149,8 +149,13 @@ passport.use(new passportHTTP.BasicStrategy(
 
 //TODO add console.log
 //* Add API routes to express application
-
 app.get("/", (req, res) => {
+  // Debug Notification
+  // notification.getModel().findOne().then((n) => {
+  //   console.log(n)
+  //   console.log(notification.isNotification(n))
+  // })
+
   res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/randomgame"] }); //TODO setta gli endpoints
 });
 

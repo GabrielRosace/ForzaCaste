@@ -12,13 +12,13 @@ const validatorSchema = { //TODO aggiungere altri nullable se ce ne sono
   type: "object",
   properties: {
     type: { type: "string" },
-    text: { type: "string"},
+    text: { type: "string", nullable: true },
     sender: { type: "string" },
-    receiver: { type: "string"},
+    receiver: { type: "string", nullable: true },
     deleted: { type: "boolean" }
   },
   required: ["type", "sender", "deleted"],
-  additionalProperties: false
+  additionalProperties: true
 }
 
 const validate = ajv.compile(validatorSchema)
@@ -62,11 +62,11 @@ var notificationSchema = new mongoose.Schema<Notification>({
   }
 })
 
-export function isNotification(arg: any): arg is Notification {
-  console.log(arg && arg.sender && typeof (arg.sender) == 'string');
-  
-  return arg && arg.sender && typeof (arg.sender) == 'string';
-}
+// export function isNotification(arg: any): arg is Notification {
+//   console.log(arg && arg.sender && typeof (arg.sender) == 'string');
+
+//   return arg && arg.sender && typeof (arg.sender) == 'string';
+// }
 
 notificationSchema.methods.isFriendRequest = function (): boolean {
   // var isFR = false;
@@ -88,12 +88,16 @@ export function getModel(): mongoose.Model<Notification> { // Return Model as si
   return notificationModel;
 }
 
-// export function isNotification(arg: any): arg is Notification {
-//   console.log(validate(arg));
-     
-//   return validate(arg)
-//   //TODO
-//   }
+export function isNotification(arg: any): arg is Notification {
+
+  if (!validate(arg)) {
+    console.log("Notification Validator Error ".red)
+    console.log(validate.errors)
+    return false
+  }
+  return true
+}
+
 export function fromJSONtoNotification(arg: any): Notification {
   if (isNotification(arg)) {
     var _NotificationModel = getModel()
