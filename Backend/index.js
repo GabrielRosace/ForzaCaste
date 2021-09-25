@@ -272,9 +272,9 @@ app.post('/randomgame', auth, (req, res, next) => {
     const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
         const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", sender: { $ne: us._id }, receiver: null, deleted: false }).then((n) => {
             if (notification.isNotification(n)) {
+                console.log("Esiste uan richiesta");
                 if (n != null) {
                     const randomMatch = createNewRandomMatch(n.sender, us._id);
-                    console.log(randomMatch);
                     randomMatch.save().then((data) => {
                         console.log("New creation of random match");
                         return res.status(200).json({ error: false, errormessage: "" });
@@ -291,10 +291,13 @@ app.post('/randomgame', auth, (req, res, next) => {
             }
             else {
                 const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
+                    console.log("Non esiste una richiesta");
                     const doc = createNewGameRequest(req.body, us._id);
+                    console.log(doc);
                     doc.save().then((data) => {
                         if (notification.isNotification(data)) {
                             console.log("New creation of matchmaking request, player1 is: ");
+                            res.status(200).send("Waiting for other player...");
                             return res.status(200).json({ error: false, message: "Waiting for other player..." });
                         }
                     }).catch((reason) => {
@@ -306,12 +309,11 @@ app.post('/randomgame', auth, (req, res, next) => {
     });
 });
 function createNewGameRequest(bodyRequest, username) {
-    console.log(typeof (bodyRequest.type) + bodyRequest.type);
     const model = notification.getModel();
     const doc = new model({
         type: bodyRequest.type,
-        text: "",
-        sender: username,
+        text: null,
+        sender: username.toString(),
         receiver: null,
         deleted: false
     });
