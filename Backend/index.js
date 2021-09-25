@@ -296,8 +296,8 @@ app.post('/randomgame', auth, (req, res, next) => {
                     console.log(doc);
                     doc.save().then((data) => {
                         if (notification.isNotification(data)) {
-                            console.log("New creation of matchmaking request, player1 is: ");
-                            res.status(200).send("Waiting for other player...");
+                            console.log("New creation of matchmaking request, player1 is: " + data.sender);
+                            //res.status(200).send("Waiting for other player...")
                             return res.status(200).json({ error: false, message: "Waiting for other player..." });
                         }
                     }).catch((reason) => {
