@@ -48,12 +48,15 @@ const passportHTTP = require("passport-http"); // Implements Basic and Digest au
 const jsonwebtoken = require("jsonwebtoken"); // JWT generation
 const jwt = require("express-jwt"); // JWT parsing middleware for express
 const cors = require("cors"); // Enable CORS middleware
+const server = http.createServer(app);
+const Server = require('socket.io');
+var ios = Server(server);
 const io = require("socket.io"); // Socket.io websocket library
 const user = require("./User");
 const statistics = require("./Statistics");
 const notification = require("./Notification");
 const match = require("./Match");
-var ios = undefined;
+//var ios = undefined;
 var app = express();
 /*
   We create the JWT authentication middleware
@@ -268,6 +271,19 @@ app.put("/users", auth, (req, res, next) => {
         return res.status(401).json({ error: true, errormessage: "DB error: " + reason });
     });
 });
+// app.listen(3000, function () {
+//   console.log('Listening on port 3000!');
+//  });
+// ios.on("connection", function (client) {
+//   console.log("Socket.io client connected".green);
+// });
+ios.on('connection', (socket) => {
+    console.log('socket is ready for connection');
+    socket.on('waitingPlayer', (msg) => {
+        console.log("A player is waiting");
+        console.log(msg);
+    });
+});
 app.post('/randomgame', auth, (req, res, next) => {
     const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
         const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", sender: { $ne: us._id }, receiver: null, deleted: false }).then((n) => {
@@ -297,7 +313,6 @@ app.post('/randomgame', auth, (req, res, next) => {
                     doc.save().then((data) => {
                         if (notification.isNotification(data)) {
                             console.log("New creation of matchmaking request, player1 is: " + data.sender);
-                            //res.status(200).send("Waiting for other player...")
                             return res.status(200).json({ error: false, message: "Waiting for other player..." });
                         }
                     }).catch((reason) => {
@@ -395,7 +410,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         console.log("Admin user already exists".blue);
     }
 }).then(() => {
-    // console.log("Fatto".green)
+    console.log("Fatto".green);
     let server = http.createServer(app);
     ios = io(server);
     ios.on("connection", function (client) {

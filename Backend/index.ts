@@ -56,8 +56,14 @@ import jsonwebtoken = require('jsonwebtoken');    // JWT generation
 import jwt = require('express-jwt');              // JWT parsing middleware for express
 
 import cors = require('cors');                    // Enable CORS middleware
+
+const server = http.createServer(app)
+const Server = require('socket.io')
+var ios = Server(server)
 import io = require('socket.io');                 // Socket.io websocket library
 import { nextTick } from 'process'; //! Cos'è?
+
+
 
 
 // * Import application module *
@@ -89,7 +95,7 @@ declare global { // TODO: Modifica questo
   }
 }
 
-var ios = undefined;
+//var ios = undefined;
 var app = express();
 
 
@@ -349,6 +355,22 @@ app.put("/users", auth, (req, res, next) => {
   })
 })
 
+// app.listen(3000, function () {
+//   console.log('Listening on port 3000!');
+//  });
+
+// ios.on("connection", function (client) {
+//   console.log("Socket.io client connected".green);
+// });
+
+ios.on('connection', (socket) => {
+  console.log('socket is ready for connection');
+  socket.on('waitingPlayer',(msg) => {
+    console.log("A player is waiting")
+    console.log(msg)
+  })
+})
+
 app.post('/randomgame', auth, (req,  res, next) => { 
   const u = user.getModel().findOne({username: req.user.username}).then((us: User) => {
     const matchRequest = notification.getModel().findOne({type: "randomMatchmaking", sender : {$ne : us._id}, receiver: null, deleted: false}).then((n) => {
@@ -383,8 +405,7 @@ app.post('/randomgame', auth, (req,  res, next) => {
             
             if(notification.isNotification(data)){
               console.log("New creation of matchmaking request, player1 is: " + data.sender)
-              //res.status(200).send("Waiting for other player...")
-              
+
               return res.status(200).json({ error: false, message: "Waiting for other player..."});
             }
           }).catch((reason) => {         
@@ -499,17 +520,17 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 ).then(
   () => {
 
-    // console.log("Fatto".green)
+    console.log("Fatto".green)
 
     let server = http.createServer(app);
 
     ios = io(server);
     ios.on("connection", function (client) {
-      console.log("Socket.io client connected".green);
+       console.log("Socket.io client connected".green);
     });
 
-    server.listen(8080, () => console.log("HTTP Server started on port 8080".green));
-  }
+     server.listen(8080, () => console.log("HTTP Server started on port 8080".green));
+   }
 ).catch(
   (err) => {
     console.log("Error Occurred during initialization".red);
