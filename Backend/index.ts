@@ -56,7 +56,9 @@ import jsonwebtoken = require('jsonwebtoken');    // JWT generation
 import jwt = require('express-jwt');              // JWT parsing middleware for express
 
 import cors = require('cors');                    // Enable CORS middleware
-import io = require('socket.io');                 // Socket.io websocket library
+// import io = require('socket.io');                 // Socket.io websocket library
+const { Server } = require("socket.io");
+// const io = new Server();
 import { nextTick } from 'process'; //! Cos'è?
 
 
@@ -507,10 +509,20 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     // console.log("Fatto".green)
 
     let server = http.createServer(app);
+    const option = {
+      allowEIO3: true
+    }
 
-    ios = io(server);
+
+    ios = new Server(server, option)
+    
+
     ios.on("connection", function (client) {
       console.log("Socket.io client connected".green);
+
+      client.on("disconnect", function (client){
+        console.log("Socket.io client disconnected".red)
+      })
     });
 
     server.listen(8080, () => console.log("HTTP Server started on port 8080".green));

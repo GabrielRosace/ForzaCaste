@@ -48,7 +48,8 @@ const passportHTTP = require("passport-http"); // Implements Basic and Digest au
 const jsonwebtoken = require("jsonwebtoken"); // JWT generation
 const jwt = require("express-jwt"); // JWT parsing middleware for express
 const cors = require("cors"); // Enable CORS middleware
-const io = require("socket.io"); // Socket.io websocket library
+// import io = require('socket.io');                 // Socket.io websocket library
+const { Server } = require("socket.io");
 const user = require("./User");
 const statistics = require("./Statistics");
 const notification = require("./Notification");
@@ -402,9 +403,15 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 }).then(() => {
     // console.log("Fatto".green)
     let server = http.createServer(app);
-    ios = io(server);
+    const option = {
+        allowEIO3: true
+    };
+    ios = new Server(server, option);
     ios.on("connection", function (client) {
         console.log("Socket.io client connected".green);
+        client.on("disconnect", function (client) {
+            console.log("Socket.io client disconnected".red);
+        });
     });
     server.listen(8080, () => console.log("HTTP Server started on port 8080".green));
 }).catch((err) => {
