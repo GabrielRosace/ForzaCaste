@@ -56,11 +56,9 @@ import jsonwebtoken = require('jsonwebtoken');    // JWT generation
 import jwt = require('express-jwt');              // JWT parsing middleware for express
 
 import cors = require('cors');                    // Enable CORS middleware
-
-const server = http.createServer(app)
-const Server = require('socket.io')
-var ios = Server(server)
-import io = require('socket.io');                 // Socket.io websocket library
+// import io = require('socket.io');                 // Socket.io websocket library
+const { Server } = require("socket.io");
+// const io = new Server();
 import { nextTick } from 'process'; //! Cos'è?
 
 
@@ -155,8 +153,13 @@ passport.use(new passportHTTP.BasicStrategy(
 
 //TODO add console.log
 //* Add API routes to express application
-
 app.get("/", (req, res) => {
+  // Debug Notification
+  // notification.getModel().findOne().then((n) => {
+  //   console.log(n)
+  //   console.log(notification.isNotification(n))
+  // })
+
   res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/randomgame"] }); //TODO setta gli endpoints
 });
 
@@ -363,13 +366,13 @@ app.put("/users", auth, (req, res, next) => {
 //   console.log("Socket.io client connected".green);
 // });
 
-ios.on('connection', (socket) => {
-  console.log('socket is ready for connection');
-  socket.on('waitingPlayer',(msg) => {
-    console.log("A player is waiting")
-    console.log(msg)
-  })
-})
+// ios.on('connection', (socket) => {
+//   console.log('socket is ready for connection');
+//   socket.on('waitingPlayer',(msg) => {
+//     console.log("A player is waiting")
+//     console.log(msg)
+//   })
+// })
 
 app.post('/randomgame', auth, (req,  res, next) => { 
   const u = user.getModel().findOne({username: req.user.username}).then((us: User) => {
@@ -523,10 +526,20 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     console.log("Fatto".green)
 
     let server = http.createServer(app);
+    const option = {
+      allowEIO3: true
+    }
 
-    ios = io(server);
+
+    let ios = new Server(server, option)
+    
+
     ios.on("connection", function (client) {
-       console.log("Socket.io client connected".green);
+      console.log("Socket.io client connected".green);
+
+      client.on("disconnect", function (client){
+        console.log("Socket.io client disconnected".red)
+      })
     });
 
      server.listen(8080, () => console.log("HTTP Server started on port 8080".green));
