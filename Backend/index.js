@@ -10,6 +10,7 @@
  *  /users                  -                   POST            Signin a new user
  *  /users                  -                   PUT             Update user information
  *  /users/:username        -                   DELETE          Deletion of standard players from moderators
+ *  /users/:username        -                   GET             Return a user that has username specified
  *
  *  /users/mod              -                   POST            Create a new moderator, only moderator can do it
  *
@@ -157,6 +158,12 @@ app.post('/users', (req, res, next) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
     });
 });
+// Get user by username
+app.get('/users/:username', auth, (req, res, next) => {
+    user.getModel().findOne({ username: req.user.username }).then((u) => {
+        return res.status(200).json({ error: false, errormessage: "", user: u });
+    });
+});
 // Create a new moderator, only mod can do it
 app.post("/users/mod", auth, (req, res, next) => {
     // Check if user who request is a moderator
@@ -280,13 +287,13 @@ app.put("/users", auth, (req, res, next) => {
 // ios.on("connection", function (client) {
 //   console.log("Socket.io client connected".green);
 // });
-ios.on('connection', (socket) => {
-    console.log('socket is ready for connection');
-    socket.on('waitingPlayer', (msg) => {
-        console.log("A player is waiting");
-        console.log(msg);
-    });
-});
+// ios.on('connection', (socket) => {
+//   console.log('socket is ready for connection');
+//   socket.on('waitingPlayer',(msg) => {
+//     console.log("A player is waiting")
+//     console.log(msg)
+//   })
+// })
 app.post('/randomgame', auth, (req, res, next) => {
     const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
         const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", sender: { $ne: us._id }, receiver: null, deleted: false }).then((n) => {
@@ -413,12 +420,11 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         console.log("Admin user already exists".blue);
     }
 }).then(() => {
-    console.log("Fatto".green);
     let server = http.createServer(app);
     const option = {
         allowEIO3: true
     };
-    ios = new Server(server, option);
+    let ios = new Server(server, option);
     ios.on("connection", function (client) {
         console.log("Socket.io client connected".green);
         client.on("disconnect", function (client) {
