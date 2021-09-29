@@ -10,6 +10,7 @@
  *  /users                  -                   POST            Signin a new user
  *  /users                  -                   PUT             Update user information
  *  /users/:username        -                   DELETE          Deletion of standard players from moderators
+ *  /users/:username        -                   GET             Return a user that has username specified
  *
  *  /users/mod              -                   POST            Create a new moderator, only moderator can do it
  *
@@ -161,6 +162,12 @@ app.post('/users', (req, res, next) => {
         if (reason.code === 11000)
             return next({ statusCode: 404, error: true, errormessage: "User already exists" });
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+    });
+});
+// Get user by username
+app.get('/users/:username', auth, (req, res, next) => {
+    user.getModel().findOne({ username: req.user.username }).then((u) => {
+        return res.status(200).json({ error: false, errormessage: "", user: u });
     });
 });
 // Create a new moderator, only mod can do it
