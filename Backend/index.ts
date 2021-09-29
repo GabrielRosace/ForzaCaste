@@ -551,11 +551,8 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 ).then(
   () => {
 
-<<<<<<< HEAD
     // console.log("Fatto".green)
     
-=======
->>>>>>> 044a25ac83fee6b4ab1cf2db444a40b25aa36b1e
     let server = http.createServer(app);
     const option = {
       allowEIO3: true
