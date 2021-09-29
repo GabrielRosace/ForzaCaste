@@ -56,6 +56,12 @@ const notification = require("./Notification");
 const match = require("./Match");
 //var ios = undefined;
 var app = express();
+// This dictionary contains the client that are conncted with the Socket.io server
+// Only the logged in users can connect with the server (this will be implemented with the frontend)
+var socketIOclients = {};
+// This dictionary contains the match rooms: when an user creates a game requests in order to play a game
+// he creates a room, named with his username (since the username is unique, cannot exists rooms with the same key)
+var matchRooms = {};
 /*
   We create the JWT authentication middleware
   provided by the express-jwt library
@@ -280,18 +286,18 @@ app.put("/users", auth, (req, res, next) => {
 // ios.on("connection", function (client) {
 //   console.log("Socket.io client connected".green);
 // });
-ios.on('connection', (socket) => {
-    console.log('socket is ready for connection');
-    socket.on('waitingPlayer', (msg) => {
-        console.log("A player is waiting");
-        console.log(msg);
-    });
-});
+// ios.on('connection', (socket) => {
+//   console.log('socket is ready for connection');
+//   socket.on('waitingPlayer',(msg) => {
+//     console.log("A player is waiting")
+//     console.log(msg)
+//   })
+// })
 app.post('/randomgame', auth, (req, res, next) => {
     const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
         const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", sender: { $ne: us._id }, receiver: null, deleted: false }).then((n) => {
             if (notification.isNotification(n)) {
-                console.log("Esiste uan richiesta");
+                // console.log("Esiste uan richiesta");
                 if (n != null) {
                     const randomMatch = createNewRandomMatch(n.sender, us._id);
                     randomMatch.save().then((data) => {
@@ -306,6 +312,10 @@ app.post('/randomgame', auth, (req, res, next) => {
                             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
                         });
                     }
+                    // if(ios){
+                    //   ios.on('connection',() => {
+                    //   })
+                    // }
                 }
             }
             else {
@@ -322,6 +332,7 @@ app.post('/randomgame', auth, (req, res, next) => {
                         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
                     });
                 });
+                // ios.emit('Hi')
             }
         });
     });
@@ -413,18 +424,65 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         console.log("Admin user already exists".blue);
     }
 }).then(() => {
-    console.log("Fatto".green);
+    // console.log("Fatto".green)
     let server = http.createServer(app);
     const option = {
         allowEIO3: true
     };
-    ios = new Server(server, option);
+    var ios = new Server(server, option);
     ios.on("connection", function (client) {
         console.log("Socket.io client connected".green);
-        client.on("disconnect", function (client) {
+        client.on('saveClient', (clientData) => {
+            if (!socketIOclients[clientData.clientUsername])
+                socketIOclients[clientData.clientUsername] = client;
+            else
+                console.log("Utente già esistente");
+        });
+        client.on('getClient', (req) => {
+            let clientData = socketIOclients[req.clientUsername];
+            if (clientData)
+                client.emit('getClient', JSON.stringify(clientData));
+            else
+                client.emit('getClientData', "Utente non esistente");
+            console.log("Sended".green);
+        });
+        client.on('createMatchRoom', (clientData) => {
+            console.log("Joining...".green);
+            if (matchRooms[clientData.clientUsername] != clientData) {
+                matchRooms[clientData.clientUsername] = {};
+                matchRooms[clientData.clientUsername][clientData.clientUsername] = client;
+            }
+            else {
+                console.log("L'utente è già inserito in una room".red);
+                client.emit('alreadyCreatedRoom');
+            }
+            client.join(clientData.clientId);
+            console.log("Client joined the room".green);
+        });
+        client.on('isInRoom', () => {
+            for (const [k, v] of Object.entries(matchRooms)) {
+                for (const [k1, v1] of Object.entries(v)) {
+                    if (v1 == client)
+                        client.emit('isInRoom', 'Yes');
+                }
+            }
+            client.emit('IsInRoom', 'No');
+        });
+        client.on("disconnect", () => {
+            // client.close()
             console.log("Socket.io client disconnected".red);
         });
     });
+    // ios.on('joinMatchRoom', (client) => {
+    //   console.log("Joining");
+    //   let clientId = client.clientID
+    //   if(matchRooms[clientId] != client)
+    //     matchRooms[clientId] = client
+    //   else
+    //     console.log("L'utente è già inserito in una room");
+    //   console.log(matchRooms);
+    //   client.join(clientId)
+    // })
     server.listen(8080, () => console.log("HTTP Server started on port 8080".green));
 }).catch((err) => {
     console.log("Error Occurred during initialization".red);
