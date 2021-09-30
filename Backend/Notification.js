@@ -43,6 +43,10 @@ var notificationSchema = new mongoose.Schema({
     deleted: {
         type: mongoose.SchemaTypes.Boolean,
         required: true
+    },
+    state: {
+        type: mongoose.SchemaTypes.Boolean,
+        required: false
     }
 });
 // export function isNotification(arg: any): arg is Notification {

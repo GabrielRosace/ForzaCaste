@@ -17,6 +17,7 @@ export interface User extends mongoose.Document {
   roles: string, //? Perchè ruolo è un'array di stringhe??
   inbox?: Notification[], //? Non è più giusto che sia facoltativo? Oppure Si mette array vuoto?
   statistics?: Statistics,
+  friendList:  string[],
   salt?: string,    // salt is a random string that will be mixed with the actual password before hashing
   digest?: string,  // this is the hashed password (digest of the password)
   deleted?: boolean,
@@ -30,7 +31,9 @@ export interface User extends mongoose.Document {
   hasNonRegisteredModRole: () => boolean,
   setNonRegisteredMod: () => void,
   hasUserRole:() => boolean,
-  setUser: () => void
+  setUser: () => void,
+  addFriend: (username: string) => void,
+  addNotification: (notId: string) => void,
 
   //User management
   deleteUser: () => void 
@@ -76,6 +79,10 @@ var userSchema = new mongoose.Schema<User>({
   },
   statistics: {
     type: statistics.getSchema(),
+    required: false,
+  },
+  friendList: {
+    type: [mongoose.SchemaTypes.String],
     required: false,
   },
   salt: {
@@ -187,6 +194,15 @@ userSchema.methods.setUser = function () {
 userSchema.methods.deleteUser = function () {
   this.deleted = true
 }
+
+userSchema.methods.addFriend = function (username: string) {
+  this.friendList.push(username);
+}
+
+/*
+userSchema.methods.addNotification = function (notId: string) {
+  this.inbox.push(notId);
+}*/
 
 export function getSchema() { return userSchema; }
 
