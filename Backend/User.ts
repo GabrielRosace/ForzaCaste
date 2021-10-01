@@ -17,7 +17,8 @@ export interface User extends mongoose.Document {
   roles: string, //? Perchè ruolo è un'array di stringhe??
   inbox?: Notification[], //? Non è più giusto che sia facoltativo? Oppure Si mette array vuoto?
   statistics?: Statistics,
-  friendList:  string[],
+  // friendList:  string[],
+  friendList: Object[],
   salt?: string,    // salt is a random string that will be mixed with the actual password before hashing
   digest?: string,  // this is the hashed password (digest of the password)
   deleted?: boolean,
@@ -30,13 +31,13 @@ export interface User extends mongoose.Document {
   setModerator: () => void,
   hasNonRegisteredModRole: () => boolean,
   setNonRegisteredMod: () => void,
-  hasUserRole:() => boolean,
+  hasUserRole: () => boolean,
   setUser: () => void,
-  addFriend: (username: string) => void,
+  addFriend: (username: string,isBlocked: boolean) => void,
   addNotification: (notId: string) => void,
 
   //User management
-  deleteUser: () => void 
+  deleteUser: () => void
 }
 
 var userSchema = new mongoose.Schema<User>({
@@ -82,7 +83,8 @@ var userSchema = new mongoose.Schema<User>({
     required: false,
   },
   friendList: {
-    type: [mongoose.SchemaTypes.String],
+    // type: [mongoose.SchemaTypes.String],
+    type: [mongoose.SchemaTypes.Mixed],
     required: false,
   },
   salt: {
@@ -148,15 +150,15 @@ userSchema.methods.hasModeratorRole = function (): boolean {
   //     return true;
   // }
   // return false;
-  return this.roles==="MODERATOR"
+  return this.roles === "MODERATOR"
 }
 
 userSchema.methods.hasNonRegisteredModRole = function (): boolean {
-  return this.roles==="NONREGMOD"
+  return this.roles === "NONREGMOD"
 }
 
-userSchema.methods.hasUserRole = function (): boolean{
-  return this.roles==="USER"
+userSchema.methods.hasUserRole = function (): boolean {
+  return this.roles === "USER"
 }
 
 userSchema.methods.setAdmin = function () {
@@ -169,8 +171,8 @@ userSchema.methods.setAdmin = function () {
 
 userSchema.methods.setModerator = function () {
   if (!this.hasModeratorRole()) {
-  //   this.roles = []
-  //   this.roles.push("MODERATOR")
+    //   this.roles = []
+    //   this.roles.push("MODERATOR")
     this.roles = "MODERATOR"
   }
 }
@@ -195,8 +197,11 @@ userSchema.methods.deleteUser = function () {
   this.deleted = true
 }
 
-userSchema.methods.addFriend = function (username: string) {
-  this.friendList.push(username);
+// userSchema.methods.addFriend = function (username: string) {
+//   this.friendList.push(username);
+// }
+userSchema.methods.addFriend = function (username: string, isBlocked: boolean) {
+  this.friendList.push({ username: username, isBlocked: isBlocked });
 }
 
 /*

@@ -48,7 +48,8 @@ var userSchema = new mongoose.Schema({
         required: false,
     },
     friendList: {
-        type: [mongoose.SchemaTypes.String],
+        // type: [mongoose.SchemaTypes.String],
+        type: [mongoose.SchemaTypes.Mixed],
         required: false,
     },
     salt: {
@@ -144,8 +145,11 @@ userSchema.methods.setUser = function () {
 userSchema.methods.deleteUser = function () {
     this.deleted = true;
 };
-userSchema.methods.addFriend = function (username) {
-    this.friendList.push(username);
+// userSchema.methods.addFriend = function (username: string) {
+//   this.friendList.push(username);
+// }
+userSchema.methods.addFriend = function (username, isBlocked) {
+    this.friendList.push({ username: username, isBlocked: isBlocked });
 };
 /*
 userSchema.methods.addNotification = function (notId: string) {
