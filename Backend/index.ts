@@ -174,24 +174,24 @@ app.get("/", (req, res) => {
   //   console.log(notification.isNotification(n))
   // })
 
-  const doc = [
-    { friend: "gabriel", isBlocked: true },
-    { friend: "tommy", isBlocked: false },
-  ]
+  // const doc = [
+  //   { friend: "gabriel", isBlocked: true },
+  //   { friend: "tommy", isBlocked: false },
+  // ]
 
-  console.log(doc);
+  // console.log(doc);
 
-  user.getModel().findOne({ username: "gabriel" }).then((u) => {
+  // user.getModel().findOne({ username: "gabriel" }).then((u) => {
     
-    u.addFriend("tommy", true)
-    console.log(u);
-    u.save()
-  }).catch((e) => {
-    console.log("Errore".red);
-    console.log(e);
+  //   u.addFriend("tommy", true)
+  //   console.log(u);
+  //   u.save()
+  // }).catch((e) => {
+  //   console.log("Errore".red);
+  //   console.log(e);
     
     
-  })
+  // })
   
 
   res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/randomgame"] }); //TODO setta gli endpoints
