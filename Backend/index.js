@@ -180,7 +180,7 @@ app.post('/users', (req, res, next) => {
 // Get user by username
 app.get('/users/:username', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((u) => {
-        return res.status(200).json({ error: false, errormessage: "", user: u });
+        return res.status(200).json({ error: false, errormessage: "", user: { username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList } });
     });
 });
 // Create a new moderator, only mod can do it
