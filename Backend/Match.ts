@@ -29,8 +29,8 @@ const validate = ajv.compile(validatorSchema)
 
 export interface Match {
   inProgress: boolean,
-  player1: mongoose.Schema.Types.ObjectId,
-  player2: mongoose.Schema.Types.ObjectId,
+  player1: mongoose.Schema.Types.String,
+  player2: mongoose.Schema.Types.String,
   winner: mongoose.Schema.Types.ObjectId,
   playground: String[6][7],
   chat: message.Message[],
@@ -43,11 +43,11 @@ var matchSchema = new mongoose.Schema({
     required: true
   },
   player1: {
-    type: mongoose.SchemaTypes.ObjectId,
+    type: mongoose.SchemaTypes.String,
     required: true
   },
   player2: {
-    type: mongoose.SchemaTypes.ObjectId,
+    type: mongoose.SchemaTypes.String,
     required: true
   },
   winner: {

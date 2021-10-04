@@ -8,7 +8,7 @@ const message = require("./Message");
 const ajv_formats_1 = require("ajv-formats");
 const Ajv = require("ajv");
 const ajv = new Ajv(); // options can be passed, e.g. {allErrors: true}
-ajv_formats_1.default(ajv);
+(0, ajv_formats_1.default)(ajv);
 const validatorSchema = {
     type: "object",
     properties: {
@@ -30,11 +30,11 @@ var matchSchema = new mongoose.Schema({
         required: true
     },
     player1: {
-        type: mongoose.SchemaTypes.ObjectId,
+        type: mongoose.SchemaTypes.String,
         required: true
     },
     player2: {
-        type: mongoose.SchemaTypes.ObjectId,
+        type: mongoose.SchemaTypes.String,
         required: true
     },
     winner: {

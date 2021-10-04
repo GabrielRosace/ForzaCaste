@@ -42,3 +42,20 @@ password: tommy
 username: gabriel_mod1
 password: gabriel
 ```
+
+### Matchmaking
+```
+Per effettuare una partita sono necessari due utenti, quindi:
+1) Fare il login di due utenti
+2) Connettersi al server WebSocket con Postman
+3) Creare gli event listener dei WebSocket client su Postman "createMatchRoom" e "lobby"
+4) Entrambi gli utenti: inviare una richiesta WebSocket con titolo saveClient e parametro { "clientUsername": $nome }
+5)  Player1:
+    5.a) Fare richiesta di gioco, inviare la richiesta http "Create random game request"
+    5.b) Ricevuto come risposta il codice 200 e il valore "true" dal server WebSocket invio una richiesta WebSocket con titolo "createMathRoom") e con parametro { "clientUsername": $nome } 
+    5.c) Player1 rimane in attesa
+6)  Player2:
+    6.a) Fare richiesta di gioco, inviare la richiesta http "Create random game request"
+    6.7) Ricevi status code 200
+7) Una volta che entrambi i WebSocket client ricevono il messaggio "true" al listener "lobby" fare il redirect della page per iniziare la partita
+```
