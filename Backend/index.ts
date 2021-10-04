@@ -182,17 +182,17 @@ app.get("/", (req, res) => {
   // console.log(doc);
 
   // user.getModel().findOne({ username: "gabriel" }).then((u) => {
-    
+
   //   u.addFriend("tommy", true)
   //   console.log(u);
   //   u.save()
   // }).catch((e) => {
   //   console.log("Errore".red);
   //   console.log(e);
-    
-    
+
+
   // })
-  
+
   res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/randomgame"] }); //TODO setta gli endpoints
 });
 
@@ -266,7 +266,7 @@ app.post('/users', (req, res, next) => {
 app.get('/users/:username', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((u) => {
 
-    return res.status(200).json({ error: false, errormessage: "", user: { username: u.username,name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail:u.mail, statistics: u.statistics, friendList: u.friendList}});
+    return res.status(200).json({ error: false, errormessage: "", user: { username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList } });
   })
 })
 
@@ -399,27 +399,27 @@ app.put("/users", auth, (req, res, next) => {
   })
 })
 
-app.post('/randomgame', auth, (req,  res, next) => { 
-  const u = user.getModel().findOne({username: req.user.username}).then((us: User) => {
-    const matchRequest = notification.getModel().findOne({type: "randomMatchmaking", receiver: null, deleted: false}).then((n) => {
-      if(notification.isNotification(n)){
+app.post('/randomgame', auth, (req, res, next) => {
+  const u = user.getModel().findOne({ username: req.user.username }).then((us: User) => {
+    const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", receiver: null, deleted: false }).then((n) => {
+      if (notification.isNotification(n)) {
         // console.log("Esiste uan richiesta");
-        if(n != null && n.sender != us.username){
-            const randomMatch = createNewRandomMatch(n.sender, us.username)
-            
-            randomMatch.save().then((data) => {
-              console.log("New creation of random match");
-              // let player1 = n.sender
-              
-              return res.status(200).json({error: false, errormessage: "The match wil start soon"})
-            }).catch((reason) => {
-              return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-            })
-            n.deleted = true
-          if(n != null){
+        if (n != null && n.sender != us.username) {
+          const randomMatch = createNewRandomMatch(n.sender, us.username)
+
+          randomMatch.save().then((data) => {
+            console.log("New creation of random match");
+            // let player1 = n.sender
+
+            return res.status(200).json({ error: false, errormessage: "The match wil start soon" })
+          }).catch((reason) => {
+            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+          })
+          n.deleted = true
+          if (n != null) {
             n.save().then().catch((reason) => {
               return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-            })  
+            })
           }
           let player1 = n.sender
           let player2 = us.username
@@ -432,190 +432,185 @@ app.post('/randomgame', auth, (req,  res, next) => {
           client1.emit('lobby', 'true')
           client2.emit('lobby', 'true')
         }
-        else{
+        else {
           console.log("Match request already exists");
-          return res.status(200).json({ error: false, message: "Match request already exists"});
+          return res.status(200).json({ error: false, message: "Match request already exists" });
         }
       }
-      else{           
-        const u = user.getModel().findOne({username: req.user.username}).then((us: User) => {
+      else {
+        const u = user.getModel().findOne({ username: req.user.username }).then((us: User) => {
           // Whene the client get this message he will send a message to the server to create a match room          
-          socketIOclients[us.username].emit('createMatchRoom','true')
-          
+          socketIOclients[us.username].emit('createMatchRoom', 'true')
+
           const doc = createNewGameRequest(req.body, us.username)
           console.log(doc);
-          
+
           doc.save().then((data) => {
-            
-            if(notification.isNotification(data)){
+
+            if (notification.isNotification(data)) {
               console.log("New creation of matchmaking request, player1 is: " + data.sender)
-              return res.status(200).json({ error: false, message: "Waiting for other player..."});
+              return res.status(200).json({ error: false, message: "Waiting for other player..." });
             }
-          }).catch((reason) => {         
+          }).catch((reason) => {
             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
           })
         })
-      }    
+      }
     })
   })
 })
 
-app.post('/notification', auth, (req,  res, next) => { 
-  const doc = notification.getModel().findOne({type: "friendRequest", sender : req.user.username, receiver: req.body.receiver , deleted: false}).then((n) => {//{type: "friendRequest ", sender : req.user.username, receiver: req.body.receiver , deleted: false}
-    if(n !== null){
-      console.log("Esiste già una richiesta.");
-      return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user."});
-    }else{
-      const u = user.getModel().findOne({username: req.user.username}).then((u: User) => {        
-        console.log("Non esiste una richiesta");
-          
+app.post('/notification', auth, (req, res, next) => {
+  const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.user.username, receiver: req.body.receiver, deleted: false }).then((n) => {
+    if (n !== null) {
+      console.log("You have already sent a request to this user.");
+      return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
+    } else {
+      const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
+
         const fr = createNewFriendRequest(req.body, u.username);
 
-        //u.addNotification(doc._id);
-        console.log(doc);
-        
         fr.save().then((data) => {
-          if(notification.isNotification(data)){
-            //console.log("New creation of matchmaking request, player1 is: " + data.sender)
-            //res.status(200).send("Waiting for other player..."
-            return res.status(200).json({ error: false, message: "Richiesta inviata..."});
+          if (notification.isNotification(data)) {
+            console.log("Request forwarded.")
+            return res.status(200).json({ error: false, message: "Request forwarded." });
           }
-        }).catch((reason) => {         
+        }).catch((reason) => {
           return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
         })
-        /*
-        const rec = user.getModel().findOne({username: req.body.receiver}).then((rec: User) => {
-          rec.addNotification(n._id);
-  
-          rec.save().then((data) => {
-            return res.status(200).json({ error: false, errormessage: "" })
-          }).catch((reason) => {
-            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-          })
-        })*/
       })
     }
+  }).catch((reason) => {
+    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
   })
 })
 
-app.get('/notification', auth, (req,  res, next) => { 
-  const u = notification.getModel().find({$or: [ {receiver: req.user.username}, {sender: req.user.username} ]}).then((n) => {
-    console.log("Hello ",n);
-    return res.status(200).json({ error: false, errormessage: "", notification: n});//? Restituisco inbox?
+app.get('/notification', auth, (req, res, next) => {
+  const u = notification.getModel().find({ $or: [{ receiver: req.user.username }, { sender: req.user.username }] }).then((n) => {
+    return res.status(200).json({ error: false, errormessage: "", notification: n });
+  }).catch((reason) => {
+    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
   })
 })
 
-app.put('/notification', auth, (req,  res, next) => { 
+app.put('/notification', auth, (req, res, next) => {
   const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.body.sender, deleted: false }).then((n) => {
-    if(n === null){
-      //console.log("Esiste già una richiesta.");
-      return res.status(404).json({ error: true, errormessage: "User not found."});
-    }else{
+    if (n === null) {
+      return res.status(404).json({ error: true, errormessage: "User not found." });
+    } else {
       n.state = req.body.state;
       n.deleted = true;
 
       n.save().then((data) => {
         console.log("Data saved successfully".blue)
-        if(data.state){
-          return res.status(200).json({ error: false, errormessage: "" , message: "You accept the request."})
-        }else{
-          return res.status(200).json({ error: false, errormessage: "" , message: "You decline the request"})
+        if (data.state) {
+          return res.status(200).json({ error: false, errormessage: "", message: "You accept the request." })
+        } else {
+          return res.status(200).json({ error: false, errormessage: "", message: "You decline the request" })
         }
       }).catch((reason) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
       })
     }
+  }).catch((reason) => {
+    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
   })
 })
 
-app.post('/friend',  auth, (req,  res, next) => { 
-  const u = user.getModel().findOne({username: req.user.username}).then((u: User) => {
-    //console.log("ciao ".blue+ u.username.blue);
-    const friendToFriendList = notification.getModel().findOne({type: "friendRequest", sender: req.body.sender , receiver: u.username /*state: true, deleted: true*/}).then((n) => {
-      //console.log("ciao ".blue+ n.receiver.blue);
+app.post('/friend', auth, (req, res, next) => {
+  const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
+    const friendToFriendList = notification.getModel().findOne({ type: "friendRequest", sender: req.body.sender, receiver: u.username, state: true, deleted: true }).then((n) => {
       u.addFriend(n.sender, false);
 
       u.save().then((data) => {
-        console.log("Friend added.".blue)
-        const send = user.getModel().findOne({username: n.sender}).then((send: User) => {
+        const send = user.getModel().findOne({ username: n.sender }).then((send: User) => {
           send.addFriend(u.username, false);
-  
+
           send.save().then((data) => {
-            console.log("Amico aggiunto.".blue)
-            return res.status(200).json({ error: false, errormessage: "", message: "Friend "+u.username+" added."})
+            console.log("Friend added.".blue)
+            return res.status(200).json({ error: false, errormessage: "", message: "Friend " + u.username + " added." })
           }).catch((reason) => {
+            u.deleteFriend(n.sender)
+            u.save()
             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
           })
         })
-        //return res.status(200).json({ error: false, errormessage: "" , message: "Friend "+u.username+" added."})
       }).catch((reason) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
       })
 
     })
+  }).catch((reason) => {
+    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
   })
 })
 
-app.get('/friend',  auth, (req,  res, next) => {
-  const u = user.getModel().findOne({username: req.user.username}).then((u) => {
-    return res.status(200).json({ error: false, errormessage: "", notification: u.friendList});
+app.get('/friend', auth, (req, res, next) => {
+  const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
+    return res.status(200).json({ error: false, errormessage: "", notification: u.friendList });
   }).catch((reason) => {
     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
   })
+
 })
 
 app.delete('/friend', auth, (req, res, next) => {
-  const u = user.getModel().findOne({username : req.user.username}).then((u) => {
-          u.deleteFriend(req.body.username);
-  
-          u.save().then((data) => {
-            const send = user.getModel().findOne({username: req.body.username}).then((send: User) => {
-              send.deleteFriend(u.username);
-      
-              send.save().then((data) => {
-                console.log("Amico eliminato.".blue)
-                return res.status(200).json({ error: false, errormessage: "", message: "Friend "+u.username+" removed from the friendlist."})
-              }).catch((reason) => {
-                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-              })
-            })
-          }).catch((reason) => {
-            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-          })
+  const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
+    u.deleteFriend(req.body.username);
+
+    u.save().then((data) => {
+      const send = user.getModel().findOne({ username: req.body.username }).then((send: User) => {
+        send.deleteFriend(u.username);
+
+        send.save().then((data) => {
+          console.log("Friend deleted.".blue)
+          return res.status(200).json({ error: false, errormessage: "", message: "Friend " + u.username + " removed from the friendlist." })
+        }).catch((reason) => {
+          return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+        })
+      })
+    }).catch((reason) => {
+      return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+    })
+  }).catch((reason) => {
+    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
   })
 })
 
 app.put('/friend', auth, (req, res, next) => {
-  const u = user.getModel().findOne({username: req.user.username}).then((u) => {
-    u.setIsBlocked(req.body.username, req.body.isBlocked);
+  const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
+
+    u.setIsBlocked(req.body.username, req.body.isBlocked)
 
     u.save().then((data) => {
-      if(req.body.isBlocked){
-        console.log("Amico bloccato.".blue)
-        return res.status(200).json({ error: false, errormessage: "", message: "You blocked "+u.username+"."})
-      }else{
-        console.log("Amico sbloccato.".blue)
-        return res.status(200).json({ error: false, errormessage: "", message: "You can now send a message to "+u.username+"."})
+      if (req.body.isBlocked) {
+        console.log("Friend blocked.".blue)
+        return res.status(200).json({ error: false, errormessage: "", message: "You blocked " + req.body.username + "." })
+      } else {
+        console.log("Friend unblocked.".blue)
+        return res.status(200).json({ error: false, errormessage: "", message: "You can now send a message to " + req.body.username + "." })
       }
     }).catch((reason) => {
       return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
     })
+  }).catch((reason) => {
+    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
   })
 })
 
-function createNewGameRequest(bodyRequest, username){  
+function createNewGameRequest(bodyRequest, username) {
   const model = notification.getModel()
   const doc = new model({
     type: bodyRequest.type,
     text: null,
-    sender: username.toString(), 
+    sender: username.toString(),
     receiver: null,
     deleted: false
   })
   return doc
 }
 
-function createNewRandomMatch(player1, player2){
+function createNewRandomMatch(player1, player2) {
   const model = match.getModel()
   const doc = new model({
     inProgress: true,
@@ -629,25 +624,25 @@ function createNewRandomMatch(player1, player2){
   return doc
 }
 
-function createPlayground(){
+function createPlayground() {
   const playground = new Array(6)
-  for(let i = 0; i < 6; i++){
+  for (let i = 0; i < 6; i++) {
     playground[i] = new Array(7)
   }
-  for(let i = 0; i < 6; i++){
-    for(let j = 0; j < 7; j++){
+  for (let i = 0; i < 6; i++) {
+    for (let j = 0; j < 7; j++) {
       playground[i][j] = '/'
     }
   }
   return playground
 }
 
-function createNewFriendRequest(bodyRequest, username){  
+function createNewFriendRequest(bodyRequest, username) {
   const model = notification.getModel()
   const doc = new model({
     type: bodyRequest.type,
-    text: "Richiesta di amicizia da parte di "+username+".",
-    sender: username, 
+    text: "Richiesta di amicizia da parte di " + username + ".",
+    sender: username,
     receiver: bodyRequest.receiver,
     state: false,
     deleted: false
@@ -655,10 +650,10 @@ function createNewFriendRequest(bodyRequest, username){
   return doc
 }
 // TODO cancella sta cosa
-app.get("/whoami", auth, (req,res,next) => {
+app.get("/whoami", auth, (req, res, next) => {
   console.log(req.user)
   // return next({ statusCode: 200, error: false, errormessage: "Ciao " + req.user.username })
-  return res.status(200).json({ error: false, errormessage: `L'utente loggato è ${req.user.username}`});
+  return res.status(200).json({ error: false, errormessage: `L'utente loggato è ${req.user.username}` });
 })
 
 
@@ -719,7 +714,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
   () => {
 
     // console.log("Fatto".green)
-    
+
     let server = http.createServer(app);
     const option = {
       allowEIO3: true
@@ -727,15 +722,15 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     ios = new Server(server, option)
 
     ios.on("connection", function (client) {
-      console.log("Socket.io client connected".green);      
-      
+      console.log("Socket.io client connected".green);
+
       // This message is send by the client when he log in
       client.on('saveClient', (clientData) => {
 
-        if(!socketIOclients[clientData.clientUsername]){
+        if (!socketIOclients[clientData.clientUsername]) {
           socketIOclients[clientData.clientUsername] = client
           console.log("User registered".green);
-          
+
         }
         else
           console.log("Utente già esistente");
@@ -743,28 +738,28 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
       // This event is triggered when a client want to play a random match but there is no match request active, so it creates a game request 
       client.on('createMatchRoom', (clientData) => {
         console.log("Joining...".green);
-              
-        if(matchRooms[clientData.clientUsername] != clientData){
+
+        if (matchRooms[clientData.clientUsername] != clientData) {
           matchRooms[clientData.clientUsername] = {}
           matchRooms[clientData.clientUsername][clientData.clientUsername] = client
         }
-        else{
+        else {
           console.log("L'utente è già inserito in una room".red);
-          client.emit('alreadyCreatedRoom')        
+          client.emit('alreadyCreatedRoom')
         }
         client.join(clientData.clientUsername)
 
         console.log("Client joined the room".green);
 
         console.log(matchRooms);
-        
-        
+
+
       })
 
       client.on('isInRoom', () => {
-        for(const [k, v] of Object.entries(matchRooms)){
-          for(const [k1,v1] of Object.entries(v)){
-            if(v1 == client)
+        for (const [k, v] of Object.entries(matchRooms)) {
+          for (const [k1, v1] of Object.entries(v)) {
+            if (v1 == client)
               client.emit('isInRoom', 'Yes')
           }
         }
@@ -777,7 +772,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
       })
     });
     server.listen(8080, () => console.log("HTTP Server started on port 8080".green));
-   }
+  }
 ).catch(
   (err) => {
     console.log("Error Occurred during initialization".red);
