@@ -32,6 +32,7 @@ export interface Notification extends mongoose.Document {
   sender: string,
   receiver: string,
   deleted: boolean,
+  state: boolean,
   isFriendRequest: () => boolean,
   isNotification: () => boolean
 }
@@ -59,6 +60,10 @@ var notificationSchema = new mongoose.Schema<Notification>({
   deleted: {
     type: mongoose.SchemaTypes.Boolean,
     required: true
+  },
+  state: {
+    type: mongoose.SchemaTypes.Boolean,
+    required: false
   }
 })
 
