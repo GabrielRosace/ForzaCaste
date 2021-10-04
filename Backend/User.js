@@ -49,7 +49,7 @@ var userSchema = new mongoose.Schema({
     },
     friendList: {
         // type: [mongoose.SchemaTypes.String],
-        type: [mongoose.SchemaTypes.Mixed],
+        type: [{ username: "string", isBlocked: "boolean" }],
         required: false,
     },
     salt: {
@@ -159,7 +159,15 @@ userSchema.methods.deleteFriend = function (username) {
     for (var i = 0; i < this.friendList.length; i++) {
         if (this.friendList[i].username === username) {
             this.friendList.splice(i, 1);
-            break;
+        }
+    }
+};
+userSchema.methods.setIsBlocked = function (username, isBlocked) {
+    console.log(this.friendList);
+    for (var i = 0; i < this.friendList.length; i++) {
+        if (this.friendList[i].username === username) {
+            this.friendList[i].isBlocked = isBlocked;
+            console.log(this.friendList[i]);
         }
     }
 };

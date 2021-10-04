@@ -15,7 +15,8 @@ const validatorSchema = { //TODO aggiungere altri nullable se ce ne sono
     text: { type: "string", nullable: true },
     sender: { type: "string" },
     receiver: { type: "string", nullable: true },
-    deleted: { type: "boolean" }
+    deleted: { type: "boolean" },
+    state: { type: "boolean", nullable: true}
   },
   required: ["type", "sender", "deleted"],
   additionalProperties: true
@@ -28,11 +29,11 @@ const validate = ajv.compile(validatorSchema)
 // A notification has a type of notification, some text content and a string that identify the sender
 export interface Notification extends mongoose.Document {
   type: string,
-  text: string,
+  text?: string,
   sender: string,
-  receiver: string,
+  receiver?: string,
   deleted: boolean,
-  state: boolean,
+  state?: boolean,//It's used to show if a request is accepted
   isFriendRequest: () => boolean,
   isNotification: () => boolean
 }

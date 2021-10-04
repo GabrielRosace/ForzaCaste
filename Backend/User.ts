@@ -86,7 +86,7 @@ var userSchema = new mongoose.Schema<User>({
   },
   friendList: {
     // type: [mongoose.SchemaTypes.String],
-    type: [mongoose.SchemaTypes.Mixed],
+    type: [{username: "string", isBlocked: "boolean"}],
     required: false,
   },
   salt: {
@@ -220,8 +220,8 @@ userSchema.methods.deleteFriend = function (username: string){
 
 userSchema.methods.setIsBlocked = function (username: string, isBlocked: boolean){
   for( var i = 0; i < this.friendList.length; i++){ 
-    if ( this.friendList[i].username === username) { 
-      this.friendList[i].isBlocked = isBlocked; 
+    if (this.friendList[i].username === username) { 
+      this.friendList[i].isBlocked = isBlocked;
     }
   }
 }
