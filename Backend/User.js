@@ -155,6 +155,14 @@ userSchema.methods.addFriend = function (username, isBlocked) {
 userSchema.methods.addNotification = function (notId: string) {
   this.inbox.push(notId);
 }*/
+userSchema.methods.deleteFriend = function (username) {
+    for (var i = 0; i < this.friendList.length; i++) {
+        if (this.friendList[i].username === username) {
+            this.friendList.splice(i, 1);
+            break;
+        }
+    }
+};
 function getSchema() { return userSchema; }
 exports.getSchema = getSchema;
 // Mongoose Model

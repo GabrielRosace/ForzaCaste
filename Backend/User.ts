@@ -18,7 +18,7 @@ export interface User extends mongoose.Document {
   inbox?: Notification[], //? Non è più giusto che sia facoltativo? Oppure Si mette array vuoto?
   statistics?: Statistics,
   // friendList:  string[],
-  friendList: Object[],
+  friendList: [{username: string, isBlocked: boolean}],
   salt?: string,    // salt is a random string that will be mixed with the actual password before hashing
   digest?: string,  // this is the hashed password (digest of the password)
   deleted?: boolean,
@@ -35,6 +35,8 @@ export interface User extends mongoose.Document {
   setUser: () => void,
   addFriend: (username: string,isBlocked: boolean) => void,
   addNotification: (notId: string) => void,
+  deleteFriend: (username: string) => void,
+  setIsBlocked: (username: string, isBlocked: boolean) => void,
 
   //User management
   deleteUser: () => void
@@ -208,7 +210,21 @@ userSchema.methods.addFriend = function (username: string, isBlocked: boolean) {
 userSchema.methods.addNotification = function (notId: string) {
   this.inbox.push(notId);
 }*/
+userSchema.methods.deleteFriend = function (username: string){
+  for( var i = 0; i < this.friendList.length; i++){ 
+    if ( this.friendList[i].username === username) { 
+      this.friendList.splice(i, 1); 
+    }
+  }
+}
 
+userSchema.methods.setIsBlocked = function (username: string, isBlocked: boolean){
+  for( var i = 0; i < this.friendList.length; i++){ 
+    if ( this.friendList[i].username === username) { 
+      this.friendList[i].isBlocked = isBlocked; 
+    }
+  }
+}
 export function getSchema() { return userSchema; }
 
 // Mongoose Model
