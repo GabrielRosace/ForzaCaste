@@ -15,13 +15,13 @@ const validatorSchema = {
         inProgress: { type: "boolean" },
         player1: { type: "string" },
         player2: { type: "string" },
-        winner: { type: "string" },
-        playground: { type: "string" },
-        chat: { type: "string" },
+        winner: { type: "string", nullable: true },
+        playground: { type: "array" },
+        chat: { type: "array", nullable: true },
         nTurns: { type: "number" }
     },
     required: ["inProgress", "player1", "player2", "playground", "chat", "nTurns"],
-    additionalProperties: false
+    additionalProperties: true
 };
 const validate = ajv.compile(validatorSchema);
 var matchSchema = new mongoose.Schema({
@@ -77,10 +77,13 @@ function fillPlayground(match) {
     for (i = 0; i < 42; i++)
         match.playground.push("/");
 }
-// TODO sistemare 
-// ! Non funziona.
 function isMatch(arg) {
-    return validate(arg);
+    if (!validate(arg)) {
+        console.log("Match Validator Error ".red);
+        console.log(validate.errors);
+        return false;
+    }
+    return true;
 }
 exports.isMatch = isMatch;
 function fromJSONtoMatch(arg) {

@@ -16,7 +16,7 @@ const validatorSchema = {
         sender: { type: "string" },
         receiver: { type: "string", nullable: true },
         deleted: { type: "boolean" },
-        state: { type: "boolean" }
+        state: { type: "boolean", nullable: true }
     },
     required: ["type", "sender", "deleted"],
     additionalProperties: true
