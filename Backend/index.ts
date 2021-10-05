@@ -168,12 +168,12 @@ passport.use(new passportHTTP.BasicStrategy(
 //TODO add console.log
 //* Add API routes to express application
 app.get("/", (req, res) => {
-  match.getModel().findOne({_id:"615c5b00ffdfbf0142511956"}).then((m)=>{
-    console.log(m)
+  // match.getModel().findOne({_id:"615c5b00ffdfbf0142511956"}).then((m)=>{
+  //   console.log(m)
 
-    console.log("-----------------")
-    console.log(match.isMatch(m))
-  })
+  //   console.log("-----------------")
+  //   console.log(match.isMatch(m))
+  // })
 
   res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/randomgame"] }); //TODO setta gli endpoints
 });
