@@ -168,29 +168,11 @@ passport.use(new passportHTTP.BasicStrategy(
 //TODO add console.log
 //* Add API routes to express application
 app.get("/", (req, res) => {
-  // Debug Notification
-  // notification.getModel().findOne().then((n) => {
-  //   console.log(n)
-  //   console.log(notification.isNotification(n))
-  // })
+  // match.getModel().findOne({_id:"615c5b00ffdfbf0142511956"}).then((m)=>{
+  //   console.log(m)
 
-  // const doc = [
-  //   { friend: "gabriel", isBlocked: true },
-  //   { friend: "tommy", isBlocked: false },
-  // ]
-
-  // console.log(doc);
-
-  // user.getModel().findOne({ username: "gabriel" }).then((u) => {
-
-  //   u.addFriend("tommy", true)
-  //   console.log(u);
-  //   u.save()
-  // }).catch((e) => {
-  //   console.log("Errore".red);
-  //   console.log(e);
-
-
+  //   console.log("-----------------")
+  //   console.log(match.isMatch(m))
   // })
 
   res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/randomgame"] }); //TODO setta gli endpoints

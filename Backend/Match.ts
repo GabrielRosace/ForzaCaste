@@ -15,13 +15,13 @@ const validatorSchema = {
     inProgress: { type: "boolean" },
     player1: { type: "string" },
     player2: { type: "string" },
-    winner: { type: "string" },
-    playground: { type: "string" }, // ! Problema
-    chat: { type: "string" }, //! Problema
+    winner: { type: "string", nullable: true },
+    playground: { type: "array" },
+    chat: { type: "array", nullable: true },
     nTurns: { type: "number" }
   },
   required: ["inProgress", "player1", "player2", "playground", "chat", "nTurns"],
-  additionalProperties: false
+  additionalProperties: true
 }
 
 const validate = ajv.compile(validatorSchema)
@@ -79,7 +79,7 @@ export function getModel(): mongoose.Model<Match> { // Return Model as singleton
   return matchModel;
 }
 
-export function createNewMatch(data): any {  //TODO modificare tipo di ritorno
+export function createNewMatch(data): Match {  //TODO modificare tipo di ritorno
   var _matchmodel = getModel();
   var match = new _matchmodel(data);
   fillPlayground(match);
@@ -93,10 +93,13 @@ function fillPlayground(match) {
 }
 
 
-// TODO sistemare 
-// ! Non funziona.
 export function isMatch(arg: any): arg is Match {
-  return validate(arg)
+  if (!validate(arg)) {
+    console.log("Match Validator Error ".red)
+    console.log(validate.errors)
+    return false
+  }
+  return true
 }
 export function fromJSONtoMatch(arg: any): Match {
   if (isMatch(arg)) {
