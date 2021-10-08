@@ -460,6 +460,30 @@ app.post('/randomgame', auth, (req, res, next) => {
   })
 })
 
+// app.get('/game', auth, (req, res, next) => {
+//   let doc = match.getModel().findOne({ inProgress: true, $or: [{player1: req.user.username}, {player2: req.user.username}]}).then((n) => {
+//     if(n != null){
+//       if(match.isMatch(n)){
+//         let i = 0
+//         let playground = n.playground
+//         socketIOclients[req.user.username].on('move', (clientData) => {
+//           if(i%2 == 0 && n.player1 == clientData.username){
+//             if(clientData.move >= 0 && clientData.move <= 7){
+//               n.update() // TODO update the playground by inserting the user move
+//             }
+//           }
+//           else if(i%2 == 1 && n.player2 == clientData.username){
+
+//           }
+//           else{
+//             // ! Errore
+//           }
+//         })
+//       }
+//     }
+//   })
+// })
+
 app.post('/notification', auth, (req, res, next) => {
   const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.user.username, receiver: req.body.receiver, deleted: false }).then((n) => {
     if (n !== null) {
@@ -764,6 +788,10 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
           }
         }
         client.emit('IsInRoom', 'No')
+      })
+
+      client.on('move', (clientData) => {
+        
       })
 
       client.on("disconnect", () => {

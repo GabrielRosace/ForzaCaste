@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 const ajv_formats_1 = require("ajv-formats");
 const Ajv = require("ajv");
 const ajv = new Ajv(); // options can be passed, e.g. {allErrors: true}
-ajv_formats_1.default(ajv);
+(0, ajv_formats_1.default)(ajv);
 const validatorSchema = {
     type: "object",
     properties: {
@@ -16,7 +16,7 @@ const validatorSchema = {
         sender: { type: "string" },
         receiver: { type: "string", nullable: true },
         deleted: { type: "boolean" },
-        state: { type: "boolean" }
+        state: { type: "boolean", nullable: true }
     },
     required: ["type", "sender", "deleted"],
     additionalProperties: true
