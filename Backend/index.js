@@ -114,11 +114,11 @@ passport.use(new passportHTTP.BasicStrategy(function (username, password, done) 
 //TODO add console.log
 //* Add API routes to express application
 app.get("/", (req, res) => {
-    match.getModel().findOne({ _id: "615c5b00ffdfbf0142511956" }).then((m) => {
-        console.log(m);
-        console.log("-----------------");
-        console.log(match.isMatch(m));
-    });
+    // match.getModel().findOne({_id:"615c5b00ffdfbf0142511956"}).then((m)=>{
+    //   console.log(m)
+    //   console.log("-----------------")
+    //   console.log(match.isMatch(m))
+    // })
     res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/randomgame"] }); //TODO setta gli endpoints
 });
 // Login endpoint uses passport middleware to check
@@ -139,7 +139,8 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
         roles: req.user.roles,
         mail: req.user.mail,
         id: req.user.id,
-        state: req.user.state
+        state: req.user.state,
+        avatarImgURL: req.user.avatarImgURL
     };
     console.log("Login granted. Generating token");
     var token_signed = jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '1h' });

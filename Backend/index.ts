@@ -201,7 +201,8 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
     roles: req.user.roles,
     mail: req.user.mail,
     id: req.user.id,
-    state: req.user.state
+    state: req.user.state,
+    avatarImgURL: req.user.avatarImgURL
   };
 
   console.log("Login granted. Generating token");
