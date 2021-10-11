@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { HomepageComponent } from './homepage/homepage.component';
 import { UserLoginComponent } from './user-login/user-login.component';
 import { UserLogoutComponent } from './user-logout/user-logout.component';
+import { UserProfileComponent } from './user-profile/user-profile.component';
 import { UserSigninComponent } from './user-signin/user-signin.component';
 
 const routes: Routes = [
@@ -10,7 +11,8 @@ const routes: Routes = [
   { path: 'login', component: UserLoginComponent },
   { path: 'home', component: HomepageComponent },
   { path: 'logout', component: UserLogoutComponent },
-  { path: 'signin', component: UserSigninComponent }
+  { path: 'signin', component: UserSigninComponent },
+  { path: 'profile', component: UserProfileComponent }
 
 ];
 

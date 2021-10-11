@@ -121,6 +121,7 @@ var matchRooms = {}
 */
 var auth = jwt({ secret: process.env.JWT_SECRET, algorithms: ['HS256'] });
 
+
 app.use(cors());
 
 /* 
@@ -248,8 +249,8 @@ app.post('/users', (req, res, next) => {
 // Get user by username
 app.get('/users/:username', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((u) => {
-
-    return res.status(200).json({ error: false, errormessage: "", user: { username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList } });
+    // return res.status(200).json({ error: false, errormessage: "", user: { username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList } });
+    return res.status(200).json({ username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList })
   })
 })
 
@@ -633,7 +634,7 @@ function createNewFriendRequest(bodyRequest, username) {
   return doc
 }
 // TODO cancella sta cosa
-app.get("/whoami", auth, (req, res, next) => {
+app.get("/whoami",auth, (req, res, next) => {
   console.log(req.user)
   // return next({ statusCode: 200, error: false, errormessage: "Ciao " + req.user.username })
   return res.status(200).json({ error: false, errormessage: `L'utente loggato è ${req.user.username}` });

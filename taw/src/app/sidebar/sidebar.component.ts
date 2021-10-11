@@ -13,6 +13,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public avatarImgURL: string = ""
   private tok: string = ""
   private subscriptionName: Subscription
+  public role: string = ""
 
   constructor(private us: UserHttpService) {
     this.subscriptionName = this.us.get_update().subscribe((msg) => {
@@ -27,6 +28,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (this.tok) {
       this.username = this.us.get_username()
       this.avatarImgURL = this.us.get_avatarImgURL()
+      this.role = this.us.get_role()
     } else {
       this.username = ''
       this.avatarImgURL = ''
@@ -35,6 +37,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptionName.unsubscribe()
+  }
+
+  has_moderator_role(): boolean{
+    if (this.tok) {
+      return this.us.has_moderator_role()
+    }
+    return false
   }
 
 }

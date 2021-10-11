@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http'
 import { Observable, Subject } from 'rxjs'
 import { tap } from 'rxjs/operators'
 import jwt_decode from 'jwt-decode'
+import { isUser, User } from './User';
 
 interface TokenData {
   username: string,
@@ -23,10 +24,10 @@ export class UserHttpService {
 
 
   send_update(message: string) {
-    this.subjectName.next({text:message})
+    this.subjectName.next({ text: message })
   }
 
-  get_update():Observable<any> {
+  get_update(): Observable<any> {
     return this.subjectName.asObservable()
   }
 
@@ -58,23 +59,64 @@ export class UserHttpService {
 
     return this.http.get(`${this.url}/login`, options,).pipe(
       tap((data: any) => {
-        // console.log(JSON.stringify(data))
         this.token = data.token
         if (remember) {
           localStorage.setItem('app_token', this.token)
         }
       })
     )
+  }
+
+
+  signin(username: string, password: string, name: string, surname: string, mail: string, avatarImgURL: string) {
+    console.log(`Creation of user ${username}`);
+
+    const options = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    }
+
+    const body = {
+      username: username,
+      password: password,
+      name: name,
+      surname: surname,
+      mail: mail,
+      avatarImgURL: avatarImgURL
+    }
+
+    return this.http.post(`${this.url}/users`, body, options)
 
   }
 
+  updateUser(name:string, surname: string, mail: string, img: string, password: string):Observable<any>{
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+
+    const body = {
+      username: this.get_username(),
+      name:name,
+      surname: surname,
+      mail: mail,
+      avatarImgURL: img,
+      password: password
+    }
+
+    return this.http.put(`${this.url}/users`,body,options)
+  }
+
+  
   logout() {
     console.log("Logging out")
     this.token = ''
     localStorage.setItem('app_token', this.token)
-    this.send_update("User logged out") 
+    this.send_update("User logged out")
   }
-
+  
   get_token() {
     return this.token
   }
@@ -86,4 +128,28 @@ export class UserHttpService {
   get_avatarImgURL() {
     return (jwt_decode(this.token) as TokenData).avatarImgURL
   }
+
+  get_mail() {
+    return (jwt_decode(this.token) as TokenData).mail
+  }
+
+  get_role() {
+    return (jwt_decode(this.token) as TokenData).roles
+  }
+
+  get_user(): Observable<User> {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`,
+        'cache-control': 'no-cache',
+        'Content-Type': 'application/json',
+      })
+    }
+    return this.http.get<User>(`${this.url}/users/${this.get_username()}`, options)
+  }
+
+  has_moderator_role() {
+    return this.get_role() === 'MODERATOR'
+  }
 }
+

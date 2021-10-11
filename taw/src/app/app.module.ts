@@ -13,6 +13,7 @@ import { HomepageComponent } from './homepage/homepage.component';
 import { UserLogoutComponent } from './user-logout/user-logout.component';
 import { UserSigninComponent } from './user-signin/user-signin.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
+import { UserProfileComponent } from './user-profile/user-profile.component';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,8 @@ import { SidebarComponent } from './sidebar/sidebar.component';
     HomepageComponent,
     UserLogoutComponent,
     UserSigninComponent,
-    SidebarComponent
+    SidebarComponent,
+    UserProfileComponent
   ],
   imports: [
     BrowserModule,

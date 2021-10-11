@@ -1,0 +1,89 @@
+<div class="container mt-4 mb-4 p-3 d-flex justify-content-center direction">
+  <div class="card p-4">
+    <p class="text-center fs-2 fw-bold">That's your profile</p>
+    <div class=" image d-flex flex-column justify-content-center align-items-center">
+      <button class="btn-card btn btn-secondary">
+        <img src="{{avatarImg}}" height="100" width="100" />
+      </button>
+      <span class="name">{{name}} {{surname}}</span>
+      <span>Username: <span class="idd">{{username}}</span> </span>
+      <div class="d-flex flex-row justify-content-center align-items-center gap-2 m-1">
+        <span>mail: <span class="idd1">{{mail}}</span></span>
+      </div>
+      <span class="follow">you are a <span>{{role}}</span></span>
+      <div class=" d-flex mt-2">
+        <button class="btn1 btn-dark" data-bs-toggle="modal" data-bs-target="#editModal">Edit Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card p-4 border border-1 ms-1 statistics">
+    <p class="text-center fs-2 fw-bold">Your stats</p>
+    
+    <div class="d-flex flex-wrap flex-row justify-content-between">
+      <div class="d-flex flex-column align-items-center w-50 mb-10" *ngFor='let stat of statistics'>
+        <small class="text-muted">{{stat.name}}</small>
+        <h6>{{stat.value}}</h6>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Edit your profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form
+        (submit)="updateUserInfo(changedname.value,changedsurname.value,changedmail.value,changedimg.value,changedpassword.value)">
+        <div class="modal-body">
+          <div class="form-floating mt-1">
+            <input type="text" class="form-control" id="floatingName" placeholder="Name" value={{name}} #changedname
+              required>
+            <label for="floatingName">Name</label>
+          </div>
+          <div class="form-floating mt-1">
+            <input type="text" class="form-control" id="floatingSurname" placeholder="Surname" value={{surname}}
+              #changedsurname required>
+            <label for="floatingSurname">Surname</label>
+          </div>
+          <div class="form-floating mt-1">
+            <input type="mail" class="form-control" id="floatingMail" placeholder="Mail" value={{mail}} #changedmail
+              required>
+            <label for="floatingMail">Mail</label>
+          </div>
+          <div class="form-floating mt-1">
+            <input type="text" class="form-control" id="floatingImg" placeholder="Img" value={{avatarImg}} #changedimg
+              required>
+            <label for="floatingImg">Image</label>
+          </div>
+
+          <div class="form-floating mt-1">
+            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" #changedpassword
+              required>
+            <label for="floatingPassword">New Password</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- TODO creare messaggio di nuovo login -->
+<!-- <div class="toast align-items-center position-fixed bottom-0 end-0 p-3 m-3" role="alert" id='toastLogin'>
+  <div class="d-flex">
+    <div class="toast-body">
+      Please, login again
+    </div>
+    <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+  </div>
+</div> -->
