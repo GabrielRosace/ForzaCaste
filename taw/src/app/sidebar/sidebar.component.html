@@ -23,7 +23,7 @@
         </li>
 
         <li *ngIf="has_moderator_role()" class="nav-item">
-          <a href="#" class="nav-link text-white">
+          <a href="/new-mod" class="nav-link text-white">
             Add new mod
           </a>
         </li>
@@ -32,7 +32,7 @@
 
       <div *ngIf="username"  class="dropdown ms-3">
         <a href="#" class="align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown">
-          <img src="{{avatarImgURL}}" alt="" width="32" height="32" class="rounded-circle me-2">
+          <img *ngIf="!has_nonregmod_role()" src="{{avatarImgURL}}" alt="" width="32" height="32" class="rounded-circle me-2">
           <strong>{{username}}</strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow">

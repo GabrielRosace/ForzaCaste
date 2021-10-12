@@ -1,0 +1,24 @@
+<div class="text-center myContainer">
+  <main class="form-signin">
+    <form (submit)="createMod(username.value,password.value)">
+      <img class="mb-4" src="assets/img/logo.png" alt="Forza quattro logo" width="72" height="57">
+      <h1 class="h3 mb-3 fw-normal">Create a new moderator</h1>
+
+      <div class="form-floating">
+        <input type="text" class="form-control" id="floatingInput" placeholder="username" #username required>
+        <label for="floatingInput">Username</label>
+      </div>
+      <div class="form-floating mt-1">
+        <input type="password" class="form-control" id="floatingPassword" placeholder="Password" #password required>
+        <label for="floatingPassword">Password</label>
+      </div>
+      <button type="submit" class="w-100 btn btn-lg btn-primary">Create</button>
+
+      <div *ngIf="errmessage" class="alert alert-{{typeErr}} mt-2" role="alert">
+        {{errmessage}}
+      </div>
+
+      <p class="mt-5 mb-3 text-muted">Mark Otto, Jacob Thornton, and Bootstrap contributors &copy; 2017–2021</p>
+    </form>
+  </main>
+</div>

@@ -40,7 +40,7 @@
       </div>
 
       <form
-        (submit)="updateUserInfo(changedname.value,changedsurname.value,changedmail.value,changedimg.value,changedpassword.value)">
+        (submit)="updateUserInfo(changedname.value,changedsurname.value,changedmail.value,changedimg.value,changedpassword.value)" onsubmit="alert('Please, login again')">
         <div class="modal-body">
           <div class="form-floating mt-1">
             <input type="text" class="form-control" id="floatingName" placeholder="Name" value={{name}} #changedname
@@ -70,20 +70,12 @@
           </div>
         </div>
         <div class="modal-footer">
+          <button #closeModal type="button" class="invisible" data-bs-dismiss="modal"></button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+          <button type="submit" class="btn btn-primary">Save</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- TODO creare messaggio di nuovo login -->
-<!-- <div class="toast align-items-center position-fixed bottom-0 end-0 p-3 m-3" role="alert" id='toastLogin'>
-  <div class="d-flex">
-    <div class="toast-body">
-      Please, login again
-    </div>
-    <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
-  </div>
-</div> -->

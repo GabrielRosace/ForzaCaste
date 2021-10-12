@@ -46,4 +46,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return false
   }
 
+  has_nonregmod_role(): boolean{
+    if (this.tok) {
+      return this.us.has_nonregmod_role()
+    }
+    return false
+  }
+
 }

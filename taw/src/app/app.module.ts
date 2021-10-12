@@ -14,6 +14,7 @@ import { UserLogoutComponent } from './user-logout/user-logout.component';
 import { UserSigninComponent } from './user-signin/user-signin.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
+import { NewModeratorComponent } from './new-moderator/new-moderator.component';
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import { UserProfileComponent } from './user-profile/user-profile.component';
     UserLogoutComponent,
     UserSigninComponent,
     SidebarComponent,
-    UserProfileComponent
+    UserProfileComponent,
+    NewModeratorComponent
   ],
   imports: [
     BrowserModule,

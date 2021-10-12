@@ -148,8 +148,28 @@ export class UserHttpService {
     return this.http.get<User>(`${this.url}/users/${this.get_username()}`, options)
   }
 
-  has_moderator_role() {
+  has_moderator_role():boolean {
     return this.get_role() === 'MODERATOR'
+  }
+
+  has_nonregmod_role():boolean {
+    return this.get_role() === 'NONREGMOD'
+  }
+
+  create_new_mod(username: string, password: string) {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+
+    const body = {
+      username: username,
+      password: password
+    }
+
+
+    return this.http.post(`${this.url}/users/mod`,body,options)
   }
 }
 

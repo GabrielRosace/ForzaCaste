@@ -24,11 +24,14 @@ export class UserLoginComponent implements OnInit {
       // console.log(`User service token: ${this.us.get_token()}`)
 
       this.errmessage = ''
-      this.router.navigate(['/home'])
-
+      
       this.us.send_update("User logged in") // Notify to subscriber that jwt change
       
-      
+      if (this.us.has_nonregmod_role()) {
+        console.log("Bisogna bloccare le info e fargli cambiare tutto") //TODO
+      } else {
+        this.router.navigate(['/home'])
+      }
       
     }, (err) => {
       console.log(`Login error: ${JSON.stringify(err)}`)
