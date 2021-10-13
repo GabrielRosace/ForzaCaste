@@ -445,24 +445,52 @@ app.post('/randomgame', auth, (req, res, next) => {
 })
 
 app.post('/notification', auth, (req, res, next) => {
-  const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.user.username, receiver: req.body.receiver, deleted: false }).then((n) => {
-    if (n !== null) {
-      console.log("You have already sent a request to this user.");
-      return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
-    } else {
-      const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
+  console.log("Sei :", req.user)
+  const use = user.getModel().findOne({ username: req.user.username }).then((use: User) => {
+    if (use.hasModeratorRole() || use.hasUserRole()) {
+      if (req.body.type === "friendRequest") {
+        console.log("Anodamacrop")
+        const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.user.username, receiver: req.body.receiver, deleted: false }).then((n) => {
+          if (n !== null) {
+            console.log("You have already sent a request to this user.");
+            return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
+          } else {
+            const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
 
-        const fr = createNewFriendRequest(req.body, u.username);
+              const fr = createNewFriendRequest(req.body, u.username);
 
-        fr.save().then((data) => {
-          if (notification.isNotification(data)) {
-            console.log("Request forwarded.")
-            return res.status(200).json({ error: false, message: "Request forwarded." });
+              fr.save().then((data) => {
+                if (notification.isNotification(data)) {
+                  console.log("Request forwarded.")
+                  return res.status(200).json({ error: false, message: "Request forwarded." });
+                }
+              }).catch((reason) => {
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+              })
+            })
           }
         }).catch((reason) => {
           return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
         })
-      })
+      } else if (req.body.type === "friendMessage") {
+
+        if (!req.body.text || !req.body.receiver) {
+          return next({ statusCode: 404, error: true, errormessage: "Something is missing" });
+        }
+
+        const doc = createNewFriendMessage(req.body, req.user.username)
+
+        doc.save().then((data) => {
+          console.log("Message sent successfully to: ".green + data.receiver)
+          return res.status(200).json({ error: false, errormessage: "", id: data._id });
+        }).catch((reason) => {
+          return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+        })
+      } else {
+        return next({ statusCode: 404, error: true, errormessage: "Type of the notification not accepted. " });
+      }
+    } else {
+      return next({ statusCode: 404, error: true, errormessage: "You are not registered yet. " });
     }
   }).catch((reason) => {
     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
@@ -470,116 +498,127 @@ app.post('/notification', auth, (req, res, next) => {
 })
 
 app.get('/notification', auth, (req, res, next) => {
-  const u = notification.getModel().find({ $or: [{ receiver: req.user.username }, { sender: req.user.username }] }).then((n) => {
-    return res.status(200).json({ error: false, errormessage: "", notification: n });
-  }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-  })
+  if (req.user.hasModeratorRole() || req.user.hasUserRole()) {
+    const u = notification.getModel().find({ $or: [{ receiver: req.user.username }, { sender: req.user.username }] }).then((n) => {
+      return res.status(200).json({ error: false, errormessage: "", notification: n });
+    }).catch((reason) => {
+      return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+    })
+  }
 })
 
 app.put('/notification', auth, (req, res, next) => {
-  const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.body.sender, deleted: false }).then((n) => {
-    if (n === null) {
-      return res.status(404).json({ error: true, errormessage: "User not found." });
-    } else {
-      n.state = req.body.state;
-      n.deleted = true;
+  if (req.user.hasModeratorRole() || req.user.hasUserRole()) {
+    const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.body.sender, deleted: false }).then((n) => {
+      if (n === null) {
+        return res.status(404).json({ error: true, errormessage: "User not found." });
+      } else {
+        n.state = req.body.state;
+        n.deleted = true;
 
-      n.save().then((data) => {
-        console.log("Data saved successfully".blue)
-        if (data.state) {
-          return res.status(200).json({ error: false, errormessage: "", message: "You accept the request." })
-        } else {
-          return res.status(200).json({ error: false, errormessage: "", message: "You decline the request" })
-        }
-      }).catch((reason) => {
-        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-      })
-    }
-  }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-  })
+        n.save().then((data) => {
+          console.log("Data saved successfully".blue)
+          if (data.state) {
+            return res.status(200).json({ error: false, errormessage: "", message: "You accept the request." })
+          } else {
+            return res.status(200).json({ error: false, errormessage: "", message: "You decline the request" })
+          }
+        }).catch((reason) => {
+          return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+        })
+      }
+    }).catch((reason) => {
+      return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+    })
+  }
 })
 
 app.post('/friend', auth, (req, res, next) => {
-  const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
-    const friendToFriendList = notification.getModel().findOne({ type: "friendRequest", sender: req.body.sender, receiver: u.username, state: true, deleted: true }).then((n) => {
-      u.addFriend(n.sender, false);
+  if (req.user.hasModeratorRole() || req.user.hasUserRole()) {
+    const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
+      const friendToFriendList = notification.getModel().findOne({ type: "friendRequest", sender: req.body.sender, receiver: u.username, state: true, deleted: true }).then((n) => {
+        u.addFriend(n.sender, false);
+
+        u.save().then((data) => {
+          const send = user.getModel().findOne({ username: n.sender }).then((send: User) => {
+            send.addFriend(u.username, false);
+
+            send.save().then((data) => {
+              console.log("Friend added.".blue)
+              return res.status(200).json({ error: false, errormessage: "", message: "Friend " + u.username + " added." })
+            }).catch((reason) => {
+              u.deleteFriend(n.sender)
+              u.save()
+              return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+            })
+          })
+        }).catch((reason) => {
+          return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+        })
+
+      })
+    }).catch((reason) => {
+      return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+    })
+  }
+})
+
+app.get('/friend', auth, (req, res, next) => {
+  if (req.user.hasModeratorRole() || req.user.hasUserRole()) {
+    const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
+      return res.status(200).json({ error: false, errormessage: "", notification: u.friendList });
+    }).catch((reason) => {
+      return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+    })
+  }
+})
+
+app.delete('/friend', auth, (req, res, next) => {
+  if (req.user.hasModeratorRole() || req.user.hasUserRole()) {
+    const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
+      u.deleteFriend(req.body.username);
 
       u.save().then((data) => {
-        const send = user.getModel().findOne({ username: n.sender }).then((send: User) => {
-          send.addFriend(u.username, false);
+        const send = user.getModel().findOne({ username: req.body.username }).then((send: User) => {
+          send.deleteFriend(u.username);
 
           send.save().then((data) => {
-            console.log("Friend added.".blue)
-            return res.status(200).json({ error: false, errormessage: "", message: "Friend " + u.username + " added." })
+            console.log("Friend deleted.".blue)
+            return res.status(200).json({ error: false, errormessage: "", message: "Friend " + u.username + " removed from the friendlist." })
           }).catch((reason) => {
-            u.deleteFriend(n.sender)
-            u.save()
             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
           })
         })
       }).catch((reason) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
       })
-
-    })
-  }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-  })
-})
-
-app.get('/friend', auth, (req, res, next) => {
-  const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
-    return res.status(200).json({ error: false, errormessage: "", notification: u.friendList });
-  }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-  })
-
-})
-
-app.delete('/friend', auth, (req, res, next) => {
-  const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
-    u.deleteFriend(req.body.username);
-
-    u.save().then((data) => {
-      const send = user.getModel().findOne({ username: req.body.username }).then((send: User) => {
-        send.deleteFriend(u.username);
-
-        send.save().then((data) => {
-          console.log("Friend deleted.".blue)
-          return res.status(200).json({ error: false, errormessage: "", message: "Friend " + u.username + " removed from the friendlist." })
-        }).catch((reason) => {
-          return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-        })
-      })
     }).catch((reason) => {
-      return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+      return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
     })
-  }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-  })
+  }
 })
 
 app.put('/friend', auth, (req, res, next) => {
-  const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
+  if (req.user.hasModeratorRole() || req.user.hasUserRole()) {
+    const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
 
-    u.setIsBlocked(req.body.username, req.body.isBlocked)
+      u.setIsBlocked(req.body.username, req.body.isBlocked)
 
-    u.save().then((data) => {
-      if (req.body.isBlocked) {
-        console.log("Friend blocked.".blue)
-        return res.status(200).json({ error: false, errormessage: "", message: "You blocked " + req.body.username + "." })
-      } else {
-        console.log("Friend unblocked.".blue)
-        return res.status(200).json({ error: false, errormessage: "", message: "You can now send a message to " + req.body.username + "." })
-      }
+      u.save().then((data) => {
+        if (req.body.isBlocked) {
+          console.log("Friend blocked.".blue)
+          return res.status(200).json({ error: false, errormessage: "", message: "You blocked " + req.body.username + "." })
+        } else {
+          console.log("Friend unblocked.".blue)
+          return res.status(200).json({ error: false, errormessage: "", message: "You can now send a message to " + req.body.username + "." })
+        }
+      }).catch((reason) => {
+        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+      })
     }).catch((reason) => {
-      return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+      return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
     })
-  }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-  })
+  }
 })
 
 function createNewGameRequest(bodyRequest, username) {
@@ -633,8 +672,20 @@ function createNewFriendRequest(bodyRequest, username) {
   })
   return doc
 }
+
+function createNewFriendMessage(bodyRequest, username) {
+  const model = notification.getModel()
+  const doc = new model({
+    type: bodyRequest.type,
+    text: bodyRequest.text,
+    sender: username,
+    receiver: bodyRequest.receiver,
+    deleted: false
+  })
+  return doc
+}
 // TODO cancella sta cosa
-app.get("/whoami",auth, (req, res, next) => {
+app.get("/whoami", auth, (req, res, next) => {
   console.log(req.user)
   // return next({ statusCode: 200, error: false, errormessage: "Ciao " + req.user.username })
   return res.status(200).json({ error: false, errormessage: `L'utente loggato è ${req.user.username}` });
