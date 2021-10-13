@@ -15,7 +15,7 @@ export class NewModeratorComponent implements OnInit {
   constructor(private us:UserHttpService,private router:Router) { }
 
   ngOnInit(): void {
-    if (!this.us.get_token()) {
+    if (!this.us.get_token() || !this.us.has_moderator_role()) {
       // TODO aggiungi un messaggio, magari con una funzione nel servizio per non replicare codice
       this.router.navigate(['/']) 
     }

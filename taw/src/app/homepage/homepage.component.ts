@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { UserHttpService } from '../user-http.service';
 
 @Component({
   selector: 'app-homepage',
@@ -7,9 +9,12 @@ import { Component, OnInit } from '@angular/core';
 })
 export class HomepageComponent implements OnInit {
 
-  constructor() { }
+  constructor(private us:UserHttpService,private router:Router) { }
 
   ngOnInit(): void {
+    if (this.us.has_nonregmod_role()) {
+      this.router.navigate([`/profile`])
+    }
   }
 
 }

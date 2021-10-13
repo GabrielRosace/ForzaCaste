@@ -1,13 +1,16 @@
+<div class="alert alert-warning m-2" role="alert" *ngIf='!mail'>
+  <p class="text-center fs-2 fw-bold"> Edit your profile to use our game! </p>
+</div>
 <div class="container mt-4 mb-4 p-3 d-flex justify-content-center direction">
   <div class="card p-4">
     <p class="text-center fs-2 fw-bold">That's your profile</p>
     <div class=" image d-flex flex-column justify-content-center align-items-center">
       <button class="btn-card btn btn-secondary">
-        <img src="{{avatarImg}}" height="100" width="100" />
+        <img src="{{avatarImg}}" height="100" width="100" *ngIf='avatarImg'/>
       </button>
-      <span class="name">{{name}} {{surname}}</span>
+      <span class="name" *ngIf='name'>{{name}} {{surname}}</span>
       <span>Username: <span class="idd">{{username}}</span> </span>
-      <div class="d-flex flex-row justify-content-center align-items-center gap-2 m-1">
+      <div class="d-flex flex-row justify-content-center align-items-center gap-2 m-1"  *ngIf='mail'>
         <span>mail: <span class="idd1">{{mail}}</span></span>
       </div>
       <span class="follow">you are a <span>{{role}}</span></span>
@@ -17,7 +20,7 @@
     </div>
   </div>
 
-  <div class="card p-4 border border-1 ms-1 statistics">
+  <div class="card p-4 border border-1 ms-1 statistics" *ngIf='mail'>
     <p class="text-center fs-2 fw-bold">Your stats</p>
     
     <div class="d-flex flex-wrap flex-row justify-content-between">

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserHttpService } from '../user-http.service';
 
@@ -8,6 +8,7 @@ import { UserHttpService } from '../user-http.service';
   styleUrls: ['./user-login.component.css']
 })
 export class UserLoginComponent implements OnInit {
+
 
   public errmessage:string = ''
 
@@ -28,7 +29,9 @@ export class UserLoginComponent implements OnInit {
       this.us.send_update("User logged in") // Notify to subscriber that jwt change
       
       if (this.us.has_nonregmod_role()) {
-        console.log("Bisogna bloccare le info e fargli cambiare tutto") //TODO
+        // console.log("Bisogna bloccare le info e fargli cambiare tutto") //TODO
+        this.router.navigate(['/profile'])
+        // this.modalFirstLoginComponent.nativeElement.click()
       } else {
         this.router.navigate(['/home'])
       }
@@ -36,6 +39,8 @@ export class UserLoginComponent implements OnInit {
     }, (err) => {
       console.log(`Login error: ${JSON.stringify(err)}`)
       this.errmessage = err.message
+      this.us.logout()
+      this.router.navigate(['/'])
     })
     return false // prevent form to reload page
   }
