@@ -294,11 +294,39 @@
 			"response": []
 		},
 		{
-			"name": "createFriendRequest",
+			"name": "createRequest",
 			"request": {
-				"method": "GET",
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
 				"header": [],
-				"url": null
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"receiver\": \"caste\",\r\n    \"type\": \"friendRequest\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/notification",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"notification"
+					]
+				}
 			},
 			"response": []
 		},
@@ -345,9 +373,37 @@
 		{
 			"name": "acceptFriendRequest",
 			"request": {
-				"method": "GET",
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
 				"header": [],
-				"url": null
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"sender\": \"tommy\",\r\n    \"state\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/notification",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"notification"
+					]
+				}
 			},
 			"response": []
 		},
@@ -368,7 +424,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"sender\": \"admin\"\r\n}",
+					"raw": "{\r\n    \"sender\": \"tommy\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -376,13 +432,13 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:8080/notification",
+					"raw": "localhost:8080/friend",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"notification"
+						"friend"
 					]
 				}
 			},
@@ -409,6 +465,80 @@
 				"body": {
 					"mode": "raw",
 					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/friend",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"friend"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deleteFriend",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"tommy\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/friend",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"friend"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "un/block Friend",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"gabriel\",\r\n    \"isBlocked\": true\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
