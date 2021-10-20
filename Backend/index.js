@@ -427,7 +427,7 @@ app.put('/notification', auth, (req, res, next) => {
                     n.save().then((data) => {
                         console.log("Data saved successfully".blue);
                         if (data.state) {
-                            return res.status(200).json({ error: false, errormessage: "", message: "You accept the request." });
+                            return res.status(200).json({ error: false, errormessage: "", message: "You accepted the request." });
                         }
                         else {
                             return res.status(200).json({ error: false, errormessage: "", message: "You decline the request" });
@@ -478,7 +478,7 @@ app.get('/friend', auth, (req, res, next) => {
     const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
         //Verify if the user is register
         if (u.hasModeratorRole() || u.hasUserRole()) {
-            return res.status(200).json({ error: false, errormessage: "", notification: u.friendList });
+            return res.status(200).json({ error: false, errormessage: "", friendlist: u.friendList });
         }
     }).catch((reason) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
