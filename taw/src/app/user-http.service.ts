@@ -116,6 +116,21 @@ export class UserHttpService {
     localStorage.setItem('app_token', this.token)
     this.send_update("User logged out")
   }
+
+  whoami() {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    let response;
+    try {
+      response = this.http.get(`${this.url}/whoami`,options)
+    } catch (error) {
+      console.log(error);
+    }
+    return response;
+  }
   
   get_token() {
     return this.token

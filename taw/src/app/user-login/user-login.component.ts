@@ -10,13 +10,27 @@ import { UserHttpService } from '../user-http.service';
 export class UserLoginComponent implements OnInit {
 
 
-  public errmessage:string = ''
+  public errmessage: string = ''
 
   constructor(private us: UserHttpService, private router: Router) { }
 
   ngOnInit(): void {
     if (this.us.get_token()) {
-      this.router.navigate(["/home"])
+      let response = this.us.whoami()
+      if (response) {
+        response.subscribe((username) => {
+          console.log(`Hello, ${username}`)
+          this.router.navigate(["/home"])
+        }, (err) => {
+          console.log("Your token is expired!")
+          this.us.logout()
+          this.router.navigate(["/login"])
+        })
+      } else {
+        console.log("Your token is expired!")
+        this.us.logout()
+        this.router.navigate(["/login"])
+      }
     }
   }
 
@@ -25,9 +39,9 @@ export class UserLoginComponent implements OnInit {
       // console.log(`User service token: ${this.us.get_token()}`)
 
       this.errmessage = ''
-      
+
       this.us.send_update("User logged in") // Notify to subscriber that jwt change
-      
+
       if (this.us.has_nonregmod_role()) {
         // console.log("Bisogna bloccare le info e fargli cambiare tutto") //TODO
         this.router.navigate(['/profile'])
@@ -35,7 +49,7 @@ export class UserLoginComponent implements OnInit {
       } else {
         this.router.navigate(['/home'])
       }
-      
+
     }, (err) => {
       console.log(`Login error: ${JSON.stringify(err)}`)
       this.errmessage = err.message

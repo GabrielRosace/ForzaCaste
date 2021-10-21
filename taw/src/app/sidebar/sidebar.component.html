@@ -1,10 +1,10 @@
-<div class="bg-dark text-white h-100">
-  <nav class="navbar navbar-dark text-white bg-dark pb-0">
-    <div class="container-fluid">
+<div class="myNav bg-dark text-white">
+  <nav class="navbar navbar-dark text-white bg-dark">
+    <div class="container">
       <div class="col-8">
         <span>Forza Quattro</span>
       </div>
-      <div class="col-4">
+      <div class="col-4 nav justify-content-end">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
           data-bs-target="#navbarToggleExternalContent">
           <span class="navbar-toggler-icon"></span>
@@ -30,7 +30,7 @@
       </ul>
       <hr>
 
-      <div *ngIf="username"  class="dropdown ms-3">
+      <div *ngIf="username"  class="dropdown ms-3 profileIcon mb-3">
         <a href="#" class="align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown">
           <img *ngIf="!has_nonregmod_role()" src="{{avatarImgURL}}" alt="" width="32" height="32" class="rounded-circle me-2">
           <strong>{{username}}</strong>
