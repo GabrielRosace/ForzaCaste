@@ -379,10 +379,18 @@ app.post('/notification', auth, (req, res, next) => {
                 if (!req.body.text || !req.body.receiver) {
                     return next({ statusCode: 404, error: true, errormessage: "Something is missing" });
                 }
-                const doc = createNewFriendMessage(req.body, req.user.username);
-                doc.save().then((data) => {
-                    console.log("Message sent successfully to: ".green + data.receiver);
-                    return res.status(200).json({ error: false, errormessage: "", id: data._id });
+                const msg = createNewFriendMessage(req.body, req.user.username);
+                u.addNotification(msg);
+                u.save().then((data) => {
+                    const rec = user.getModel().findOne({ username: msg.receiver }).then((rec) => {
+                        rec.addNotification(msg);
+                        rec.save().then((data) => {
+                            console.log("Message sent successfully to: ".green + req.body.receiver);
+                            return res.status(200).json({ error: false, errormessage: "", id: data._id });
+                        }).catch((reason) => {
+                            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                        });
+                    });
                 }).catch((reason) => {
                     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
                 });

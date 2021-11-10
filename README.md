@@ -59,3 +59,15 @@ Per effettuare una partita sono necessari due utenti, quindi:
     6.7) Ricevi status code 200
 7) Una volta che entrambi i WebSocket client ricevono il messaggio "true" al listener "lobby" fare il redirect della page per iniziare la partita
 ```
+### Richiesta d'amicizia
+```
+ per aggiungere un utente tra gli amici:
+ 1)bisogna fare una richiesta in POST sull'url "localhost:8080/notification", col seguente body--> "receiver": NomeUtente,
+                                                                                                   "type": friendRequest
+ 2)Per accettare la richiesta inviata sotto forma di notifica:
+    1)Cambiare l'utente con quello a cui prima è stata inviata la richiesta
+    2) fare una richiesta PUT sull'url localhost:8080/notification col seguente body--> "sender": NomeUtente(che ha inviato la richiesta),
+                                                                                        "state": true
+ 3)Infine per aggiunger l'utente alla propria lista bisogna fare una richiesta POST sull'url localhost:8080/friend col seguente
+   body--> "sender": NomeUtente(che ha inviato la richiesta)
+
