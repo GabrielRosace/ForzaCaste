@@ -354,7 +354,7 @@ app.post('/notification', auth, (req, res, next) => {
         //Verify if the user is register
         if (u.hasModeratorRole() || u.hasUserRole()) {
             //Check the type of the request for the creation of the new notification 
-            if (req.body.type === "friendRequest") {
+            if (req.body.type === "friendRequest") { //Send a friendRequest
                 const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.user.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {
                     if (n !== null) {
                         console.log("You have already sent a request to this user.");
@@ -375,7 +375,11 @@ app.post('/notification', auth, (req, res, next) => {
                     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
                 });
             }
-            else if (req.body.type === "friendMessage") {
+            else if (req.body.type === "friendMessage") { //Send a new message to a friend
+                //TODO fai il controllo che siano amici
+                if (u.isFriend(req.body.receiver)) {
+                    console.log("Funzia");
+                }
                 if (!req.body.text || !req.body.receiver) {
                     return next({ statusCode: 404, error: true, errormessage: "Something is missing" });
                 }

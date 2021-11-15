@@ -450,8 +450,8 @@ app.post('/notification', auth, (req, res, next) => {
     //Verify if the user is register
     if (u.hasModeratorRole() || u.hasUserRole()) {
       //Check the type of the request for the creation of the new notification 
-      if (req.body.type === "friendRequest") {
-        const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.user.username, receiver: req.body.receiver,  $or: [{deleted: false},{deleted: true, state: true}]}).then((n) => {//? Come decido se poter rimandare o no la richiesta?
+      if (req.body.type === "friendRequest") {//Send a friendRequest
+        const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.user.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
           if (n !== null) {
             console.log("You have already sent a request to this user.");
             return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
@@ -470,28 +470,31 @@ app.post('/notification', auth, (req, res, next) => {
         }).catch((reason) => {
           return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
         })
-      } else if (req.body.type === "friendMessage") {
+      } else if (req.body.type === "friendMessage") {//Send a new message to a friend
 
-        if (!req.body.text || !req.body.receiver) {
-          return next({ statusCode: 404, error: true, errormessage: "Something is missing" });
-        }
+        if (u.isFriend(req.body.receiver) || u.hasModeratorRole() || u.hasAdminRole()){//Check if the receiver is a friend, in case i am a regular user
 
-        const msg = createNewFriendMessage(req.body, req.user.username);
-        u.addNotification(msg);
-        
-        u.save().then((data) => {
-          const rec = user.getModel().findOne({ username: msg.receiver }).then((rec: User) => {
-            rec.addNotification(msg);
-            rec.save().then((data) => {
-              console.log("Message sent successfully to: ".green + req.body.receiver);
-              return res.status(200).json({ error: false, errormessage: "", id: data._id });    
-            }).catch((reason) => {
-              return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+          if (!req.body.text || !req.body.receiver) {
+            return next({ statusCode: 404, error: true, errormessage: "Something is missing" });
+          }
+
+          const msg = createNewFriendMessage(req.body, req.user.username);
+          u.addNotification(msg);
+
+          u.save().then((data) => {
+            const rec = user.getModel().findOne({ username: msg.receiver }).then((rec: User) => {
+              rec.addNotification(msg);
+              rec.save().then((data) => {
+                console.log("Message sent successfully to: ".green + req.body.receiver);
+                return res.status(200).json({ error: false, errormessage: "", id: data._id });
+              }).catch((reason) => {
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+              })
             })
+          }).catch((reason) => {
+            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
           })
-        }).catch((reason) => {
-          return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-        })
+        }
       } else {
         return next({ statusCode: 404, error: true, errormessage: "Type of the notification not accepted. " });
       }
@@ -503,7 +506,7 @@ app.post('/notification', auth, (req, res, next) => {
   })
 })
 
-app.get('/notification', auth, (req, res, next) => {
+app.get('/notification', auth, (req, res, next) => {//TODO prendere anche i messaggi in inbox
   const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     //Verify if the user is register
     if (u.hasModeratorRole() || u.hasUserRole()) {

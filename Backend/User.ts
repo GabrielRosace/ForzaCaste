@@ -34,6 +34,7 @@ export interface User extends mongoose.Document {
   hasUserRole: () => boolean,
   setUser: () => void,
   addFriend: (username: string,isBlocked: boolean) => void,
+  isFriend: (username: string) => boolean,
   addNotification: (notId: Notification) => void,
   deleteFriend: (username: string) => void,
   setIsBlocked: (username: string, isBlocked: boolean) => void,
@@ -206,6 +207,14 @@ userSchema.methods.addFriend = function (username: string, isBlocked: boolean) {
   this.friendList.push({ username: username, isBlocked: isBlocked });
 }
 
+userSchema.methods.isFriend = function (username: string){
+  for( var i = 0; i < this.friendList.length; i++){ 
+    if ( this.friendList[i].username === username) { 
+      return true;
+    }
+  }
+  return false;
+}
 
 userSchema.methods.addNotification = function (notId: Notification) {
   this.inbox.push(notId);
