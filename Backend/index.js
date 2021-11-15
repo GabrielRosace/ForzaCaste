@@ -376,28 +376,29 @@ app.post('/notification', auth, (req, res, next) => {
                 });
             }
             else if (req.body.type === "friendMessage") { //Send a new message to a friend
-                //TODO fai il controllo che siano amici
-                if (u.isFriend(req.body.receiver)) {
-                    console.log("Funzia");
-                }
-                if (!req.body.text || !req.body.receiver) {
-                    return next({ statusCode: 404, error: true, errormessage: "Something is missing" });
-                }
-                const msg = createNewFriendMessage(req.body, req.user.username);
-                u.addNotification(msg);
-                u.save().then((data) => {
-                    const rec = user.getModel().findOne({ username: msg.receiver }).then((rec) => {
-                        rec.addNotification(msg);
-                        rec.save().then((data) => {
-                            console.log("Message sent successfully to: ".green + req.body.receiver);
-                            return res.status(200).json({ error: false, errormessage: "", id: data._id });
-                        }).catch((reason) => {
-                            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                if (u.isFriend(req.body.receiver) || u.hasModeratorRole()) { //Check if the receiver is a friend, in case i am a regular user
+                    if (!req.body.text || !req.body.receiver) {
+                        return next({ statusCode: 404, error: true, errormessage: "Something is missing" });
+                    }
+                    const msg = createNewFriendMessage(req.body, req.user.username);
+                    u.addNotification(msg);
+                    u.save().then((data) => {
+                        const rec = user.getModel().findOne({ username: msg.receiver }).then((rec) => {
+                            rec.addNotification(msg);
+                            rec.save().then((data) => {
+                                console.log("Message sent successfully to: ".green + req.body.receiver);
+                                return res.status(200).json({ error: false, errormessage: "", id: data._id });
+                            }).catch((reason) => {
+                                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                            });
                         });
+                    }).catch((reason) => {
+                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
                     });
-                }).catch((reason) => {
-                    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-                });
+                }
+                else {
+                    return next({ statusCode: 404, error: true, errormessage: "Friend not found. " });
+                }
             }
             else {
                 return next({ statusCode: 404, error: true, errormessage: "Type of the notification not accepted. " });

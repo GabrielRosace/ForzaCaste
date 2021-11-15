@@ -472,7 +472,7 @@ app.post('/notification', auth, (req, res, next) => {
         })
       } else if (req.body.type === "friendMessage") {//Send a new message to a friend
 
-        if (u.isFriend(req.body.receiver) || u.hasModeratorRole() || u.hasAdminRole()){//Check if the receiver is a friend, in case i am a regular user
+        if (u.isFriend(req.body.receiver) || u.hasModeratorRole()){//Check if the receiver is a friend, in case i am a regular user
 
           if (!req.body.text || !req.body.receiver) {
             return next({ statusCode: 404, error: true, errormessage: "Something is missing" });
@@ -494,6 +494,8 @@ app.post('/notification', auth, (req, res, next) => {
           }).catch((reason) => {
             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
           })
+        }else{
+          return next({ statusCode: 404, error: true, errormessage: "Friend not found. " });
         }
       } else {
         return next({ statusCode: 404, error: true, errormessage: "Type of the notification not accepted. " });
