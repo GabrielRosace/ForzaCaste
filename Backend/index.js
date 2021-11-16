@@ -425,6 +425,17 @@ app.get('/notification', auth, (req, res, next) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
     });
 });
+app.get('/notification/inbox', auth, (req, res, next) => {
+    const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
+        //Verify if the user is register
+        if (u.hasModeratorRole() || u.hasUserRole()) {
+            console.log("Chat di:" + req.body.username);
+            return res.status(200).json({ inbox: u.inbox });
+        }
+    }).catch((reason) => {
+        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+    });
+});
 app.put('/notification', auth, (req, res, next) => {
     //The user accept or decline a friendRequest
     const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
