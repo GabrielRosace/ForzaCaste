@@ -472,7 +472,7 @@ app.post('/notification', auth, (req, res, next) => {
         })
       } else if (req.body.type === "friendMessage") {//Send a new message to a friend
 
-        if (u.isFriend(req.body.receiver) || u.hasModeratorRole()){//Check if the receiver is a friend, in case i am a regular user
+        if (u.isFriend(req.body.receiver) || u.hasModeratorRole()) {//Check if the receiver is a friend, in case i am a regular user
 
           if (!req.body.text || !req.body.receiver) {
             return next({ statusCode: 404, error: true, errormessage: "Something is missing" });
@@ -494,7 +494,7 @@ app.post('/notification', auth, (req, res, next) => {
           }).catch((reason) => {
             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
           })
-        }else{
+        } else {
           return next({ statusCode: 404, error: true, errormessage: "Friend not found. " });
         }
       } else {
@@ -508,7 +508,7 @@ app.post('/notification', auth, (req, res, next) => {
   })
 })
 
-app.get('/notification', auth, (req, res, next) => {//TODO prendere anche i messaggi in inbox
+app.get('/notification', auth, (req, res, next) => {
   const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     //Verify if the user is register
     if (u.hasModeratorRole() || u.hasUserRole()) {
@@ -517,6 +517,18 @@ app.get('/notification', auth, (req, res, next) => {//TODO prendere anche i mess
       }).catch((reason) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
       })
+    }
+  }).catch((reason) => {
+    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+  })
+})
+
+app.get('/notification/inbox', auth, (req, res, next) => {
+  const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
+    //Verify if the user is register
+    if (u.hasModeratorRole() || u.hasUserRole()) {
+      console.log("Chat di:"+req.body.username);
+      return res.status(200).json({inbox: u.inbox });
     }
   }).catch((reason) => {
     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
