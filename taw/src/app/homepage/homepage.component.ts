@@ -12,8 +12,8 @@ export class HomepageComponent implements OnInit {
   constructor(private us:UserHttpService,private router:Router) { }
 
   ngOnInit(): void {
-    if (this.us.has_nonregmod_role()) {
-      this.router.navigate([`/profile`])
+    if (!this.us.get_token()) {
+      this.router.navigate(['/'])
     }
   }
 
