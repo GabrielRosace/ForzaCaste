@@ -595,7 +595,13 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     // console.log("Fatto".green)
     let server = http.createServer(app);
     const option = {
-        allowEIO3: true
+        allowEIO3: true,
+        cors: {
+            origin: "http://localhost:4201",
+            methods: ["GET", "POST"],
+            allowedHeaders: ["enableCORS"],
+            credentials: true
+        }
     };
     ios = new Server(server, option);
     ios.on("connection", function (client) {
