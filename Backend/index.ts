@@ -553,8 +553,8 @@ app.get('/notification/inbox', auth, (req, res, next) => {
   const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     //Verify if the user is register
     if (u.hasModeratorRole() || u.hasUserRole()) {
-      console.log("Chat di:"+req.body.username);
-      return res.status(200).json({inbox: u.inbox });
+      console.log("Chat di:" + req.body.username);
+      return res.status(200).json({ inbox: u.inbox });
     }
   }).catch((reason) => {
     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
@@ -868,29 +868,29 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 
       // TODO: fare i controlli
       client.on('move', (clientData) => {
-        let u = user.getModel().findOne({username: clientData.username}).then((n) => {
-          if(n != null){
-            let doc = match.getModel().findOne({ inProgress: true, $or: [{player1: clientData.username}, {player2: clientData.username}]}).then((m) => { // Si dovrebbe usare n.username
-              if(m != null){
-                if(match.isMatch(m)){
+        let u = user.getModel().findOne({ username: clientData.username }).then((n) => {
+          if (n != null) {
+            let doc = match.getModel().findOne({ inProgress: true, $or: [{ player1: clientData.username }, { player2: clientData.username }] }).then((m) => { // Si dovrebbe usare n.username
+              if (m != null) {
+                if (match.isMatch(m)) {
                   // console.table(m.playground);
                   let index = parseInt(clientData.move)
-                  let added = false   
+                  let added = false
                   // Mossa del player1                
-                  if(m.nTurns % 2 == 1 && m.player1 == clientData.username){                 
-                    if(index >= 0 && index <= 6){
-                      if(m.playground[5][index] == '/'){
+                  if (m.nTurns % 2 == 1 && m.player1 == clientData.username) {
+                    if (index >= 0 && index <= 6) {
+                      if (m.playground[5][index] == '/') {
                         // Copio la matrice salvata nel db
                         let pl = new Array(6)
-                        for(let k = 0; k < 6; k++){
+                        for (let k = 0; k < 6; k++) {
                           pl[k] = new Array(7)
-                          for(let c = 0; c < 7; c++){
+                          for (let c = 0; c < 7; c++) {
                             pl[k][c] = m.playground[k][c]
                           }
                         }
                         // Aggiungo la mossa
-                        for( let k = 0; k < 6 && !added; k++){                      
-                          if(m.playground[k][index] == '/'){                           
+                        for (let k = 0; k < 6 && !added; k++) {
+                          if (m.playground[k][index] == '/') {
                             pl[k][index] = 'X'
                             client.emit('move', 'Mossa inserita')
                             added = true
@@ -902,36 +902,36 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                         // console.table(m.playground)
                         m.save().then((data) => {
                           // console.table(data.playground)
-                          console.log("Playground updated".green)                    
+                          console.log("Playground updated".green)
                         }).catch((reason) => {
                           console.log("Error: " + reason)
                         })
                       }
-                      else{
+                      else {
                         //! Errore: la colonna è già piena
                         client.emit('move', 'La colonna è piena')
                       }
                     }
-                    else{
+                    else {
                       // ! La mossa inserita non è permessa, esce dal campo
                       client.emit('move', 'Mossa non consentita')
                     }
                   }
                   // Mossa del player 2
-                  else if(m.nTurns % 2 == 0 && m.player2 == clientData.username){
-                    if(index >= 0 && index <= 6){
-                      if(m.playground[5][index] == '/'){
+                  else if (m.nTurns % 2 == 0 && m.player2 == clientData.username) {
+                    if (index >= 0 && index <= 6) {
+                      if (m.playground[5][index] == '/') {
                         // Copio la matrice salvata nel db
                         let pl = new Array(6)
-                        for(let k = 0; k < 6; k++){
+                        for (let k = 0; k < 6; k++) {
                           pl[k] = new Array(7)
-                          for(let c = 0; c < 7; c++){
+                          for (let c = 0; c < 7; c++) {
                             pl[k][c] = m.playground[k][c]
                           }
                         }
                         // Aggiungo la mossa
-                        for( let k = 0; k < 6 && !added; k++){                      
-                          if(m.playground[k][index] == '/'){                           
+                        for (let k = 0; k < 6 && !added; k++) {
+                          if (m.playground[k][index] == '/') {
                             pl[k][index] = 'O'
                             client.emit('move', 'Mossa inserita')
                             added = true
@@ -943,37 +943,37 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                         // console.table(m.playground)
                         m.save().then((data) => {
                           // console.table(data.playground)
-                          console.log("Playground updated".green)                    
+                          console.log("Playground updated".green)
                         }).catch((reason) => {
                           console.log("Error: " + reason)
                         })
                       }
-                      else{
+                      else {
                         //! Errore: la colonna è già piena
                         client.emit('move', 'La colonna è piena')
                       }
                     }
-                    else{
+                    else {
                       // ! La mossa inserita non è permessa, esce dal campo
                       client.emit('move', 'Mossa non consentita')
                     }
                   }
                   // Si sta cercando di eseguire una mossa quando non è il proprio turno
-                  else{
+                  else {
                     client.emit('move', 'Turno errato')
                   }
                   // Controllo se la partita è finita
                   console.table(m.playground)
                   // Controllo se il campo è pieno
-                  for
+                  //for
                 }
               }
-              else{
+              else {
                 // ! Errore: il match non esiste
               }
             })
           }
-          else{
+          else {
             // ! Errore: l'utente non esiste
           }
         })
