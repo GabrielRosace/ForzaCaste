@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { SocketioService } from '../socketio.service';
 import { UserHttpService } from '../user-http.service';
 
 @Component({
@@ -12,7 +13,7 @@ export class UserLoginComponent implements OnInit {
 
   public errmessage: string = ''
 
-  constructor(private us: UserHttpService, private router: Router) { }
+  constructor(private sio: SocketioService, private us: UserHttpService, private router: Router) { }
 
   ngOnInit(): void {
     if (this.us.get_token()) {
@@ -41,6 +42,7 @@ export class UserLoginComponent implements OnInit {
       this.errmessage = ''
 
       this.us.send_update("User logged in") // Notify to subscriber that jwt change
+      this.saveClient()
 
       if (this.us.has_nonregmod_role()) {
         // console.log("Bisogna bloccare le info e fargli cambiare tutto") //TODO
@@ -59,4 +61,7 @@ export class UserLoginComponent implements OnInit {
     return false // prevent form to reload page
   }
 
+  saveClient() {
+    this.sio.connect().subscribe((u) => {})
+  }
 }
