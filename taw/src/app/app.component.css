@@ -1,0 +1,14 @@
+.row{
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar{
+  margin:0;
+}
+
+.myContainer{
+  height: 100%;
+}

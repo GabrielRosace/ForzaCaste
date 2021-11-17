@@ -151,10 +151,17 @@ userSchema.methods.deleteUser = function () {
 userSchema.methods.addFriend = function (username, isBlocked) {
     this.friendList.push({ username: username, isBlocked: isBlocked });
 };
-/*
-userSchema.methods.addNotification = function (notId: string) {
-  this.inbox.push(notId);
-}*/
+userSchema.methods.isFriend = function (username) {
+    for (var i = 0; i < this.friendList.length; i++) {
+        if (this.friendList[i].username === username) {
+            return true;
+        }
+    }
+    return false;
+};
+userSchema.methods.addNotification = function (notId) {
+    this.inbox.push(notId);
+};
 userSchema.methods.deleteFriend = function (username) {
     for (var i = 0; i < this.friendList.length; i++) {
         if (this.friendList[i].username === username) {

@@ -1,0 +1,110 @@
+
+<div class="text-center myContainer">
+    <div class="homepagecontainer">
+        <img class="mb-4" src="assets/img/logo.png" alt="Forza quattro logo" width="72" height="57">
+        <h1 class="h3 mb-3 fw-normal">Welcome to ForzaCaste!</h1>
+        <br>
+        <div class="duw">
+            <div class="card border-dark mb-3">
+                <div class="card-body text-dark">
+                    <p class="text-center fs-2 fw-bold">Do you want to play?</p>
+                    <div class="container">
+                        <div class="row">
+                          <div class="col-sm">
+                            <button type="button" class="w-100 btn btn-primary btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#p-strange">Play with strange</button>
+                          </div>
+                          <div class="col-sm">
+                            <button type="button" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#p-friend">Play with friends</button>
+                          </div>
+                        </div>
+                      </div>
+                </div>
+              </div>
+        </div>
+        <div class="duw">
+            <div class="card border-dark mb-3">
+                <div class="card-body text-dark">
+                    <p class="text-center fs-2 fw-bold">Do you want to watch?</p>
+                    <div class="container">
+                        <div class="row">
+                        <div class="col-sm">
+                            <button type="button" class="w-100 btn btn-primary btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#w-strange">Watch a strange</button>
+                        </div>
+                        <div class="col-sm">
+                            <button type="button" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#w-friend">Watch a friends</button>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+              </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="p-friend" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Play with a friend</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <ul class="list-group">
+        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lfriend of friendlist'>
+          {{lfriend.username}}
+          <button type="button" class=" btn btn-warning mybtn">Invite</button>
+        </li>
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="w-friend" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Watch a friend</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <ul class="list-group">
+        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lfriend of friendlist'>
+          {{lfriend.username}}
+          <button type="button" class=" btn btn-warning mybtn">Watch</button>
+        </li>
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="p-strange" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Play with a strange</h5>
+      </div>
+      <p class="text-center fs-2">I'm looking for a game</p>
+      <div class="dot-flashing" style="align-self: center;"></div>
+      <div class="modal-footer">
+        <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+    
+  </div>
+</div>
+<div class="modal fade" id="w-strange" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Watch a strange</h5>
+      </div>
+      <p class="text-center fs-2">I'm looking for a game</p>
+    
+      <div class="dot-flashing" style="align-self: center;"></div>
+      <div class="modal-footer">
+        <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+    
+  </div>
+</div>
