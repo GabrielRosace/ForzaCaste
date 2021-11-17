@@ -11,10 +11,10 @@
                     <div class="container">
                         <div class="row">
                           <div class="col-sm">
-                            <button type="button" class="w-100 btn btn-primary btn-lg mybtn">Play with strange</button>
+                            <button type="button" class="w-100 btn btn-primary btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#p-strange">Play with strange</button>
                           </div>
                           <div class="col-sm">
-                            <button type="button" class="w-100 btn btn-warning btn-lg mybtn">Play with friends</button>
+                            <button type="button" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#p-friend">Play with friends</button>
                           </div>
                         </div>
                       </div>
@@ -28,17 +28,83 @@
                     <div class="container">
                         <div class="row">
                         <div class="col-sm">
-                            <button type="button" class="w-100 btn btn-primary btn-lg mybtn">Watch a strange</button>
+                            <button type="button" class="w-100 btn btn-primary btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#w-strange">Watch a strange</button>
                         </div>
                         <div class="col-sm">
-                            <button type="button" class="w-100 btn btn-primary btn-lg mybtn"><i class="bi bi-alarm"></i>Watch a friends</button>
+                            <button type="button" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#w-friend">Watch a friends</button>
                         </div>
                         </div>
                     </div>
                 </div>
               </div>
-            
         </div>
     </div>
 </div>
 
+<div class="modal fade" id="p-friend" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Play with a friend</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <ul class="list-group">
+        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lfriend of friendlist'>
+          {{lfriend.username}}
+          <button type="button" class=" btn btn-warning mybtn">Invite</button>
+        </li>
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="w-friend" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Watch a friend</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <ul class="list-group">
+        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lfriend of friendlist'>
+          {{lfriend.username}}
+          <button type="button" class=" btn btn-warning mybtn">Watch</button>
+        </li>
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="p-strange" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Play with a strange</h5>
+      </div>
+      <p class="text-center fs-2">I'm looking for a game</p>
+      <div class="dot-flashing" style="align-self: center;"></div>
+      <div class="modal-footer">
+        <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+    
+  </div>
+</div>
+<div class="modal fade" id="w-strange" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Watch a strange</h5>
+      </div>
+      <p class="text-center fs-2">I'm looking for a game</p>
+    
+      <div class="dot-flashing" style="align-self: center;"></div>
+      <div class="modal-footer">
+        <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+    
+  </div>
+</div>
