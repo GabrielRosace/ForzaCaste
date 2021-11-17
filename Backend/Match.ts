@@ -32,9 +32,9 @@ export interface Match {
   player1: mongoose.Schema.Types.String,
   player2: mongoose.Schema.Types.String,
   winner: mongoose.Schema.Types.ObjectId,
-  playground: String[6][7],
+  playground: Array<any>[6][7],
   chat: message.Message[],
-  nTurns: Number
+  nTurns: number
 }
 
 var matchSchema = new mongoose.Schema({
@@ -82,15 +82,15 @@ export function getModel(): mongoose.Model<Match> { // Return Model as singleton
 export function createNewMatch(data): Match {  //TODO modificare tipo di ritorno
   var _matchmodel = getModel();
   var match = new _matchmodel(data);
-  fillPlayground(match);
+  // fillPlayground(match);
   return match;
 }
 
-function fillPlayground(match) {
-  var i;
-  for (i = 0; i < 42; i++)
-    match.playground.push("/");
-}
+// function fillPlayground(match) {
+//   var i;
+//   for (i = 0; i < 42; i++)
+//     match.playground.push("/");
+// }
 
 
 export function isMatch(arg: any): arg is Match {

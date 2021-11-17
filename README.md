@@ -48,11 +48,11 @@ password: gabriel
 Per effettuare una partita sono necessari due utenti, quindi:
 1) Fare il login di due utenti
 2) Connettersi al server WebSocket con Postman
-3) Creare gli event listener dei WebSocket client su Postman "createMatchRoom" e "lobby"
-4) Entrambi gli utenti: inviare una richiesta WebSocket con titolo saveClient e parametro { "clientUsername": $nome }
+3) Creare gli event listener dei WebSocket client su Postman "createMatchRoom", "lobby", "move"
+4) Entrambi gli utenti: inviare una richiesta WebSocket con titolo saveClient e parametro { "username": $nome }
 5)  Player1:
     5.a) Fare richiesta di gioco, inviare la richiesta http "Create random game request"
-    5.b) Ricevuto come risposta il codice 200 e il valore "true" dal server WebSocket invio una richiesta WebSocket con titolo "createMathRoom") e con parametro { "clientUsername": $nome } 
+    5.b) Ricevuto come risposta il codice 200 e il valore "true" dal server WebSocket invio una richiesta WebSocket con titolo "createMatchRoom") e con parametro { "clientUsername": $nome } 
     5.c) Player1 rimane in attesa
 6)  Player2:
     6.a) Fare richiesta di gioco, inviare la richiesta http "Create random game request"

@@ -114,11 +114,11 @@ passport.use(new passportHTTP.BasicStrategy(function (username, password, done) 
 //TODO add console.log
 //* Add API routes to express application
 app.get("/", (req, res) => {
-    match.getModel().findOne({ _id: "615c5b00ffdfbf0142511956" }).then((m) => {
-        console.log(m);
-        console.log("-----------------");
-        console.log(match.isMatch(m));
-    });
+    // match.getModel().findOne({_id:"615c5b00ffdfbf0142511956"}).then((m)=>{
+    //   console.log(m)
+    //   console.log("-----------------")
+    //   console.log(match.isMatch(m))
+    // })
     res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/randomgame"] }); //TODO setta gli endpoints
 });
 // Login endpoint uses passport middleware to check
@@ -347,26 +347,27 @@ app.post('/randomgame', auth, (req, res, next) => {
     });
 });
 app.get('/game', auth, (req, res, next) => {
-    let doc = match.getModel().findOne({ inProgress: true, $or: [{ player1: req.user.username }, { player2: req.user.username }] }).then((n) => {
-        if (n != null) {
-            if (match.isMatch(n)) {
-                let i = 0;
-                let playground = n.playground;
-                socketIOclients[req.user.username].on('move', (clientData) => {
-                    if (i % 2 == 0 && n.player1 == clientData.username) {
-                        if (clientData.move >= 0 && clientData.move <= 7) {
-                            n.update();
-                        }
-                    }
-                    else if (i % 2 == 1 && n.player2 == clientData.username) {
-                    }
-                    else {
-                        // ! Errore
-                    }
-                });
-            }
-        }
-    });
+    res.status(200).json({ api_version: "1.0", message: "The game has been started" });
+    // let doc = match.getModel().findOne({ inProgress: true, $or: [{player1: req.user.username}, {player2: req.user.username}]}).then((n) => {
+    //   if(n != null){
+    //     if(match.isMatch(n)){
+    //       let i = 0
+    //       let playground = n.playground
+    //       socketIOclients[req.user.username].on('move', (clientData) => {
+    //         if(i%2 == 0 && n.player1 == clientData.username){
+    //           if(clientData.move >= 0 && clientData.move <= 7){
+    //             n.update() // TODO update the playground by inserting the user move
+    //           }
+    //         }
+    //         else if(i%2 == 1 && n.player2 == clientData.username){
+    //         }
+    //         else{
+    //           // ! Errore
+    //         }
+    //       })
+    //     }
+    //   }
+    // })
 });
 app.post('/notification', auth, (req, res, next) => {
     const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.user.username, receiver: req.body.receiver, deleted: false }).then((n) => {
@@ -512,7 +513,7 @@ function createNewRandomMatch(player1, player2) {
         winner: null,
         playground: createPlayground(),
         chat: new Array(),
-        nTurns: 0
+        nTurns: 1
     });
     return doc;
 }
@@ -601,8 +602,8 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         console.log("Socket.io client connected".green);
         // This message is send by the client when he log in
         client.on('saveClient', (clientData) => {
-            if (!socketIOclients[clientData.clientUsername]) {
-                socketIOclients[clientData.clientUsername] = client;
+            if (!socketIOclients[clientData.username]) {
+                socketIOclients[clientData.username] = client;
                 console.log("User registered".green);
             }
             else
@@ -611,16 +612,16 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         // This event is triggered when a client want to play a random match but there is no match request active, so it creates a game request 
         client.on('createMatchRoom', (clientData) => {
             console.log("Joining...".green);
-            if (matchRooms[clientData.clientUsername] != clientData) {
-                matchRooms[clientData.clientUsername] = {};
-                matchRooms[clientData.clientUsername][clientData.clientUsername] = client;
+            if (matchRooms[clientData.username] != clientData) {
+                matchRooms[clientData.username] = {};
+                matchRooms[clientData.username][clientData.username] = client;
             }
             else {
                 console.log("L'utente è già inserito in una room".red);
                 client.emit('alreadyCreatedRoom');
             }
-            client.join(clientData.clientUsername);
-            console.log("Client joined the room".green);
+            client.join(clientData.username);
+            console.log("Client joined the room".green + clientData.username);
             console.log(matchRooms);
         });
         client.on('isInRoom', () => {
@@ -631,6 +632,116 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                 }
             }
             client.emit('IsInRoom', 'No');
+        });
+        // TODO: fare i controlli
+        client.on('move', (clientData) => {
+            let u = user.getModel().findOne({ username: clientData.username }).then((n) => {
+                if (n != null) {
+                    let doc = match.getModel().findOne({ inProgress: true, $or: [{ player1: clientData.username }, { player2: clientData.username }] }).then((m) => {
+                        if (m != null) {
+                            if (match.isMatch(m)) {
+                                // console.table(m.playground);
+                                let index = parseInt(clientData.move);
+                                let added = false;
+                                // Mossa del player1                
+                                if (m.nTurns % 2 == 1 && m.player1 == clientData.username) {
+                                    if (index >= 0 && index <= 6) {
+                                        if (m.playground[5][index] == '/') {
+                                            // Copio la matrice salvata nel db
+                                            let pl = new Array(6);
+                                            for (let k = 0; k < 6; k++) {
+                                                pl[k] = new Array(7);
+                                                for (let c = 0; c < 7; c++) {
+                                                    pl[k][c] = m.playground[k][c];
+                                                }
+                                            }
+                                            // Aggiungo la mossa
+                                            for (let k = 0; k < 6 && !added; k++) {
+                                                if (m.playground[k][index] == '/') {
+                                                    pl[k][index] = 'X';
+                                                    client.emit('move', 'Mossa inserita');
+                                                    added = true;
+                                                }
+                                            }
+                                            m.playground = pl;
+                                            // console.table(m.playground)
+                                            m.nTurns += 1;
+                                            // console.table(m.playground)
+                                            m.save().then((data) => {
+                                                // console.table(data.playground)
+                                                console.log("Playground updated".green);
+                                            }).catch((reason) => {
+                                                console.log("Error: " + reason);
+                                            });
+                                        }
+                                        else {
+                                            //! Errore: la colonna è già piena
+                                            client.emit('move', 'La colonna è piena');
+                                        }
+                                    }
+                                    else {
+                                        // ! La mossa inserita non è permessa, esce dal campo
+                                        client.emit('move', 'Mossa non consentita');
+                                    }
+                                }
+                                // Mossa del player 2
+                                else if (m.nTurns % 2 == 0 && m.player2 == clientData.username) {
+                                    if (index >= 0 && index <= 6) {
+                                        if (m.playground[5][index] == '/') {
+                                            // Copio la matrice salvata nel db
+                                            let pl = new Array(6);
+                                            for (let k = 0; k < 6; k++) {
+                                                pl[k] = new Array(7);
+                                                for (let c = 0; c < 7; c++) {
+                                                    pl[k][c] = m.playground[k][c];
+                                                }
+                                            }
+                                            // Aggiungo la mossa
+                                            for (let k = 0; k < 6 && !added; k++) {
+                                                if (m.playground[k][index] == '/') {
+                                                    pl[k][index] = 'O';
+                                                    client.emit('move', 'Mossa inserita');
+                                                    added = true;
+                                                }
+                                            }
+                                            m.playground = pl;
+                                            // console.table(m.playground)
+                                            m.nTurns += 1;
+                                            // console.table(m.playground)
+                                            m.save().then((data) => {
+                                                // console.table(data.playground)
+                                                console.log("Playground updated".green);
+                                            }).catch((reason) => {
+                                                console.log("Error: " + reason);
+                                            });
+                                        }
+                                        else {
+                                            //! Errore: la colonna è già piena
+                                            client.emit('move', 'La colonna è piena');
+                                        }
+                                    }
+                                    else {
+                                        // ! La mossa inserita non è permessa, esce dal campo
+                                        client.emit('move', 'Mossa non consentita');
+                                    }
+                                }
+                                // Si sta cercando di eseguire una mossa quando non è il proprio turno
+                                else {
+                                    client.emit('move', 'Turno errato');
+                                }
+                                // Controllo se la partita è finita
+                                console.table(m.playground);
+                            }
+                        }
+                        else {
+                            // ! Errore: il match non esiste
+                        }
+                    });
+                }
+                else {
+                    // ! Errore: l'utente non esiste
+                }
+            });
         });
         client.on("disconnect", () => {
             // client.close()
