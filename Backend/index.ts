@@ -386,14 +386,10 @@ app.post('/randomgame', auth, (req, res, next) => {
   const u = user.getModel().findOne({ username: req.user.username }).then((us: User) => {
     const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", receiver: null, deleted: false }).then((n) => {
       if (notification.isNotification(n)) {
-        // console.log("Esiste uan richiesta");
         if (n != null && n.sender != us.username) {
           const randomMatch = createNewRandomMatch(n.sender, us.username)
-
           randomMatch.save().then((data) => {
             console.log("New creation of random match");
-            // let player1 = n.sender
-
             return res.status(200).json({ error: false, errormessage: "The match wil start soon" })
           }).catch((reason) => {
             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
@@ -445,27 +441,6 @@ app.post('/randomgame', auth, (req, res, next) => {
 
 app.get('/game', auth, (req, res, next) => {
   res.status(200).json({ api_version: "1.0", message: "The game has been started" });
-  // let doc = match.getModel().findOne({ inProgress: true, $or: [{player1: req.user.username}, {player2: req.user.username}]}).then((n) => {
-  //   if(n != null){
-  //     if(match.isMatch(n)){
-  //       let i = 0
-  //       let playground = n.playground
-  //       socketIOclients[req.user.username].on('move', (clientData) => {
-  //         if(i%2 == 0 && n.player1 == clientData.username){
-  //           if(clientData.move >= 0 && clientData.move <= 7){
-  //             n.update() // TODO update the playground by inserting the user move
-  //           }
-  //         }
-  //         else if(i%2 == 1 && n.player2 == clientData.username){
-
-  //         }
-  //         else{
-  //           // ! Errore
-  //         }
-  //       })
-  //     }
-  //   }
-  // })
 })
 
 app.post('/notification', auth, (req, res, next) => {
@@ -774,42 +749,21 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         client.emit('IsInRoom', 'No')
       })
 
-      // TODO: fare i controlli
       client.on('move', (clientData) => {
         let u = user.getModel().findOne({username: clientData.username}).then((n) => {
           if(n != null){
             let doc = match.getModel().findOne({ inProgress: true, $or: [{player1: clientData.username}, {player2: clientData.username}]}).then((m) => { // Si dovrebbe usare n.username
               if(m != null){
                 if(match.isMatch(m)){
-                  // console.table(m.playground);
                   let index = parseInt(clientData.move)
-                  let added = false   
                   // Mossa del player1                
                   if(m.nTurns % 2 == 1 && m.player1 == clientData.username){                 
                     if(index >= 0 && index <= 6){
                       if(m.playground[5][index] == '/'){
-                        // Copio la matrice salvata nel db
-                        let pl = new Array(6)
-                        for(let k = 0; k < 6; k++){
-                          pl[k] = new Array(7)
-                          for(let c = 0; c < 7; c++){
-                            pl[k][c] = m.playground[k][c]
-                          }
-                        }
-                        // Aggiungo la mossa
-                        for( let k = 0; k < 6 && !added; k++){                      
-                          if(m.playground[k][index] == '/'){                           
-                            pl[k][index] = 'X'
-                            client.emit('move', 'Mossa inserita')
-                            added = true
-                          }
-                        }
-                        m.playground = pl
-                        // console.table(m.playground)
+                        m.playground = insertMove(m.playground, index, 'X')
+                        client.emit('move', 'Mossa inserita')
                         m.nTurns += 1
-                        // console.table(m.playground)
                         m.save().then((data) => {
-                          // console.table(data.playground)
                           console.log("Playground updated".green)                    
                         }).catch((reason) => {
                           console.log("Error: " + reason)
@@ -829,28 +783,10 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                   else if(m.nTurns % 2 == 0 && m.player2 == clientData.username){
                     if(index >= 0 && index <= 6){
                       if(m.playground[5][index] == '/'){
-                        // Copio la matrice salvata nel db
-                        let pl = new Array(6)
-                        for(let k = 0; k < 6; k++){
-                          pl[k] = new Array(7)
-                          for(let c = 0; c < 7; c++){
-                            pl[k][c] = m.playground[k][c]
-                          }
-                        }
-                        // Aggiungo la mossa
-                        for( let k = 0; k < 6 && !added; k++){                      
-                          if(m.playground[k][index] == '/'){                           
-                            pl[k][index] = 'O'
-                            client.emit('move', 'Mossa inserita')
-                            added = true
-                          }
-                        }
-                        m.playground = pl
-                        // console.table(m.playground)
+                        m.playground = insertMove(m.playground, index, 'O')
+                        client.emit('move', 'Mossa inserita')
                         m.nTurns += 1
-                        // console.table(m.playground)
                         m.save().then((data) => {
-                          // console.table(data.playground)
                           console.log("Playground updated".green)                    
                         }).catch((reason) => {
                           console.log("Error: " + reason)
@@ -870,9 +806,41 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                   else{
                     client.emit('move', 'Turno errato')
                   }
-                  // Controllo se la partita è finita
-                  console.table(m.playground)
+                  // ! Controllo se la partita è finita
+                  // Controllo se c'è un vincitore
+                  if(n.username == m.player1.toString()){
+                    // Controllo per il player1
+                    if(checkWinner(m.playground, 'X')){
+                      client.emit('gameStatus', 'Hai vinto')
+                      let loserClient = socketIOclients[m.player2.toString()]
+                      loserClient.emit('gameStatus', 'Hai perso')
+                      client.broadcast.to(m.player1).emit('result', 'Il vincitore è: ' + m.player1)
+                    }
+                  }
+                  else{
+                    // Controllo per il player 2
+                    if(checkWinner(m.playground, 'O')){
+                      client.emit('gameStatus', 'Hai vinto')
+                      let loserClient = socketIOclients[m.player1.toString()]
+                      loserClient.emit('gameStatus', 'Hai perso')
+                      client.broadcast.to(m.player1).emit('result', 'Il vincitore è: ' + m.player2)
+                    }
+                  }
+
                   // Controllo se il campo è pieno
+                  let fullCheck = false
+                  for(let i = 0; i < 6; i++){
+                    for(let j = 0; j < 7; j++){
+                      if(m.playground[i][j] == '/')
+                        fullCheck = true
+                    }
+                  }
+                  if(!fullCheck){
+                    // Send the message to all clients room, except the client now connected
+                    client.broadcast.to(m.player1).emit('gameStatus', 'Campo pieno: pareggio')
+                    // Send the message to the client now connected
+                    client.emit('gameStatus', 'Campo pieno: pareggio')
+                  }
                 }
               }
               else{
@@ -899,3 +867,63 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     console.log(err);
   }
 )
+
+function insertMove(playground, index, player){             
+  let added = false
+  // Copio la matrice salvata nel db
+  let pl = copyPlayground(playground)
+  // Aggiungo la mossa
+  for( let k = 0; k < 6 && !added; k++){                      
+    if(pl[k][index] == '/'){                           
+      pl[k][index] = player
+      added = true
+    }
+  }
+  return pl
+}
+
+function copyPlayground(playground){
+  let pl = new Array(6)
+  for(let k = 0; k < 6; k++){
+    pl[k] = new Array(7)
+    for(let c = 0; c < 7; c++){
+      pl[k][c] = playground[k][c]
+    }
+  }
+  return pl
+}
+
+// TODO ottimizzare codice
+function checkWinner(playground, player){
+  let winCheck = false
+  for (let j = 0; j < 4 ; j++ ){
+      for (let i = 0; i < 6; i++){
+          if (playground[i][j] == player && playground[i][j+1] == player && playground[i][j+2] == player && playground[i][j+3] == player){
+              winCheck = true
+          }           
+      }
+  }
+  // verticalCheck
+  for (let i = 0; i < 3 ; i++ ){
+      for (let j = 0; j < 7; j++){
+          if (playground[i][j] == player && playground[i+1][j] == player && playground[i+2][j] == player && playground[i+3][j] == player){
+              winCheck = true
+          }           
+      }
+  }
+  // ascendingDiagonalCheck 
+  for (let i=3; i < 6; i++){
+      for (let j=0; j < 4; j++){
+          if (playground[i][j] == player && playground[i-1][j+1] == player && playground[i-2][j+2] == player && playground[i-3][j+3] == player)
+            winCheck = true
+      }
+  }
+  // descendingDiagonalCheck
+  for (let i=3; i < 6; i++){
+      for (let j=3; j < 7; j++){
+          if (playground[i][j] == player && playground[i-1][j-1] == player && playground[i-2][j-2] == player && playground[i-3][j-3] == player)
+              winCheck = true
+      }
+  }
+  return winCheck
+}
