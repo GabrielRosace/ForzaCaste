@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "88d7ceec-8c9a-4e65-a0a4-a79eb664cca9",
-		"name": "TAW",
+		"_postman_id": "ed6c196a-7879-4102-bb65-3cddbc8fdae7",
+		"name": "TAW Copy",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -79,6 +79,122 @@
 			"response": []
 		},
 		{
+			"name": "Login tommy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.environment.set(\"JWT_TOKEN\",jsonData.token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "tommy",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "tommy",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/login",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login caste",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.environment.set(\"JWT_TOKEN\",jsonData.token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "caste",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "caste",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8080/login",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "invalidEndpoint",
 			"request": {
 				"method": "GET",
@@ -126,6 +242,33 @@
 		},
 		{
 			"name": "Add a new user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"prova\",\n    \"name\": \"prova\",\n    \"surname\": \"prova\",\n    \"avatarImgURL\": \"img.url\",\n    \"mail\": \"tommy@mail.it\",\n    \"password\":\"tommy\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/users",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "randomGame",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -267,27 +410,272 @@
 			"response": []
 		},
 		{
-			"name": "Create random game request",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
+			"name": "createRequest",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"receiver\": \"caste\",\r\n    \"type\": \"friendRequest\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
 					}
 				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
+				"url": {
+					"raw": "localhost:8080/notification",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"notification"
+					]
 				}
-			],
+			},
+			"response": []
+		},
+		{
+			"name": "getNotification",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/notification",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"notification"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "acceptFriendRequest",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"sender\": \"tommy\",\r\n    \"state\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/notification",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"notification"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addFriend",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"sender\": \"tommy\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/friend",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"friend"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getFriendList",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/friend",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"friend"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deleteFriend",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"tommy\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/friend",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"friend"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "un/block Friend",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"gabriel\",\r\n    \"isBlocked\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/friend",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"friend"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create random game request",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -311,13 +699,87 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:8080/randomgame",
+					"raw": "localhost:8080/matchmaking",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"randomgame"
+						"matchmaking"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create friendly game request",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\" : \"friendlyMatchmaking\",\r\n    \"oppositePlayer\" : \"caste\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/matchmaking",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"matchmaking"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Accept friendly game request",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\" : \"friendlyMatchmaking\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/matchmaking",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"matchmaking"
 					]
 				}
 			},

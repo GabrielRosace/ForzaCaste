@@ -139,7 +139,8 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
         roles: req.user.roles,
         mail: req.user.mail,
         id: req.user.id,
-        state: req.user.state
+        state: req.user.state,
+        avatarImgURL: req.user.avatarImgURL
     };
     console.log("Login granted. Generating token");
     var token_signed = jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -172,7 +173,8 @@ app.post('/users', (req, res, next) => {
 // Get user by username
 app.get('/users/:username', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((u) => {
-        return res.status(200).json({ error: false, errormessage: "", user: { username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList } });
+        // return res.status(200).json({ error: false, errormessage: "", user: { username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList } });
+        return res.status(200).json({ username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList });
     });
 });
 // Create a new moderator, only mod can do it
@@ -292,43 +294,41 @@ app.put("/users", auth, (req, res, next) => {
         return res.status(401).json({ error: true, errormessage: "DB error: " + reason });
     });
 });
-app.post('/randomgame', auth, (req, res, next) => {
-    const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
-        const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", receiver: null, deleted: false }).then((n) => {
-            if (notification.isNotification(n)) {
-                // console.log("Esiste uan richiesta");
-                if (n != null && n.sender != us.username) {
-                    const randomMatch = createNewRandomMatch(n.sender, us.username);
-                    randomMatch.save().then((data) => {
-                        console.log("New creation of random match");
-                        // let player1 = n.sender
-                        return res.status(200).json({ error: false, errormessage: "The match wil start soon" });
-                    }).catch((reason) => {
-                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-                    });
-                    n.deleted = true;
-                    if (n != null) {
-                        n.save().then().catch((reason) => {
+app.post('/matchmaking', auth, (req, res, next) => {
+    if (req.body.type == 'randomMatchmaking') {
+        const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
+            const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", receiver: null, deleted: false }).then((n) => {
+                if (notification.isNotification(n)) {
+                    if (n != null && n.sender != us.username) {
+                        const randomMatch = createNewRandomMatch(n.sender, us.username);
+                        randomMatch.save().then((data) => {
+                            console.log("New creation of random match");
+                            return res.status(200).json({ error: false, errormessage: "The match wil start soon" });
+                        }).catch((reason) => {
                             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
                         });
+                        n.deleted = true;
+                        if (n != null) {
+                            n.save().then().catch((reason) => {
+                                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                            });
+                        }
+                        let player1 = n.sender;
+                        let player2 = us.username;
+                        let client1 = socketIOclients[player1];
+                        let client2 = socketIOclients[player2];
+                        matchRooms[player1][player2] = client2;
+                        client2.join(player1);
+                        // When the clients receive this message they will redirect by himself to the match route 
+                        client1.emit('lobby', 'true');
+                        client2.emit('lobby', 'true');
                     }
-                    let player1 = n.sender;
-                    let player2 = us.username;
-                    let client1 = socketIOclients[player1];
-                    let client2 = socketIOclients[player2];
-                    matchRooms[player1][player2] = client2;
-                    client2.join(player1);
-                    // When the clients receive this message they will redirect by himself to the match route 
-                    client1.emit('lobby', 'true');
-                    client2.emit('lobby', 'true');
+                    else {
+                        console.log("Match request already exists");
+                        return res.status(200).json({ error: false, message: "Match request already exists" });
+                    }
                 }
                 else {
-                    console.log("Match request already exists");
-                    return res.status(200).json({ error: false, message: "Match request already exists" });
-                }
-            }
-            else {
-                const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
                     // Whene the client get this message he will send a message to the server to create a match room          
                     socketIOclients[us.username].emit('createMatchRoom', 'true');
                     const doc = createNewGameRequest(req.body, us.username);
@@ -341,82 +341,184 @@ app.post('/randomgame', auth, (req, res, next) => {
                     }).catch((reason) => {
                         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
                     });
-                });
-            }
+                }
+            });
         });
-    });
+    }
+    else if (req.body.type == 'friendlyMatchmaking') {
+        const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
+            const matchRequest = notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: us.username, deleted: false }).then((n) => {
+                if (notification.isNotification(n)) {
+                    if (n != null && n.sender != us.username) {
+                        const randomMatch = createNewRandomMatch(n.sender, n.receiver);
+                        randomMatch.save().then((data) => {
+                            console.log("New creation of random match");
+                            return res.status(200).json({ error: false, errormessage: "The match wil start soon" });
+                        }).catch((reason) => {
+                            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                        });
+                        n.deleted = true;
+                        if (n != null) {
+                            n.save().then().catch((reason) => {
+                                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                            });
+                        }
+                        let player1 = n.sender;
+                        let player2 = us.username;
+                        let client1 = socketIOclients[player1];
+                        let client2 = socketIOclients[player2];
+                        matchRooms[player1][player2] = client2;
+                        client2.join(player1);
+                        // When the clients receive this message they will redirect by himself to the match route 
+                        client1.emit('lobby', 'true');
+                        client2.emit('lobby', 'true');
+                    }
+                    else {
+                        console.log("Match request already exists");
+                        return res.status(200).json({ error: false, message: "Match request already exists" });
+                    }
+                }
+                else {
+                    // Whene the client get this message he will send a message to the server to create a match room          
+                    socketIOclients[us.username].emit('createMatchRoom', 'true');
+                    // Check if the opposite player is a friend
+                    if (!us.isFriend(req.body.oppositePlayer))
+                        return res.status(400).json({ error: true, message: "The selected opposite player is not a friend" });
+                    const doc = createNewGameRequest(req.body, us.username, req.body.oppositePlayer);
+                    console.log(doc);
+                    doc.save().then((data) => {
+                        if (notification.isNotification(data)) {
+                            console.log("New creation of matchmaking request, player1 is: " + data.sender);
+                            return res.status(200).json({ error: false, message: "Waiting for other player..." });
+                        }
+                    }).catch((reason) => {
+                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                    });
+                }
+            });
+        });
+    }
+    else {
+        return res.status(400).json({ error: true, errormessage: "The payload does not match the required parameter" });
+    }
 });
 app.get('/game', auth, (req, res, next) => {
     res.status(200).json({ api_version: "1.0", message: "The game has been started" });
-    // let doc = match.getModel().findOne({ inProgress: true, $or: [{player1: req.user.username}, {player2: req.user.username}]}).then((n) => {
-    //   if(n != null){
-    //     if(match.isMatch(n)){
-    //       let i = 0
-    //       let playground = n.playground
-    //       socketIOclients[req.user.username].on('move', (clientData) => {
-    //         if(i%2 == 0 && n.player1 == clientData.username){
-    //           if(clientData.move >= 0 && clientData.move <= 7){
-    //             n.update() // TODO update the playground by inserting the user move
-    //           }
-    //         }
-    //         else if(i%2 == 1 && n.player2 == clientData.username){
-    //         }
-    //         else{
-    //           // ! Errore
-    //         }
-    //       })
-    //     }
-    //   }
-    // })
 });
 app.post('/notification', auth, (req, res, next) => {
-    const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.user.username, receiver: req.body.receiver, deleted: false }).then((n) => {
-        if (n !== null) {
-            console.log("You have already sent a request to this user.");
-            return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
-        }
-        else {
-            const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
-                const fr = createNewFriendRequest(req.body, u.username);
-                fr.save().then((data) => {
-                    if (notification.isNotification(data)) {
-                        console.log("Request forwarded.");
-                        return res.status(200).json({ error: false, message: "Request forwarded." });
+    console.log("Sei :", req.user);
+    const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
+        //Verify if the user is register
+        if (u.hasModeratorRole() || u.hasUserRole()) {
+            //Check the type of the request for the creation of the new notification 
+            if (req.body.type === "friendRequest") { //Send a friendRequest
+                const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.user.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {
+                    if (n !== null) {
+                        console.log("You have already sent a request to this user.");
+                        return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
+                    }
+                    else {
+                        const fr = createNewFriendRequest(req.body, u.username);
+                        fr.save().then((data) => {
+                            if (notification.isNotification(data)) {
+                                console.log("Request forwarded.");
+                                return res.status(200).json({ error: false, message: "Request forwarded." });
+                            }
+                        }).catch((reason) => {
+                            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                        });
                     }
                 }).catch((reason) => {
                     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
                 });
-            });
+            }
+            else if (req.body.type === "friendMessage") { //Send a new message to a friend
+                if (u.isFriend(req.body.receiver) || u.hasModeratorRole()) { //Check if the receiver is a friend, in case i am a regular user
+                    if (!req.body.text || !req.body.receiver) {
+                        return next({ statusCode: 404, error: true, errormessage: "Something is missing" });
+                    }
+                    const msg = createNewFriendMessage(req.body, req.user.username);
+                    u.addNotification(msg);
+                    u.save().then((data) => {
+                        const rec = user.getModel().findOne({ username: msg.receiver }).then((rec) => {
+                            rec.addNotification(msg);
+                            rec.save().then((data) => {
+                                console.log("Message sent successfully to: ".green + req.body.receiver);
+                                return res.status(200).json({ error: false, errormessage: "", id: data._id });
+                            }).catch((reason) => {
+                                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                            });
+                        });
+                    }).catch((reason) => {
+                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                    });
+                }
+                else {
+                    return next({ statusCode: 404, error: true, errormessage: "Friend not found. " });
+                }
+            }
+            else {
+                return next({ statusCode: 404, error: true, errormessage: "Type of the notification not accepted. " });
+            }
+        }
+        else {
+            return next({ statusCode: 404, error: true, errormessage: "You are not registered yet. " });
         }
     }).catch((reason) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
     });
 });
 app.get('/notification', auth, (req, res, next) => {
-    const u = notification.getModel().find({ $or: [{ receiver: req.user.username }, { sender: req.user.username }] }).then((n) => {
-        return res.status(200).json({ error: false, errormessage: "", notification: n });
+    const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
+        //Verify if the user is register
+        if (u.hasModeratorRole() || u.hasUserRole()) {
+            const u = notification.getModel().find({ $or: [{ receiver: req.user.username }, { sender: req.user.username }], deleted: false }).then((n) => {
+                return res.status(200).json({ error: false, errormessage: "", notification: n });
+            }).catch((reason) => {
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+            });
+        }
+    }).catch((reason) => {
+        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+    });
+});
+app.get('/notification/inbox', auth, (req, res, next) => {
+    const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
+        //Verify if the user is register
+        if (u.hasModeratorRole() || u.hasUserRole()) {
+            console.log("Chat di:" + req.body.username);
+            return res.status(200).json({ inbox: u.inbox });
+        }
     }).catch((reason) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
     });
 });
 app.put('/notification', auth, (req, res, next) => {
-    const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.body.sender, deleted: false }).then((n) => {
-        if (n === null) {
-            return res.status(404).json({ error: true, errormessage: "User not found." });
-        }
-        else {
-            n.state = req.body.state;
-            n.deleted = true;
-            n.save().then((data) => {
-                console.log("Data saved successfully".blue);
-                if (data.state) {
-                    return res.status(200).json({ error: false, errormessage: "", message: "You accept the request." });
+    //The user accept or decline a friendRequest
+    const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
+        //Verify if the user is register
+        if (u.hasModeratorRole() || u.hasUserRole()) {
+            const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.body.sender, deleted: false }).then((n) => {
+                if (n === null) {
+                    return res.status(404).json({ error: true, errormessage: "Notification not found." });
                 }
                 else {
-                    return res.status(200).json({ error: false, errormessage: "", message: "You decline the request" });
+                    n.state = req.body.state;
+                    n.deleted = true;
+                    n.save().then((data) => {
+                        console.log("Data saved successfully".blue);
+                        if (data.state) {
+                            return res.status(200).json({ error: false, errormessage: "", message: "You accepted the request." });
+                        }
+                        else {
+                            return res.status(200).json({ error: false, errormessage: "", message: "You decline the request" });
+                        }
+                    }).catch((reason) => {
+                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                    });
                 }
             }).catch((reason) => {
-                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
             });
         }
     }).catch((reason) => {
@@ -425,81 +527,96 @@ app.put('/notification', auth, (req, res, next) => {
 });
 app.post('/friend', auth, (req, res, next) => {
     const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
-        const friendToFriendList = notification.getModel().findOne({ type: "friendRequest", sender: req.body.sender, receiver: u.username, state: true, deleted: true }).then((n) => {
-            u.addFriend(n.sender, false);
-            u.save().then((data) => {
-                const send = user.getModel().findOne({ username: n.sender }).then((send) => {
-                    send.addFriend(u.username, false);
-                    send.save().then((data) => {
-                        console.log("Friend added.".blue);
-                        return res.status(200).json({ error: false, errormessage: "", message: "Friend " + u.username + " added." });
-                    }).catch((reason) => {
-                        u.deleteFriend(n.sender);
-                        u.save();
-                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+        //Verify if the user is register
+        if (u.hasModeratorRole() || u.hasUserRole()) {
+            const friendToFriendList = notification.getModel().findOne({ type: "friendRequest", sender: req.body.sender, receiver: u.username, state: true, deleted: true }).then((n) => {
+                u.addFriend(n.sender, false);
+                u.save().then((data) => {
+                    const send = user.getModel().findOne({ username: n.sender }).then((send) => {
+                        send.addFriend(u.username, false);
+                        send.save().then((data) => {
+                            console.log("Friend added.".blue);
+                            return res.status(200).json({ error: false, errormessage: "", message: "Friend " + u.username + " added." });
+                        }).catch((reason) => {
+                            u.deleteFriend(n.sender);
+                            u.save();
+                            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                        });
                     });
+                }).catch((reason) => {
+                    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
                 });
             }).catch((reason) => {
                 return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
             });
-        });
+        }
     }).catch((reason) => {
-        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
     });
 });
 app.get('/friend', auth, (req, res, next) => {
+    //Get all friends on the friends list
     const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
-        return res.status(200).json({ error: false, errormessage: "", notification: u.friendList });
+        //Verify if the user is register
+        if (u.hasModeratorRole() || u.hasUserRole()) {
+            return res.status(200).json({ error: false, errormessage: "", friendlist: u.friendList });
+        }
     }).catch((reason) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
     });
 });
 app.delete('/friend', auth, (req, res, next) => {
     const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
-        u.deleteFriend(req.body.username);
-        u.save().then((data) => {
-            const send = user.getModel().findOne({ username: req.body.username }).then((send) => {
-                send.deleteFriend(u.username);
-                send.save().then((data) => {
-                    console.log("Friend deleted.".blue);
-                    return res.status(200).json({ error: false, errormessage: "", message: "Friend " + u.username + " removed from the friendlist." });
-                }).catch((reason) => {
-                    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+        //Verify if the user is register
+        if (u.hasModeratorRole() || u.hasUserRole()) {
+            u.deleteFriend(req.body.username);
+            u.save().then((data) => {
+                const send = user.getModel().findOne({ username: req.body.username }).then((send) => {
+                    send.deleteFriend(u.username);
+                    send.save().then((data) => {
+                        console.log("Friend deleted.".blue);
+                        return res.status(200).json({ error: false, errormessage: "", message: "Friend " + u.username + " removed from the friendlist." });
+                    }).catch((reason) => {
+                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                    });
                 });
+            }).catch((reason) => {
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
             });
-        }).catch((reason) => {
-            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-        });
+        }
     }).catch((reason) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
     });
 });
 app.put('/friend', auth, (req, res, next) => {
     const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
-        u.setIsBlocked(req.body.username, req.body.isBlocked);
-        u.save().then((data) => {
-            if (req.body.isBlocked) {
-                console.log("Friend blocked.".blue);
-                return res.status(200).json({ error: false, errormessage: "", message: "You blocked " + req.body.username + "." });
-            }
-            else {
-                console.log("Friend unblocked.".blue);
-                return res.status(200).json({ error: false, errormessage: "", message: "You can now send a message to " + req.body.username + "." });
-            }
-        }).catch((reason) => {
-            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-        });
+        //Verify if the user is register
+        if (u.hasModeratorRole() || u.hasUserRole()) {
+            u.setIsBlocked(req.body.username, req.body.isBlocked);
+            u.save().then((data) => {
+                if (req.body.isBlocked) {
+                    console.log("Friend blocked.".blue);
+                    return res.status(200).json({ error: false, errormessage: "", message: "You blocked " + req.body.username + "." });
+                }
+                else {
+                    console.log("Friend unblocked.".blue);
+                    return res.status(200).json({ error: false, errormessage: "", message: "You can now send a message to " + req.body.username + "." });
+                }
+            }).catch((reason) => {
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+            });
+        }
     }).catch((reason) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
     });
 });
-function createNewGameRequest(bodyRequest, username) {
+function createNewGameRequest(bodyRequest, username, oppositePlayer = null) {
     const model = notification.getModel();
     const doc = new model({
         type: bodyRequest.type,
         text: null,
         sender: username.toString(),
-        receiver: null,
+        receiver: oppositePlayer,
         deleted: false
     });
     return doc;
@@ -537,6 +654,17 @@ function createNewFriendRequest(bodyRequest, username) {
         sender: username,
         receiver: bodyRequest.receiver,
         state: false,
+        deleted: false
+    });
+    return doc;
+}
+function createNewFriendMessage(bodyRequest, username) {
+    const model = notification.getModel();
+    const doc = new model({
+        type: bodyRequest.type,
+        text: bodyRequest.text,
+        sender: username,
+        receiver: bodyRequest.receiver,
         deleted: false
     });
     return doc;
@@ -597,7 +725,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     const option = {
         allowEIO3: true,
         cors: {
-            origin: "http://localhost:4201",
+            origin: "http://localhost:4200",
             methods: ["GET", "POST"],
             allowedHeaders: ["enableCORS"],
             credentials: true
@@ -650,23 +778,6 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                                 if (m.nTurns % 2 == 1 && m.player1 == clientData.username) {
                                     if (index >= 0 && index <= 6) {
                                         if (m.playground[5][index] == '/') {
-                                            // // Copio la matrice salvata nel db
-                                            // let pl = new Array(6)
-                                            // for(let k = 0; k < 6; k++){
-                                            //   pl[k] = new Array(7)
-                                            //   for(let c = 0; c < 7; c++){
-                                            //     pl[k][c] = m.playground[k][c]
-                                            //   }
-                                            // }
-                                            // // Aggiungo la mossa
-                                            // for( let k = 0; k < 6 && !added; k++){                      
-                                            //   if(m.playground[k][index] == '/'){                           
-                                            //     pl[k][index] = 'X'
-                                            //     client.emit('move', 'Mossa inserita')
-                                            //     added = true
-                                            //   }
-                                            // }
-                                            // insertMove(m.playground, index, 'X')
                                             m.playground = insertMove(m.playground, index, 'X');
                                             client.emit('move', 'Mossa inserita');
                                             m.nTurns += 1;
@@ -690,29 +801,10 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                                 else if (m.nTurns % 2 == 0 && m.player2 == clientData.username) {
                                     if (index >= 0 && index <= 6) {
                                         if (m.playground[5][index] == '/') {
-                                            // // Copio la matrice salvata nel db
-                                            // let pl = new Array(6)
-                                            // for(let k = 0; k < 6; k++){
-                                            //   pl[k] = new Array(7)
-                                            //   for(let c = 0; c < 7; c++){
-                                            //     pl[k][c] = m.playground[k][c]
-                                            //   }
-                                            // }
-                                            // // Aggiungo la mossa
-                                            // for( let k = 0; k < 6 && !added; k++){                      
-                                            //   if(m.playground[k][index] == '/'){                           
-                                            //     pl[k][index] = 'O'
-                                            //     client.emit('move', 'Mossa inserita')
-                                            //     added = true
-                                            //   }
-                                            // }
                                             m.playground = insertMove(m.playground, index, 'O');
                                             client.emit('move', 'Mossa inserita');
-                                            // console.table(m.playground)
                                             m.nTurns += 1;
-                                            // console.table(m.playground)
                                             m.save().then((data) => {
-                                                // console.table(data.playground)
                                                 console.log("Playground updated".green);
                                             }).catch((reason) => {
                                                 console.log("Error: " + reason);
@@ -733,24 +825,37 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                                     client.emit('move', 'Turno errato');
                                 }
                                 // ! Controllo se la partita è finita
-                                // console.table(m.playground)
                                 // Controllo se c'è un vincitore
                                 if (n.username == m.player1.toString()) {
-                                    // Sono il player1
+                                    // Controllo per il player1
                                     if (checkWinner(m.playground, 'X')) {
                                         client.emit('gameStatus', 'Hai vinto');
                                         let loserClient = socketIOclients[m.player2.toString()];
                                         loserClient.emit('gameStatus', 'Hai perso');
                                         client.broadcast.to(m.player1).emit('result', 'Il vincitore è: ' + m.player1);
+                                        m.winner = m.player1;
+                                        m.inProgress = false;
+                                        m.save().then((data) => {
+                                            console.log("Winner updated".green);
+                                        }).catch((reason) => {
+                                            console.log("Error: " + reason);
+                                        });
                                     }
                                 }
                                 else {
-                                    // Sono il player 2
+                                    // Controllo per il player 2
                                     if (checkWinner(m.playground, 'O')) {
                                         client.emit('gameStatus', 'Hai vinto');
                                         let loserClient = socketIOclients[m.player1.toString()];
                                         loserClient.emit('gameStatus', 'Hai perso');
                                         client.broadcast.to(m.player1).emit('result', 'Il vincitore è: ' + m.player2);
+                                        m.winner = m.player2;
+                                        m.inProgress = false;
+                                        m.save().then((data) => {
+                                            console.log("Winner updated".green);
+                                        }).catch((reason) => {
+                                            console.log("Error: " + reason);
+                                        });
                                     }
                                 }
                                 // Controllo se il campo è pieno

@@ -31,7 +31,7 @@ export interface Match {
   inProgress: boolean,
   player1: mongoose.Schema.Types.String,
   player2: mongoose.Schema.Types.String,
-  winner: mongoose.Schema.Types.ObjectId,
+  winner: mongoose.Schema.Types.String,
   playground: Array<any>[6][7],
   chat: message.Message[],
   nTurns: number
@@ -51,7 +51,7 @@ var matchSchema = new mongoose.Schema({
     required: true
   },
   winner: {
-    type: mongoose.SchemaTypes.ObjectId,
+    type: mongoose.SchemaTypes.String,
   },
   playground: { //TODO controllare dimensioni campo di gioco
     type: [[mongoose.SchemaTypes.String]],//[mongoose.SchemaTypes.String],

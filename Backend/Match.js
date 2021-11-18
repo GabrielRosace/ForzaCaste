@@ -38,7 +38,7 @@ var matchSchema = new mongoose.Schema({
         required: true
     },
     winner: {
-        type: mongoose.SchemaTypes.ObjectId,
+        type: mongoose.SchemaTypes.String,
     },
     playground: {
         type: [[mongoose.SchemaTypes.String]],

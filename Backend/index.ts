@@ -384,42 +384,42 @@ app.put("/users", auth, (req, res, next) => {
   })
 })
 
-app.post('/randomgame', auth, (req, res, next) => {
-  const u = user.getModel().findOne({ username: req.user.username }).then((us: User) => {
-    const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", receiver: null, deleted: false }).then((n) => {
-      if (notification.isNotification(n)) {
-        if (n != null && n.sender != us.username) {
-          const randomMatch = createNewRandomMatch(n.sender, us.username)
-          randomMatch.save().then((data) => {
-            console.log("New creation of random match");
-            return res.status(200).json({ error: false, errormessage: "The match wil start soon" })
-          }).catch((reason) => {
-            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-          })
-          n.deleted = true
-          if (n != null) {
-            n.save().then().catch((reason) => {
+app.post('/matchmaking', auth, (req, res, next) => {
+  if(req.body.type == 'randomMatchmaking'){
+    const u = user.getModel().findOne({ username: req.user.username }).then((us: User) => {
+      const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", receiver: null, deleted: false }).then((n) => {
+        if (notification.isNotification(n)) {
+          if (n != null && n.sender != us.username) {
+            const randomMatch = createNewRandomMatch(n.sender, us.username)
+            randomMatch.save().then((data) => {
+              console.log("New creation of random match");
+              return res.status(200).json({ error: false, errormessage: "The match wil start soon" })
+            }).catch((reason) => {
               return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
             })
+            n.deleted = true
+            if (n != null) {
+              n.save().then().catch((reason) => {
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+              })
+            }
+            let player1 = n.sender
+            let player2 = us.username
+            let client1 = socketIOclients[player1]
+            let client2 = socketIOclients[player2]
+            matchRooms[player1][player2] = client2
+            client2.join(player1)
+  
+            // When the clients receive this message they will redirect by himself to the match route 
+            client1.emit('lobby', 'true')
+            client2.emit('lobby', 'true')
           }
-          let player1 = n.sender
-          let player2 = us.username
-          let client1 = socketIOclients[player1]
-          let client2 = socketIOclients[player2]
-          matchRooms[player1][player2] = client2
-          client2.join(player1)
-
-          // When the clients receive this message they will redirect by himself to the match route 
-          client1.emit('lobby', 'true')
-          client2.emit('lobby', 'true')
+          else {
+            console.log("Match request already exists");
+            return res.status(200).json({ error: false, message: "Match request already exists" });
+          }
         }
         else {
-          console.log("Match request already exists");
-          return res.status(200).json({ error: false, message: "Match request already exists" });
-        }
-      }
-      else {
-        const u = user.getModel().findOne({ username: req.user.username }).then((us: User) => {
           // Whene the client get this message he will send a message to the server to create a match room          
           socketIOclients[us.username].emit('createMatchRoom', 'true')
 
@@ -435,10 +435,70 @@ app.post('/randomgame', auth, (req, res, next) => {
           }).catch((reason) => {
             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
           })
-        })
-      }
+        }
+      })
     })
-  })
+  }
+  else if(req.body.type == 'friendlyMatchmaking'){
+    const u = user.getModel().findOne({ username: req.user.username }).then((us: User) => {
+      const matchRequest = notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: us.username, deleted: false }).then((n) => {
+        if (notification.isNotification(n)) {
+          if (n != null && n.sender != us.username) {
+            const randomMatch = createNewRandomMatch(n.sender, n.receiver)
+            randomMatch.save().then((data) => {
+              console.log("New creation of random match");
+              return res.status(200).json({ error: false, errormessage: "The match wil start soon" })
+            }).catch((reason) => {
+              return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+            })
+            n.deleted = true
+            if (n != null) {
+              n.save().then().catch((reason) => {
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+              })
+            }
+            let player1 = n.sender
+            let player2 = us.username
+            let client1 = socketIOclients[player1]
+            let client2 = socketIOclients[player2]
+            matchRooms[player1][player2] = client2
+            client2.join(player1)
+  
+            // When the clients receive this message they will redirect by himself to the match route 
+            client1.emit('lobby', 'true')
+            client2.emit('lobby', 'true')
+          }
+          else {
+            console.log("Match request already exists");
+            return res.status(200).json({ error: false, message: "Match request already exists" });
+          }
+        }
+        else {
+          // Whene the client get this message he will send a message to the server to create a match room          
+          socketIOclients[us.username].emit('createMatchRoom', 'true')
+
+          // Check if the opposite player is a friend
+          if(!us.isFriend(req.body.oppositePlayer))
+            return res.status(400).json({ error: true, message: "The selected opposite player is not a friend" });
+
+          const doc = createNewGameRequest(req.body, us.username, req.body.oppositePlayer)
+          console.log(doc);
+
+          doc.save().then((data) => {  
+            if (notification.isNotification(data)) {
+              console.log("New creation of matchmaking request, player1 is: " + data.sender)
+              return res.status(200).json({ error: false, message: "Waiting for other player..." });
+            }
+          }).catch((reason) => {
+            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+          })
+        }
+      })
+    })
+  }
+  else{
+    return res.status(400).json({ error: true, errormessage: "The payload does not match the required parameter" })
+  }
 })
 
 app.get('/game', auth, (req, res, next) => {
@@ -661,13 +721,13 @@ app.put('/friend', auth, (req, res, next) => {
   })
 })
 
-function createNewGameRequest(bodyRequest, username) {
+function createNewGameRequest(bodyRequest, username, oppositePlayer = null) {
   const model = notification.getModel()
   const doc = new model({
     type: bodyRequest.type,
     text: null,
     sender: username.toString(),
-    receiver: null,
+    receiver: oppositePlayer,
     deleted: false
   })
   return doc
@@ -913,6 +973,13 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                       let loserClient = socketIOclients[m.player2.toString()]
                       loserClient.emit('gameStatus', 'Hai perso')
                       client.broadcast.to(m.player1).emit('result', 'Il vincitore è: ' + m.player1)
+                      m.winner = m.player1
+                      m.inProgress = false
+                      m.save().then((data) => {
+                        console.log("Winner updated".green)                    
+                      }).catch((reason) => {
+                        console.log("Error: " + reason)
+                      })
                     }
                   }
                   else{
@@ -922,6 +989,13 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                       let loserClient = socketIOclients[m.player1.toString()]
                       loserClient.emit('gameStatus', 'Hai perso')
                       client.broadcast.to(m.player1).emit('result', 'Il vincitore è: ' + m.player2)
+                      m.winner = m.player2
+                      m.inProgress = false
+                      m.save().then((data) => {
+                        console.log("Winner updated".green)                    
+                      }).catch((reason) => {
+                        console.log("Error: " + reason)
+                      })
                     }
                   }
 
