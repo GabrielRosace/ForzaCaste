@@ -412,6 +412,7 @@ app.post('/notification', auth, (req, res, next) => {
         if (u.hasModeratorRole() || u.hasUserRole()) {
             //Check the type of the request for the creation of the new notification 
             if (req.body.type === "friendRequest") { //Send a friendRequest
+                //TODO WEBSOCKET
                 const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.user.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {
                     if (n !== null) {
                         console.log("You have already sent a request to this user.");
@@ -433,6 +434,7 @@ app.post('/notification', auth, (req, res, next) => {
                 });
             }
             else if (req.body.type === "friendMessage") { //Send a new message to a friend
+                //TODO WEBSOCKET
                 if (u.isFriend(req.body.receiver) || u.hasModeratorRole()) { //Check if the receiver is a friend, in case i am a regular user
                     if (!req.body.text || !req.body.receiver) {
                         return next({ statusCode: 404, error: true, errormessage: "Something is missing" });
@@ -451,6 +453,32 @@ app.post('/notification', auth, (req, res, next) => {
                         });
                     }).catch((reason) => {
                         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                    });
+                }
+                else {
+                    return next({ statusCode: 404, error: true, errormessage: "Friend not found. " });
+                }
+            }
+            else if (req.body.type === "friendlyMatchmaking") {
+                if (u.isFriend(req.body.receiver) || u.hasModeratorRole()) { //Check if the receiver is a friend, in case i am a regular user
+                    const doc = notification.getModel().findOne({ type: "friendlyMatchmaking", sender: req.user.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {
+                        if (n !== null) {
+                            console.log("You have already sent a request to this user.");
+                            return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
+                        }
+                        else {
+                            const fr = createNewFriendlyMatchmaking(req.body, u.username);
+                            fr.save().then((data) => {
+                                if (notification.isNotification(data)) {
+                                    console.log("Request forwarded.");
+                                    return res.status(200).json({ error: false, message: "Request forwarded." });
+                                }
+                            }).catch((reason) => {
+                                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                            });
+                        }
+                    }).catch((reason) => {
+                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
                     });
                 }
                 else {
@@ -650,7 +678,19 @@ function createNewFriendRequest(bodyRequest, username) {
     const model = notification.getModel();
     const doc = new model({
         type: bodyRequest.type,
-        text: "Richiesta di amicizia da parte di " + username + ".",
+        text: "New friend request by " + username + ".",
+        sender: username,
+        receiver: bodyRequest.receiver,
+        state: false,
+        deleted: false
+    });
+    return doc;
+}
+function createNewFriendlyMatchmaking(bodyRequest, username) {
+    const model = notification.getModel();
+    const doc = new model({
+        type: bodyRequest.type,
+        text: "New invitation for a friendly match from " + username + ".",
         sender: username,
         receiver: bodyRequest.receiver,
         state: false,
