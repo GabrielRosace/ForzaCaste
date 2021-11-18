@@ -725,7 +725,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     const option = {
         allowEIO3: true,
         cors: {
-            origin: "http://localhost:4200",
+            origin: ["http://localhost:4200", "http://localhost:4201"],
             methods: ["GET", "POST"],
             allowedHeaders: ["enableCORS"],
             credentials: true
@@ -736,6 +736,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         console.log("Socket.io client connected".green);
         // This message is send by the client when he log in
         client.on('saveClient', (clientData) => {
+            //? Qui potrebbe accadere che il client sia diverso?
             if (!socketIOclients[clientData.username]) {
                 socketIOclients[clientData.username] = client;
                 console.log("User registered".green);

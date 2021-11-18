@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { Socket } from 'socket.io-client';
 import { SocketioService } from '../socketio.service';
 import { UserHttpService } from '../user-http.service';
 
@@ -12,8 +13,10 @@ export class UserLoginComponent implements OnInit {
 
 
   public errmessage: string = ''
+  // private connection: Socket
 
-  constructor(private sio: SocketioService, private us: UserHttpService, private router: Router) { }
+  constructor(private sio: SocketioService, private us: UserHttpService, private router: Router) {
+  }
 
   ngOnInit(): void {
     if (this.us.get_token()) {
@@ -62,6 +65,6 @@ export class UserLoginComponent implements OnInit {
   }
 
   saveClient() {
-    this.sio.connect().subscribe((u) => {})
+    this.sio.connect()
   }
 }
