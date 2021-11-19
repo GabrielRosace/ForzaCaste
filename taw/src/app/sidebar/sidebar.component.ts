@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { UserHttpService } from '../user-http.service';
 
@@ -15,7 +16,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private subscriptionName: Subscription
   public role: string = ""
 
-  constructor(private us: UserHttpService) {
+  constructor(private us: UserHttpService,private router:Router) {
     this.subscriptionName = this.us.get_update().subscribe((msg) => {
       // Update username and icon of logged user
       this.ngOnInit()
@@ -51,6 +52,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
       return this.us.has_nonregmod_role()
     }
     return false
+  }
+
+  navigate(route: String) {
+    this.router.navigate([route])
   }
 
 }

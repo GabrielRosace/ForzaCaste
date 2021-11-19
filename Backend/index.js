@@ -413,7 +413,7 @@ app.post('/notification', auth, (req, res, next) => {
             //Check the type of the request for the creation of the new notification 
             if (req.body.type === "friendRequest") { //Send a friendRequest
                 //TODO WEBSOCKET
-                const doc = notification.getModel().findOne({ type: "friendRequest", sender: req.user.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {
+                const doc = notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {
                     if (n !== null) {
                         console.log("You have already sent a request to this user.");
                         return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
@@ -423,7 +423,7 @@ app.post('/notification', auth, (req, res, next) => {
                         fr.save().then((data) => {
                             if (notification.isNotification(data)) {
                                 console.log("Request forwarded.");
-                                return res.status(200).json({ error: false, message: "Request forwarded." });
+                                return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver });
                             }
                         }).catch((reason) => {
                             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
@@ -460,6 +460,7 @@ app.post('/notification', auth, (req, res, next) => {
                 }
             }
             else if (req.body.type === "friendlyMatchmaking") {
+                //TODO WEBSOCKET
                 if (u.isFriend(req.body.receiver) || u.hasModeratorRole()) { //Check if the receiver is a friend, in case i am a regular user
                     const doc = notification.getModel().findOne({ type: "friendlyMatchmaking", sender: req.user.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {
                         if (n !== null) {
@@ -471,7 +472,7 @@ app.post('/notification', auth, (req, res, next) => {
                             fr.save().then((data) => {
                                 if (notification.isNotification(data)) {
                                     console.log("Request forwarded.");
-                                    return res.status(200).json({ error: false, message: "Request forwarded." });
+                                    return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver });
                                 }
                             }).catch((reason) => {
                                 return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
@@ -514,7 +515,7 @@ app.get('/notification/inbox', auth, (req, res, next) => {
     const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
         //Verify if the user is register
         if (u.hasModeratorRole() || u.hasUserRole()) {
-            console.log("Chat di:" + req.body.username);
+            console.log("Chat di:" + req.user.username);
             return res.status(200).json({ inbox: u.inbox });
         }
     }).catch((reason) => {
@@ -536,10 +537,10 @@ app.put('/notification', auth, (req, res, next) => {
                     n.save().then((data) => {
                         console.log("Data saved successfully".blue);
                         if (data.state) {
-                            return res.status(200).json({ error: false, errormessage: "", message: "You accepted the request." });
+                            return res.status(200).json({ error: false, errormessage: "", message: "You accepted the request of " + req.body.sender });
                         }
                         else {
-                            return res.status(200).json({ error: false, errormessage: "", message: "You decline the request" });
+                            return res.status(200).json({ error: false, errormessage: "", message: "You decline the request of " + req.body.sender });
                         }
                     }).catch((reason) => {
                         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
@@ -564,7 +565,7 @@ app.post('/friend', auth, (req, res, next) => {
                         send.addFriend(u.username, false);
                         send.save().then((data) => {
                             console.log("Friend added.".blue);
-                            return res.status(200).json({ error: false, errormessage: "", message: "Friend " + u.username + " added." });
+                            return res.status(200).json({ error: false, errormessage: "", message: "Friend " + req.body.sender + " added." });
                         }).catch((reason) => {
                             u.deleteFriend(n.sender);
                             u.save();
@@ -603,7 +604,7 @@ app.delete('/friend', auth, (req, res, next) => {
                     send.deleteFriend(u.username);
                     send.save().then((data) => {
                         console.log("Friend deleted.".blue);
-                        return res.status(200).json({ error: false, errormessage: "", message: "Friend " + u.username + " removed from the friendlist." });
+                        return res.status(200).json({ error: false, errormessage: "", message: "Friend " + req.body.username + " removed from the friendlist." });
                     }).catch((reason) => {
                         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
                     });

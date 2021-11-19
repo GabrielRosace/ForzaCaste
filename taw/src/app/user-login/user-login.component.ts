@@ -24,6 +24,10 @@ export class UserLoginComponent implements OnInit {
       if (response) {
         response.subscribe((username) => {
           console.log(`Hello, ${username}`)
+
+          // Register client to socket.io
+          this.sio.saveClient()
+
           this.router.navigate(["/home"])
         }, (err) => {
           console.log("Your token is expired!")
@@ -45,13 +49,15 @@ export class UserLoginComponent implements OnInit {
       this.errmessage = ''
 
       this.us.send_update("User logged in") // Notify to subscriber that jwt change
-      this.saveClient()
+
+      // Register client to socket.io
+      this.sio.saveClient()
 
       if (this.us.has_nonregmod_role()) {
         // console.log("Bisogna bloccare le info e fargli cambiare tutto") //TODO
         this.router.navigate(['/profile'])
         // this.modalFirstLoginComponent.nativeElement.click()
-      } else {
+      } else {  
         this.router.navigate(['/home'])
       }
 
@@ -62,9 +68,5 @@ export class UserLoginComponent implements OnInit {
       this.router.navigate(['/'])
     })
     return false // prevent form to reload page
-  }
-
-  saveClient() {
-    this.sio.connect()
   }
 }
