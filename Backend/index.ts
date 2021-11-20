@@ -255,6 +255,23 @@ app.get('/users/:username', auth, (req, res, next) => {
   })
 })
 
+
+app.get('/users', auth, (req, res, next) => {
+  user.getModel().findOne({username: req.user.username,deleted:false}).then((u:User)=>{
+    if (u.hasModeratorRole()) {
+      user.getModel().find({ deleted: false },"username name surname roles").then((list: User[]) => {
+        return res.status(200).json({error:false, errormessage: "", userlist: list})
+      }).catch((reason) => {
+        return res.status(401).json({ error: true, errormessage: "DB error " + reason })
+      })
+    }else{
+      return res.status(401).json({ error: true, errormessage: "You cannot get user list" })
+    }
+  }).catch((reason) => {
+    return res.status(401).json({ error: true, errormessage: "DB error " + reason })
+  })
+})
+
 // Create a new moderator, only mod can do it
 app.post("/users/mod", auth, (req, res, next) => {
   // Check if user who request is a moderator

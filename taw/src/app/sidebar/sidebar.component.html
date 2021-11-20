@@ -27,6 +27,12 @@
             Add new mod
           </button>
         </li>
+
+        <li class="nav-item" *ngIf="has_moderator_role()">
+          <button class="nav-link text-white" (click)="navigate('user-deletion')">
+            Delete user
+          </button>
+        </li>
       </ul>
       <hr>
 

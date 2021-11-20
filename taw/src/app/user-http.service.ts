@@ -194,5 +194,24 @@ export class UserHttpService {
 
     return this.http.post(`${this.url}/users/mod`,body,options)
   }
+
+  delete_user(username: string) {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    return this.http.delete(`${this.url}/users/${username}`,options)
+  }
+
+  get_userlist() {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    return this.http.get(`${this.url}/users`,options)
+  }
+
 }
 
