@@ -12,3 +12,8 @@
 .myContainer{
   height: 100%;
 }
+
+.adaptView{
+  height: 100vh!important;
+  background-color: #f5f5f5!important;
+}

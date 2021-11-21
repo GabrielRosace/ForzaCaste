@@ -4,6 +4,7 @@ import { Observable, Subject } from 'rxjs'
 import { tap } from 'rxjs/operators'
 import jwt_decode from 'jwt-decode'
 import { isUser, User } from './User';
+import { Router } from '@angular/router';
 
 interface TokenData {
   username: string,
@@ -31,7 +32,7 @@ export class UserHttpService {
     return this.subjectName.asObservable()
   }
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient,private router:Router) {
     console.log("User service instantiated")
 
     this.token = localStorage.getItem('app_token') || ''
@@ -39,6 +40,7 @@ export class UserHttpService {
 
     if (this.token.length < 1) {
       console.log("No token found in local storage")
+      // this.router.navigate(['login'])
     } else {
       console.log("JWT loaded from local storage")
     }
