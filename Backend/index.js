@@ -437,10 +437,10 @@ app.post('/notification', auth, (req, res, next) => {
                     else {
                         const fr = createNewFriendRequest(req.body, u.username);
                         fr.save().then((data) => {
-                            if (notification.isNotification(data)) {
-                                console.log("Request forwarded.");
-                                return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver });
-                            }
+                            //if (notification.isNotification(data)) {
+                            console.log("Request forwarded.");
+                            return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver });
+                            //}
                         }).catch((reason) => {
                             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
                         });
@@ -531,6 +531,7 @@ app.get('/notification/inbox', auth, (req, res, next) => {
     const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
         //Verify if the user is register
         if (u.hasModeratorRole() || u.hasUserRole()) {
+            console.log("Questo è l'id della notifica: ", mongoose.Types.ObjectId().toString());
             console.log("Chat di:" + req.user.username);
             return res.status(200).json({ inbox: u.inbox });
         }
