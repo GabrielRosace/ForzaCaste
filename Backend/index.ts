@@ -1091,7 +1091,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
           }
         })
       })
-
+      client.on()
       client.on("disconnect", () => {
         // client.close()
         console.log("Socket.io client disconnected".red)

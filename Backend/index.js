@@ -658,7 +658,9 @@ app.put('/friend', auth, (req, res, next) => {
 });
 function createNewGameRequest(bodyRequest, username, oppositePlayer = null) {
     const model = notification.getModel();
+    const id1 = mongoose.Types.ObjectId();
     const doc = new model({
+        _id: id1,
         type: bodyRequest.type,
         text: null,
         sender: username.toString(),
@@ -694,7 +696,9 @@ function createPlayground() {
 }
 function createNewFriendRequest(bodyRequest, username) {
     const model = notification.getModel();
+    const id1 = mongoose.Types.ObjectId();
     const doc = new model({
+        _id: id1,
         type: bodyRequest.type,
         text: "New friend request by " + username + ".",
         sender: username,
@@ -706,7 +710,9 @@ function createNewFriendRequest(bodyRequest, username) {
 }
 function createNewFriendlyMatchmaking(bodyRequest, username) {
     const model = notification.getModel();
+    const id1 = mongoose.Types.ObjectId();
     const doc = new model({
+        _id: id1,
         type: bodyRequest.type,
         text: "New invitation for a friendly match from " + username + ".",
         sender: username,
@@ -718,7 +724,9 @@ function createNewFriendlyMatchmaking(bodyRequest, username) {
 }
 function createNewFriendMessage(bodyRequest, username) {
     const model = notification.getModel();
+    const id1 = mongoose.Types.ObjectId();
     const doc = new model({
+        _id: id1,
         type: bodyRequest.type,
         text: bodyRequest.text,
         sender: username,

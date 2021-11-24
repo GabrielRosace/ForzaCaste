@@ -35,6 +35,7 @@ export interface Notification extends mongoose.Document {
   sender: string,
   receiver?: string,
   deleted: boolean,
+  inpending: boolean,//It's used to show if a request has already been displayed
   state?: boolean,//It's used to show if a request is accepted
   isFriendRequest: () => boolean,
   isNotification: () => boolean
@@ -67,6 +68,11 @@ var notificationSchema = new mongoose.Schema<Notification>({
   deleted: {
     type: mongoose.SchemaTypes.Boolean,
     required: true
+  },
+  inpending: {
+    type: mongoose.SchemaTypes.Boolean,
+    required: true,
+    default: true
   },
   state: {
     type: mongoose.SchemaTypes.Boolean,
