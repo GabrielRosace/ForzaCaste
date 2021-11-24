@@ -1240,7 +1240,38 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
           }
         })
       })
-
+      client.on("notification", (clientData) => {
+        console.log(clientData.username)
+        const u = user.getModel().findOne({ username: clientData.username }).then((u: User) => {
+          //Verify if the user is register
+          if (u.hasModeratorRole() || u.hasUserRole()) {
+            //Check the type of the request for the creation of the new notification 
+            if (clientData.type === "friendRequest") {//Send a friendRequest
+              //TODO WEBSOCKET
+              const doc = notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: clientData.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
+                if (n !== null) {
+                  console.log("You have already sent a request to this user.");
+                  //return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
+                } else {
+                  const fr = createNewFriendRequest(clientData, u.username);
+                  fr.save().then((data) => {
+                    //if (notification.isNotification(data)) {
+                      console.log("Request forwarded.")
+                      //return res.status(200).json({ error: false, message: "Request forwarded to "+req.body.receiver });
+                    //}
+                  }).catch((reason) => {
+                    //return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                    console.log("DB error2");
+                  })
+                }
+              }).catch((reason) => {
+                console.log("DB error1: "+reason);
+                //return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+              })
+            }
+          }
+        })
+      })
       client.on("disconnect", () => {
         // client.close()
         // Quando un client si disconette lo elimino dalla lista dei client connessi
