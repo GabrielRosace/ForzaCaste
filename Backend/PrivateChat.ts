@@ -6,18 +6,18 @@ import * as message from './Message';
 
 
 export interface PrivateChat extends Message {
-    user1: mongoose.Schema.Types.ObjectId,
-    user2: mongoose.Schema.Types.ObjectId,
+    user1: string
+    user2: string,
     msg: Message[]
 }
 
 var privateChatSchema = new mongoose.Schema<PrivateChat>( {
     user1: {
-        type: mongoose.SchemaTypes.ObjectId,
+        type: mongoose.SchemaTypes.String,
         required: true
     },
     user2:  {
-        type: mongoose.SchemaTypes.ObjectId,
+        type: mongoose.SchemaTypes.String,
         required: true 
     },
     msg: {

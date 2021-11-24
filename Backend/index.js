@@ -61,6 +61,7 @@ const statistics = require("./Statistics");
 const notification = require("./Notification");
 const match = require("./Match");
 const message = require("./Message");
+const privateChat = require("./PrivateChat");
 //var ios = undefined;
 var app = express();
 // This dictionary contains the client that are conncted with the Socket.io server
@@ -1053,8 +1054,9 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
             });
         });
         // TODO
-        client.on('sendMessage', (clientData) => {
+        client.on('sendGameMessage', (clientData) => {
             user.getModel().findOne({ username: clientData.username }).then((u) => {
+                // TODO controllare user.isUser(u)
                 if (u != null) {
                     // console.log(clientData.player)            
                     match.getModel().findOne({ inProgress: true, $or: [{ player1: clientData.player }, { player2: clientData.player }] }).then((m) => {
@@ -1069,7 +1071,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                                     client.broadcast.to(m.player1 + 'Watchers').emit('gameChat', clientData.message);
                                     console.log("sented");
                                 }
-                                m.updateOne({ $push: { chat: createMessage("gameMessage", u.username, clientData.message) } }).then((data) => {
+                                m.updateOne({ $push: { chat: createChatMessage(u.username, clientData.message) } }).then((data) => {
                                     console.log("Message saved".green);
                                 }).catch((reason) => {
                                     console.log("Error: " + reason);
@@ -1089,6 +1091,56 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                 }
             });
         });
+        client.on("sendMessageTo", (clientData) => {
+            user.getModel().findOne({ username: clientData.username }).then((sender) => {
+                if (sender != null) {
+                    user.getModel().findOne({ username: clientData.receiver }).then((receiver) => {
+                        if (receiver != null) {
+                            if (sender.isFriend(receiver.username)) {
+                                privateChat.getModel().findOne({ $or: [{ $and: [{ user1: sender.username }, { user2: receiver.username }] }, { $and: [{ user1: receiver.username }, { user2: sender.username }] }] }).then((p) => {
+                                    if (p != null) {
+                                        p.updateOne({ $push: { msg: createMessage(p.user1, p.user2, clientData.message) } }).then((data) => {
+                                            console.log("Messaggio inserito correttamente");
+                                            socketIOclients[receiver.username].emit('getMessage', clientData.message);
+                                        }).catch((reason) => {
+                                            console.log("Error: " + reason);
+                                        });
+                                    }
+                                    else {
+                                        // Creo una nuova chat
+                                        let doc = createPrivateChat(sender.username, receiver.username);
+                                        doc.save().then((data) => {
+                                            console.log("Chat creata".green);
+                                            p.updateOne({ $push: { msg: createMessage(p.user1, p.user2, clientData.message) } }).then((data) => {
+                                                console.log("Messaggio inserito correttamente");
+                                                socketIOclients[receiver.username].emit('getMessage', clientData.message);
+                                            }).catch((reason) => {
+                                                console.log("Error: " + reason);
+                                            });
+                                        }).catch((reason) => {
+                                            console.log("Errore: " + reason);
+                                        });
+                                    }
+                                });
+                            }
+                            else {
+                                // ! Errore: il destinatario non è un amico
+                                console.log("Errore: il destinatario non è un amico");
+                                console.log(sender);
+                            }
+                        }
+                        else {
+                            // ! Errore: il destinatario non è un utente
+                            console.log("Errore: il destinatario non è un utente");
+                        }
+                    });
+                }
+                else {
+                    // ! Errore: il mittente non è un'utente
+                    console.log("Errore: il mittente non è un'utente");
+                }
+            });
+        });
         client.on("disconnect", () => {
             // client.close()
             // Quando un client si disconette lo elimino dalla lista dei client connessi
@@ -1104,12 +1156,32 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     console.log("Error Occurred during initialization".red);
     console.log(err);
 });
-function createMessage(messageType, username, text) {
+function createPrivateChat(user1, user2) {
+    const model = privateChat.getModel();
+    const doc = new model({
+        user1: user1,
+        user2: user2
+    });
+    return doc;
+}
+function createChatMessage(username, text) {
     const model = message.getModel();
     const doc = new model({
-        type: messageType,
+        type: "gameMessage",
         content: text,
         sender: username,
+        receiver: null,
+        timestamp: new Date().toLocaleString('it-IT')
+    });
+    return doc;
+}
+function createMessage(username, receiver, text) {
+    const model = message.getModel();
+    const doc = new model({
+        type: "message",
+        content: text,
+        sender: username,
+        receiver: receiver,
         timestamp: new Date().toLocaleString('it-IT')
     });
     return doc;

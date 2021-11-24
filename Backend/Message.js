@@ -13,6 +13,7 @@ const validatorSchema = {
     properties: {
         content: { type: "string" },
         sender: { type: "string" },
+        receiver: { type: "string" },
         timestamp: { type: "string", format: "date-time" }
     },
     required: ["content", "sender", "timestamp"],
@@ -50,6 +51,10 @@ var messageSchema = new mongoose.Schema({
     sender: {
         type: mongoose.SchemaTypes.String,
         required: true
+    },
+    receiver: {
+        type: mongoose.SchemaTypes.String,
+        required: false
     }
 });
 function getSchema() { return messageSchema; }

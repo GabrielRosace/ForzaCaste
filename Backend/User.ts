@@ -208,7 +208,7 @@ userSchema.methods.addFriend = function (username: string, isBlocked: boolean) {
 }
 
 userSchema.methods.isFriend = function (username: string){
-  for( var i = 0; i < this.friendList.length; i++){ 
+  for( var i = 0; i < this.friendList.length; i++){     
     if ( this.friendList[i].username === username) { 
       return true;
     }
