@@ -352,6 +352,17 @@ app.post('/matchmaking', auth, (req, res, next) => {
                         // When the clients receive this message they will redirect by himself to the match route 
                         client1.emit('lobby', 'true');
                         client2.emit('lobby', 'true');
+                        if (randomMatch.player1.toString() == player1.toString()) {
+                            console.log("starts player1");
+                            client1.emit('move', "it's your turn");
+                            client2.emit('move', "it's your opponent's turn");
+                        }
+                        else {
+                            console.log("starts player2");
+                            client2.emit('move', "it's your turn");
+                            client1.emit('move', "it's your opponent's turn");
+                        }
+                        ios.to(`${randomMatch.player1.toString()}Watchers`).emit('gameStatus', `${randomMatch.player1.toString()} starts`);
                     }
                     else {
                         console.log("Match request already exists");
@@ -361,8 +372,6 @@ app.post('/matchmaking', auth, (req, res, next) => {
                 else {
                     // Whene the client get this message he will send a message to the server to create a match room          
                     socketIOclients[us.username].emit('createMatchRoom', 'true');
-                    //! Set ranking
-                    // let ranking = getRanking(us.username)
                     const doc = createNewGameRequest(req.body, us.username, us.statistics.ranking);
                     console.log(doc);
                     doc.save().then((data) => {
@@ -690,6 +699,12 @@ function createNewGameRequest(bodyRequest, username, ranking, oppositePlayer = n
     return doc;
 }
 function createNewRandomMatch(player1, player2) {
+    // choose game start randomically
+    if (Math.random() < 0.5) {
+        let t = player1;
+        player1 = player2;
+        player2 = t;
+    }
     const model = match.getModel();
     const doc = new model({
         inProgress: true,
