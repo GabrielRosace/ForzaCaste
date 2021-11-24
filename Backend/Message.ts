@@ -29,7 +29,7 @@ const validate = ajv.compile(validatorSchema)
 export interface Message {
   content: string,
   timestamp: Date,
-  sender: mongoose.Schema.Types.ObjectId,
+  sender: string,
 }
 
 // User defined type guard
@@ -62,7 +62,7 @@ var messageSchema = new mongoose.Schema({
     required: true
   },
   sender: {
-    type: mongoose.SchemaTypes.ObjectId,
+    type: mongoose.SchemaTypes.String,
     required: true
   }
 })

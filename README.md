@@ -52,7 +52,7 @@ Per effettuare una partita sono necessari due utenti, quindi:
 4) Entrambi gli utenti: inviare una richiesta WebSocket con titolo saveClient e parametro { "username": $nome }
 5)  Player1:
     5.a) Fare richiesta di gioco, inviare la richiesta http "Create random game request"
-    5.b) Ricevuto come risposta il codice 200 e il valore "true" dal server WebSocket invio una richiesta WebSocket con titolo "createMatchRoom") e con parametro { "clientUsername": $nome } 
+    5.b) Ricevuto come risposta il codice 200 e il valore "true" dal server WebSocket invio una richiesta WebSocket con titolo "createMatchRoom") e con parametro { "username": $nome } 
     5.c) Player1 rimane in attesa
 6)  Player2:
     6.a) Fare richiesta di gioco, inviare la richiesta http "Create random game request"
