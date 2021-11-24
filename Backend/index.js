@@ -60,6 +60,7 @@ const user = require("./User");
 const statistics = require("./Statistics");
 const notification = require("./Notification");
 const match = require("./Match");
+const message = require("./Message");
 //var ios = undefined;
 var app = express();
 // This dictionary contains the client that are conncted with the Socket.io server
@@ -67,7 +68,10 @@ var app = express();
 var socketIOclients = {};
 // This dictionary contains the match rooms: when an user creates a game requests in order to play a game
 // he creates a room, named with his username (since the username is unique, cannot exists rooms with the same key)
+// A match room contains the two player and all the users that want to watch the match. 
 var matchRooms = {};
+// This dictionary contains all the users that are watching a game. It is used for managing the chat of a game.
+var matchWatcherRooms = {};
 /*
   We create the JWT authentication middleware
   provided by the express-jwt library
@@ -308,6 +312,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
                             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
                         });
                         n.deleted = true;
+                        n.state = false;
                         if (n != null) {
                             n.save().then().catch((reason) => {
                                 return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
@@ -358,6 +363,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
                             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
                         });
                         n.deleted = true;
+                        n.state = false;
                         if (n != null) {
                             n.save().then().catch((reason) => {
                                 return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
@@ -617,7 +623,8 @@ function createNewGameRequest(bodyRequest, username, oppositePlayer = null) {
         text: null,
         sender: username.toString(),
         receiver: oppositePlayer,
-        deleted: false
+        deleted: false,
+        state: true
     });
     return doc;
 }
@@ -746,10 +753,11 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         });
         // This event is triggered when a client want to play a random match but there is no match request active, so it creates a game request 
         client.on('createMatchRoom', (clientData) => {
-            console.log("Joining...".green);
+            // console.log("Joining...".green);
             if (matchRooms[clientData.username] != clientData) {
                 matchRooms[clientData.username] = {};
                 matchRooms[clientData.username][clientData.username] = client;
+                matchWatcherRooms[clientData.username] = {};
             }
             else {
                 console.log("L'utente è già inserito in una room".red);
@@ -757,17 +765,17 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
             }
             client.join(clientData.username);
             console.log("Client joined the room".green + clientData.username);
-            console.log(matchRooms);
+            // console.log(matchRooms);
         });
-        client.on('isInRoom', () => {
-            for (const [k, v] of Object.entries(matchRooms)) {
-                for (const [k1, v1] of Object.entries(v)) {
-                    if (v1 == client)
-                        client.emit('isInRoom', 'Yes');
-                }
-            }
-            client.emit('IsInRoom', 'No');
-        });
+        // client.on('isInRoom', () => {
+        //   for (const [k, v] of Object.entries(matchRooms)) {
+        //     for (const [k1, v1] of Object.entries(v)) {
+        //       if (v1 == client)
+        //         client.emit('isInRoom', 'Yes')
+        //     }
+        //   }
+        //   client.emit('IsInRoom', 'No')
+        // })
         client.on('move', (clientData) => {
             let u = user.getModel().findOne({ username: clientData.username }).then((n) => {
                 if (n != null) {
@@ -814,17 +822,23 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                                         else {
                                             //! Errore: la colonna è già piena
                                             client.emit('move', 'La colonna è piena');
+                                            return null;
                                         }
                                     }
                                     else {
                                         // ! La mossa inserita non è permessa, esce dal campo
                                         client.emit('move', 'Mossa non consentita');
+                                        return null;
                                     }
                                 }
                                 // Si sta cercando di eseguire una mossa quando non è il proprio turno
                                 else {
                                     client.emit('move', 'Turno errato');
+                                    return null;
                                 }
+                                // ! Invio la mossa a chi guarda la partita e all'avversario
+                                // TODO se si è verificato un errore nell'inserimento della mossa, il campo non deve essere inviato
+                                client.broadcast.to(m.player1).emit('move', m.playground);
                                 // ! Controllo se la partita è finita
                                 // Controllo se c'è un vincitore
                                 if (n.username == m.player1.toString()) {
@@ -885,8 +899,76 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                 }
             });
         });
+        // Quando si vuole osservare una partita il client deve accedere allo username del player1
+        // Assicura che un client entri una sola volta nella room della partita
+        // TODO controllare che il match
+        client.on('enterGameWatchMode', (clientData) => {
+            user.getModel().findOne({ username: clientData.username }).then((n) => {
+                if (n != null) {
+                    match.getModel().findOne({ inProgress: true, $or: [{ player1: clientData.player }, { player2: clientData.player }] }).then((m) => {
+                        if (m != null) {
+                            if (match.isMatch(m)) {
+                                if (!matchRooms[clientData.player][clientData.username]) {
+                                    matchRooms[clientData.player][clientData.username] = client;
+                                    client.join(clientData.player);
+                                    // console.log(matchRooms);
+                                }
+                                if (!matchWatcherRooms[clientData.player][clientData.username]) {
+                                    matchWatcherRooms[clientData.player][clientData.username] = client;
+                                    client.join(clientData.player + 'Watchers');
+                                    // console.log(matchWatcherRooms)                    
+                                }
+                                client.emit('enterGameWatchMode', true);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+        // TODO
+        client.on('sendMessage', (clientData) => {
+            user.getModel().findOne({ username: clientData.username }).then((u) => {
+                if (u != null) {
+                    // console.log(clientData.player)            
+                    match.getModel().findOne({ inProgress: true, $or: [{ player1: clientData.player }, { player2: clientData.player }] }).then((m) => {
+                        if (m != null) {
+                            if (match.isMatch(m)) {
+                                // TODO deve essere inviato un JSON che contiene tutte le informazioni del messaggio come sender e timestamp
+                                if (u.username == m.player1.toString() || u.username == m.player2.toString()) {
+                                    client.broadcast.to(m.player1).emit('gameChat', clientData.message);
+                                    console.log("Sented");
+                                }
+                                else {
+                                    client.broadcast.to(m.player1 + 'Watchers').emit('gameChat', clientData.message);
+                                    console.log("sented");
+                                }
+                                m.updateOne({ $push: { chat: createMessage("gameMessage", u.username, clientData.message) } }).then((data) => {
+                                    console.log("Message saved".green);
+                                }).catch((reason) => {
+                                    console.log("Error: " + reason);
+                                });
+                            }
+                            else {
+                                console.log("Partita non valida");
+                            }
+                        }
+                        else {
+                            console.log("Partita non trovata");
+                        }
+                    });
+                }
+                else {
+                    console.log("Utente non trovato");
+                }
+            });
+        });
         client.on("disconnect", () => {
             // client.close()
+            // Quando un client si disconette lo elimino dalla lista dei client connessi
+            for (const [k, v] of Object.entries(socketIOclients)) {
+                if (v == client)
+                    delete socketIOclients[k];
+            }
             console.log("Socket.io client disconnected".red);
         });
     });
@@ -895,6 +977,16 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     console.log("Error Occurred during initialization".red);
     console.log(err);
 });
+function createMessage(messageType, username, text) {
+    const model = message.getModel();
+    const doc = new model({
+        type: messageType,
+        content: text,
+        sender: username,
+        timestamp: new Date().toLocaleString('it-IT')
+    });
+    return doc;
+}
 function insertMove(playground, index, player) {
     let added = false;
     // Copio la matrice salvata nel db
