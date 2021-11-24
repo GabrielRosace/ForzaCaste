@@ -603,8 +603,8 @@ app.post('/notification', auth, (req, res, next) => {
         } else {
           return next({ statusCode: 404, error: true, errormessage: "Friend not found. " });
         }
-      } else if (req.body.type === "friendlyMatchmaking") {
-        //TODO WEBSOCKET
+      }else if (req.body.type === "friendlyMatchmaking") {
+        //TODO WEBSOCKET(esempio della chat data dal sito di socket.io)
         if (u.isFriend(req.body.receiver) || u.hasModeratorRole()) {//Check if the receiver is a friend, in case i am a regular user
 
           const doc = notification.getModel().findOne({ type: "friendlyMatchmaking", sender: req.user.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
