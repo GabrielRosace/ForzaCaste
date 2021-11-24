@@ -315,8 +315,6 @@ app.post('/matchmaking', auth, (req, res, next) => {
         const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
             // const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", receiver: null, deleted: false }).then
             const matchRequest = notification.getModel().find({ type: "randomMatchmaking", receiver: null, deleted: false }).then((nList) => {
-                //! è randomico ma comunque il primo che match va, se io creo più richieste allora comunque prendo sempre il primo
-                //! quindi ignoro la "forza" dell'avversario
                 let n = undefined;
                 for (let i = 0; i < nList.length; i++) {
                     let iter = nList[i];
@@ -349,6 +347,17 @@ app.post('/matchmaking', auth, (req, res, next) => {
                         // When the clients receive this message they will redirect by himself to the match route 
                         client1.emit('lobby', 'true');
                         client2.emit('lobby', 'true');
+                        if (randomMatch.player1.toString() == player1.toString()) {
+                            console.log("starts player1");
+                            client1.emit('move', "it's your turn");
+                            client2.emit('move', "it's your opponent's turn");
+                        }
+                        else {
+                            console.log("starts player2");
+                            client2.emit('move', "it's your turn");
+                            client1.emit('move', "it's your opponent's turn");
+                        }
+                        ios.to(`${randomMatch.player1.toString()}Watchers`).emit('gameStatus', `${randomMatch.player1.toString()} starts`);
                     }
                     else {
                         console.log("Match request already exists");
@@ -358,8 +367,6 @@ app.post('/matchmaking', auth, (req, res, next) => {
                 else {
                     // Whene the client get this message he will send a message to the server to create a match room          
                     socketIOclients[us.username].emit('createMatchRoom', 'true');
-                    //! Set ranking
-                    // let ranking = getRanking(us.username)
                     const doc = createNewGameRequest(req.body, us.username, us.statistics.ranking);
                     console.log(doc);
                     doc.save().then((data) => {
@@ -671,7 +678,9 @@ app.put('/friend', auth, (req, res, next) => {
 });
 function createNewGameRequest(bodyRequest, username, ranking, oppositePlayer = null) {
     const model = notification.getModel();
+    const id1 = mongoose.Types.ObjectId();
     const doc = new model({
+        _id: id1,
         type: bodyRequest.type,
         text: null,
         sender: username.toString(),
@@ -682,6 +691,12 @@ function createNewGameRequest(bodyRequest, username, ranking, oppositePlayer = n
     return doc;
 }
 function createNewRandomMatch(player1, player2) {
+    // choose game start randomically
+    if (Math.random() < 0.5) {
+        let t = player1;
+        player1 = player2;
+        player2 = t;
+    }
     const model = match.getModel();
     const doc = new model({
         inProgress: true,
@@ -708,7 +723,9 @@ function createPlayground() {
 }
 function createNewFriendRequest(bodyRequest, username) {
     const model = notification.getModel();
+    const id1 = mongoose.Types.ObjectId();
     const doc = new model({
+        _id: id1,
         type: bodyRequest.type,
         text: "New friend request by " + username + ".",
         sender: username,
@@ -720,7 +737,9 @@ function createNewFriendRequest(bodyRequest, username) {
 }
 function createNewFriendlyMatchmaking(bodyRequest, username) {
     const model = notification.getModel();
+    const id1 = mongoose.Types.ObjectId();
     const doc = new model({
+        _id: id1,
         type: bodyRequest.type,
         text: "New invitation for a friendly match from " + username + ".",
         sender: username,
@@ -732,7 +751,9 @@ function createNewFriendlyMatchmaking(bodyRequest, username) {
 }
 function createNewFriendMessage(bodyRequest, username) {
     const model = notification.getModel();
+    const id1 = mongoose.Types.ObjectId();
     const doc = new model({
+        _id: id1,
         type: bodyRequest.type,
         text: bodyRequest.text,
         sender: username,
