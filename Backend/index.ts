@@ -548,10 +548,10 @@ app.post('/notification', auth, (req, res, next) => {
             const fr = createNewFriendRequest(req.body, u.username);
 
             fr.save().then((data) => {
-              if (notification.isNotification(data)) {
+              //if (notification.isNotification(data)) {
                 console.log("Request forwarded.")
-                return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver });
-              }
+                return res.status(200).json({ error: false, message: "Request forwarded to "+req.body.receiver });
+              //}
             }).catch((reason) => {
               return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
             })
@@ -642,6 +642,7 @@ app.get('/notification/inbox', auth, (req, res, next) => {
   const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     //Verify if the user is register
     if (u.hasModeratorRole() || u.hasUserRole()) {
+      console.log("Questo è l'id della notifica: ", mongoose.Types.ObjectId().toString());
       console.log("Chat di:" + req.user.username);
       return res.status(200).json({ inbox: u.inbox });
     }
@@ -777,7 +778,9 @@ app.put('/friend', auth, (req, res, next) => {
 
 function createNewGameRequest(bodyRequest, username,ranking, oppositePlayer = null) {
   const model = notification.getModel()
+  const id1 = mongoose.Types.ObjectId()
   const doc = new model({
+    _id: id1,
     type: bodyRequest.type,
     text: null,
     sender: username.toString(),
@@ -817,7 +820,9 @@ function createPlayground() {
 
 function createNewFriendRequest(bodyRequest, username) {
   const model = notification.getModel()
+  const id1 = mongoose.Types.ObjectId()
   const doc = new model({
+    _id: id1,
     type: bodyRequest.type,
     text: "New friend request by " + username + ".",
     sender: username,
@@ -830,7 +835,9 @@ function createNewFriendRequest(bodyRequest, username) {
 
 function createNewFriendlyMatchmaking(bodyRequest, username) {
   const model = notification.getModel()
+  const id1 = mongoose.Types.ObjectId()
   const doc = new model({
+    _id: id1,
     type: bodyRequest.type,
     text: "New invitation for a friendly match from " + username + ".",
     sender: username,
@@ -843,7 +850,9 @@ function createNewFriendlyMatchmaking(bodyRequest, username) {
 
 function createNewFriendMessage(bodyRequest, username) {
   const model = notification.getModel()
+  const id1 = mongoose.Types.ObjectId()
   const doc = new model({
+    _id: id1,
     type: bodyRequest.type,
     text: bodyRequest.text,
     sender: username,
