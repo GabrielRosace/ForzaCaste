@@ -955,7 +955,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     const option = {
       allowEIO3: true,
       cors: {
-        origin: ["http://localhost:4200", "http://localhost:4201"],
+        origin: ["http://localhost:4200", "http://localhost:4201", "http://0.0.0.0:4200"],
         methods: ["GET", "POST"],
         allowedHeaders: ["enableCORS"],
         credentials: true
