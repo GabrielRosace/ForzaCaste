@@ -17,7 +17,8 @@ const validatorSchema = {
         sender: { type: "string" },
         receiver: { type: "string", nullable: true },
         deleted: { type: "boolean" },
-        state: { type: "boolean", nullable: true }
+        state: { type: "boolean", nullable: true },
+        ranking: { type: "number" }
     },
     required: ["type", "sender", "deleted"],
     additionalProperties: true
@@ -57,6 +58,10 @@ var notificationSchema = new mongoose.Schema({
     },
     state: {
         type: mongoose.SchemaTypes.Boolean,
+        required: false
+    },
+    ranking: {
+        type: mongoose.SchemaTypes.Number,
         required: false
     }
 });

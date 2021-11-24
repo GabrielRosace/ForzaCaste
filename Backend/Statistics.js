@@ -14,10 +14,11 @@ const validatorSchema = {
         nGamesWon: { type: "number" },
         nGamesLost: { type: "number" },
         nGamesPlayed: { type: "number" },
-        nTotalMoves: { type: "number" }
+        nTotalMoves: { type: "number" },
+        ranking: { type: "number" }
     },
     required: ["nGamesWon", "nGamesLost", "nGamesPlayed", "nTotalMoves"],
-    additionalProperties: false
+    additionalProperties: true
 };
 const validate = ajv.compile(validatorSchema);
 var statisticsSchema = new mongoose.Schema({
@@ -36,11 +37,16 @@ var statisticsSchema = new mongoose.Schema({
         required: true,
         default: 0
     },
-    nGamesMoves: {
+    nTotalMoves: {
         type: mongoose.SchemaTypes.Number,
         required: true,
         default: 0
     },
+    ranking: {
+        type: mongoose.SchemaTypes.Number,
+        required: false,
+        default: 0
+    }
 });
 statisticsSchema.methods.getGamesDrawn = function () {
     return (this.nGamesPlayed - (this.nGamesLost + this.nGamesLost));

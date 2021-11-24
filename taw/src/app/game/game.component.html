@@ -1,0 +1,20 @@
+<div class=" myContainer">
+  <div class="homepagecontainer">
+    <table class="table">
+      <tbody>
+        <tr *ngFor='let row of game'>
+          <td *ngFor='let column of row;let i=index;'>
+            <div class="griglia" (click)="add(i)">
+              <span class="gettone"style="background-color:red;" *ngIf="isred(column)"></span>
+              <span class="gettone"style="background-color:gold;" *ngIf="isyellow(column)"></span> 
+              <span class="gettone"style="background-color:trasparent;"*ngIf="isempty(column)"></span>    
+              </div>
+            <!--<img src="assets/img/rvuoto.png" alt="Forza quattro logo" width="100px" height="100px">-->
+            
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+</div>
+

@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { GameComponent } from './game/game.component';
 import { HomepageComponent } from './homepage/homepage.component';
 import { NewModeratorComponent } from './new-moderator/new-moderator.component';
 import { UserDeletionComponent } from './user-deletion/user-deletion.component';
@@ -16,7 +17,8 @@ const routes: Routes = [
   { path: 'signin', component: UserSigninComponent },
   { path: 'profile', component: UserProfileComponent },
   { path: 'new-mod', component: NewModeratorComponent },
-  { path: 'user-deletion', component: UserDeletionComponent }
+  { path: 'user-deletion', component: UserDeletionComponent },
+  { path: 'game', component: GameComponent }
 
 ];
 

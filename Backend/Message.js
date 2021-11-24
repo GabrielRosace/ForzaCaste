@@ -48,7 +48,7 @@ var messageSchema = new mongoose.Schema({
         required: true
     },
     sender: {
-        type: mongoose.SchemaTypes.ObjectId,
+        type: mongoose.SchemaTypes.String,
         required: true
     }
 });

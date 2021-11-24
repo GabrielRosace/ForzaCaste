@@ -17,7 +17,8 @@ const validatorSchema = { //TODO aggiungere altri nullable se ce ne sono
     sender: { type: "string" },
     receiver: { type: "string", nullable: true },
     deleted: { type: "boolean" },
-    state: { type: "boolean", nullable: true}
+    state: { type: "boolean", nullable: true },
+    ranking: {type: "number"}
   },
   required: ["type", "sender", "deleted"],
   additionalProperties: true
@@ -37,6 +38,7 @@ export interface Notification extends mongoose.Document {
   deleted: boolean,
   inpending: boolean,//It's used to show if a request has already been displayed
   state?: boolean,//It's used to show if a request is accepted
+  ranking?: number,
   isFriendRequest: () => boolean,
   isNotification: () => boolean
 }
@@ -76,6 +78,10 @@ var notificationSchema = new mongoose.Schema<Notification>({
   },
   state: {
     type: mongoose.SchemaTypes.Boolean,
+    required: false
+  },
+  ranking: {
+    type: mongoose.SchemaTypes.Number,
     required: false
   }
 })
