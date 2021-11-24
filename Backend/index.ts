@@ -1,28 +1,28 @@
 /**
  * HTTP REST server + MongoDB(Mongoose) + Express
- * 
+ *
  * Endpoints            Attributes              Method          Description
- * 
+ *
  *  /                       -                   GET             Returns the version and a list of available endpoints
  *  /login                  -                   GET             Login an existing user, returning a JWT
- * 
+ *
  *  /users                  -                   POST            Signin a new user
  *  /users                  -                   PUT             Update user information
  *  /users/:username        -                   DELETE          Deletion of standard players from moderators
  *  /users/:username        -                   GET             Return a user that has username specified
- * 
+ *
  *  /users/mod              -                   POST            Create a new moderator, only moderator can do it
- * 
- * 
- * 
- * 
- * 
+ *
+ *
+ *
+ *
+ *
  * To install the required modules:
  * $ npm install
- * 
+ *
  * To compile:
  * $ npm run compile
- * 
+ *
  * To run:
  * $ npm run start
 */
@@ -113,12 +113,12 @@ var app = express();
 var socketIOclients = {}
 // This dictionary contains the match rooms: when an user creates a game requests in order to play a game
 // he creates a room, named with his username (since the username is unique, cannot exists rooms with the same key)
-// A match room contains the two player and all the users that want to watch the match. 
+// A match room contains the two player and all the users that want to watch the match.
 var matchRooms = {}
 // This dictionary contains all the users that are watching a game. It is used for managing the chat of a game.
 var matchWatcherRooms = {}
 
-/*  
+/*
   We create the JWT authentication middleware
   provided by the express-jwt library
 
@@ -131,7 +131,7 @@ var auth = jwt({ secret: process.env.JWT_SECRET, algorithms: ['HS256'] });
 
 app.use(cors());
 
-/* 
+/*
   Install the top-level middleware "bodyparser"
   body-parser extracts the entire body portion of an incoming request stream
   and expises it on req.body
@@ -444,7 +444,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
             matchRooms[player1][player2] = client2
             client2.join(player1)
 
-            // When the clients receive this message they will redirect by himself to the match route 
+            // When the clients receive this message they will redirect by himself to the match route
             client1.emit('lobby', 'true')
             client2.emit('lobby', 'true')
 
@@ -465,7 +465,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
             return res.status(200).json({ error: false, message: "Match request already exists" });
           }
         }else {
-          // Whene the client get this message he will send a message to the server to create a match room          
+          // Whene the client get this message he will send a message to the server to create a match room
           socketIOclients[us.username].emit('createMatchRoom', 'true')
 
           const doc = createNewGameRequest(req.body, us.username,us.statistics.ranking)
@@ -510,7 +510,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
             matchRooms[player1][player2] = client2
             client2.join(player1)
 
-            // When the clients receive this message they will redirect by himself to the match route 
+            // When the clients receive this message they will redirect by himself to the match route
             client1.emit('lobby', 'true')
             client2.emit('lobby', 'true')
           }
@@ -520,7 +520,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
           }
         }
         else {
-          // Whene the client get this message he will send a message to the server to create a match room          
+          // Whene the client get this message he will send a message to the server to create a match room
           socketIOclients[us.username].emit('createMatchRoom', 'true')
 
           // Check if the opposite player is a friend
@@ -557,7 +557,7 @@ app.post('/notification', auth, (req, res, next) => {
   const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     //Verify if the user is register
     if (u.hasModeratorRole() || u.hasUserRole()) {
-      //Check the type of the request for the creation of the new notification 
+      //Check the type of the request for the creation of the new notification
       if (req.body.type === "friendRequest") {//Send a friendRequest
         //TODO WEBSOCKET
         const doc = notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
@@ -606,8 +606,8 @@ app.post('/notification', auth, (req, res, next) => {
         } else {
           return next({ statusCode: 404, error: true, errormessage: "Friend not found. " });
         }
-      } else if (req.body.type === "friendlyMatchmaking") {
-        //TODO WEBSOCKET
+      }else if (req.body.type === "friendlyMatchmaking") {
+        //TODO WEBSOCKET(esempio della chat data dal sito di socket.io)
         if (u.isFriend(req.body.receiver) || u.hasModeratorRole()) {//Check if the receiver is a friend, in case i am a regular user
 
           const doc = notification.getModel().findOne({ type: "friendlyMatchmaking", sender: req.user.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
@@ -958,7 +958,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     const option = {
       allowEIO3: true,
       cors: {
-        origin: ["http://localhost:4200", "http://localhost:4201"],
+        origin: ["http://localhost:4200", "http://localhost:4201", "http://0.0.0.0:4200"],
         methods: ["GET", "POST"],
         allowedHeaders: ["enableCORS"],
         credentials: true
@@ -981,10 +981,10 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
           console.log("Utente già esistente");
       })
 
-      // This event is triggered when a client want to play a random match but there is no match request active, so it creates a game request 
+      // This event is triggered when a client want to play a random match but there is no match request active, so it creates a game request
       client.on('createMatchRoom', (clientData) => {
         // console.log("Joining...".green);
-        
+
         if (matchRooms[clientData.username] != clientData) {
           matchRooms[clientData.username] = {}
           matchRooms[clientData.username][clientData.username] = client
@@ -1014,7 +1014,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
       //   client.emit('IsInRoom', 'No')
       // })
 
-      /* 
+      /*
         - Permette di "giocare" anche se uno ha già vinto -> Andrebbe bloccata ogni mossa.
         - è randomico l'inizio, non mi sembra...
         - //*Aggiornare le statistiche
@@ -1028,7 +1028,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
               if (m != null) {
                 if (match.isMatch(m)) {
                   let index = parseInt(clientData.move)
-                  // Mossa del player1                
+                  // Mossa del player1
                   if (m.nTurns % 2 == 1 && m.player1 == clientData.username) {
                     if (index >= 0 && index <= 6) {
                       if (m.playground[5][index] == '/') {
@@ -1109,7 +1109,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                         // })
                       updateStats(m.player1,m.nTurns,true)
                       updateStats(m.player2, m.nTurns, false)
-                      
+
                       m.updateOne({ inProgress: false, winner: m.player1 }).then((d) => {
                         console.log("Winner updated".green)
                       }).catch((reason)=>{
@@ -1140,7 +1140,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                       // })
                       updateStats(m.player2,m.nTurns,true)
                       updateStats(m.player1, m.nTurns, false)
-                      
+
                       m.updateOne({ inProgress: false, winner: m.player2 }).then((d) => {
                         console.log("Winner updated".green)
                       }).catch((reason)=>{
@@ -1189,12 +1189,12 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                     matchRooms[clientData.player][clientData.username] = client
                     client.join(clientData.player)
                     // console.log(matchRooms);
-                    
+
                   }
                   if(!matchWatcherRooms[clientData.player][clientData.username]){
                     matchWatcherRooms[clientData.player][clientData.username] = client
                     client.join(clientData.player + 'Watchers')
-                    // console.log(matchWatcherRooms)                    
+                    // console.log(matchWatcherRooms)
                   }
                   client.emit('enterGameWatchMode', true)
                 }
@@ -1209,7 +1209,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         user.getModel().findOne({username: clientData.username}).then((u : User) => {
           // TODO controllare user.isUser(u)
           if(u != null){
-            // console.log(clientData.player)            
+            // console.log(clientData.player)
             match.getModel().findOne({ inProgress: true, $or: [{player1: clientData.player}, {player2: clientData.player}]}).then((m) => { // Si dovrebbe usare n.username
               if(m != null){
                 if(match.isMatch(m)){
@@ -1221,7 +1221,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                   else{
                     client.broadcast.to(m.player1 + 'Watchers').emit('gameChat', clientData.message)
                     console.log("sented");
-                    
+
                   }
 
                   m.updateOne({$push : {chat : createChatMessage(u.username, clientData.message)}}).then((data) => {
@@ -1299,6 +1299,38 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         })
       })
 
+      client.on("notification", (clientData) => {
+        console.log(clientData.username)
+        const u = user.getModel().findOne({ username: clientData.username }).then((u: User) => {
+          //Verify if the user is register
+          if (u.hasModeratorRole() || u.hasUserRole()) {
+            //Check the type of the request for the creation of the new notification 
+            if (clientData.type === "friendRequest") {//Send a friendRequest
+              //TODO WEBSOCKET
+              const doc = notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: clientData.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
+                if (n !== null) {
+                  console.log("You have already sent a request to this user.");
+                  //return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
+                } else {
+                  const fr = createNewFriendRequest(clientData, u.username);
+                  fr.save().then((data) => {
+                    //if (notification.isNotification(data)) {
+                      console.log("Request forwarded.")
+                      //return res.status(200).json({ error: false, message: "Request forwarded to "+req.body.receiver });
+                    //}
+                  }).catch((reason) => {
+                    //return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                    console.log("DB error2");
+                  })
+                }
+              }).catch((reason) => {
+                console.log("DB error1: "+reason);
+                //return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+              })
+            }
+          }
+        })
+      })
       client.on("disconnect", () => {
         // client.close()
         // Quando un client si disconette lo elimino dalla lista dei client connessi
@@ -1350,14 +1382,14 @@ function createMessage(username, receiver, text){
   })
   return doc
 }
-          
+
 function updateStats(player,nTurns, isWinner) {
   user.getModel().findOne({ username: player }).then((p) => {
     let stats = p.statistics
     if (isWinner) {
       stats.nGamesWon++
     } else {
-      stats.nGamesLost++  
+      stats.nGamesLost++
     }
     stats.nGamesPlayed++
     stats.nTotalMoves += nTurns
@@ -1447,7 +1479,7 @@ function checkWinner(playground, player) {
       }
     }
   }
-  // ascendingDiagonalCheck 
+  // ascendingDiagonalCheck
   for (let i = 3; i < 6; i++) {
     for (let j = 0; j < 4; j++) {
       if (playground[i][j] == player && playground[i - 1][j + 1] == player && playground[i - 2][j + 2] == player && playground[i - 3][j + 3] == player)

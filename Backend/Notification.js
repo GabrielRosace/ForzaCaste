@@ -51,6 +51,11 @@ var notificationSchema = new mongoose.Schema({
         type: mongoose.SchemaTypes.Boolean,
         required: true
     },
+    inpending: {
+        type: mongoose.SchemaTypes.Boolean,
+        required: true,
+        default: true
+    },
     state: {
         type: mongoose.SchemaTypes.Boolean,
         required: false
