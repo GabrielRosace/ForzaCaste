@@ -1,0 +1,19 @@
+<div class="text-center myContainer p-0">
+  <div class="homepagecontainer">
+    <img class="mb-4" src="assets/img/logo.png" alt="Forza quattro logo" width="72" height="57">
+    <h1 class="h3 mb-3 fw-normal">Choose a player from list to delete it</h1>
+    <br>
+    
+    <div class="scrollable" tabindex="0">
+      <ul class="list-group">
+        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let user of list'>
+          {{user.username}}
+          <button type="button" class=" btn btn-warning mybtn" [disabled]="user.roles=='MODERATOR' || user.username==myUsername" (click)="delete(user.username)">Delete</button>
+        </li>
+      </ul>
+    </div>
+    <div class="alert alert-primary mt-1" *ngIf="error">
+      {{error}}
+    </div>
+  </div>
+</div>

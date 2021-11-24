@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, OnDestroy, OnInit } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -15,6 +15,8 @@ import { UserSigninComponent } from './user-signin/user-signin.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { NewModeratorComponent } from './new-moderator/new-moderator.component';
+import { SocketioService } from './socketio.service';
+import { UserDeletionComponent } from './user-deletion/user-deletion.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +27,8 @@ import { NewModeratorComponent } from './new-moderator/new-moderator.component';
     UserSigninComponent,
     SidebarComponent,
     UserProfileComponent,
-    NewModeratorComponent
+    NewModeratorComponent,
+    UserDeletionComponent
   ],
   imports: [
     BrowserModule,
@@ -34,8 +37,11 @@ import { NewModeratorComponent } from './new-moderator/new-moderator.component';
     FontAwesomeModule
   ],
   providers: [
-    {provide: UserHttpService, useClass: UserHttpService}
+    { provide: UserHttpService, useClass: UserHttpService }
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule{
+  constructor(private socket: SocketioService) { }
+  
+}

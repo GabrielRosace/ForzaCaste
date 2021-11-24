@@ -14,10 +14,11 @@ const validatorSchema = {
     nGamesWon: { type: "number" },
     nGamesLost: { type: "number" },
     nGamesPlayed: { type: "number" },
-    nTotalMoves: { type: "number" }
+    nTotalMoves: { type: "number" },
+    ranking: { type: "number" }
   },
   required: ["nGamesWon", "nGamesLost", "nGamesPlayed", "nTotalMoves"],
-  additionalProperties: false
+  additionalProperties: true
 }
 
 const validate = ajv.compile(validatorSchema)
@@ -30,6 +31,7 @@ export interface Statistics extends mongoose.Document {
   nGamesLost: number,
   nGamesPlayed: number,
   nTotalMoves: number,
+  ranking: number,
   getGamesDrawn: () => number,
 }
 
@@ -49,11 +51,16 @@ var statisticsSchema = new mongoose.Schema<Statistics>({
     required: true,
     default: 0
   },
-  nGamesMoves: {
+  nTotalMoves: {
     type: mongoose.SchemaTypes.Number,
     required: true,
     default: 0
   },
+  ranking: {
+    type: mongoose.SchemaTypes.Number,
+    required: false,
+    default: 0
+  }
 })
 
 statisticsSchema.methods.getGamesDrawn = function () {

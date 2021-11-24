@@ -1,0 +1,23 @@
+.myContainer{
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background-color: #f5f5f5;
+}
+
+.homepagecontainer {
+  width: 100%;
+  max-width: 550px;
+  padding: 15px;
+  margin: auto;
+}
+
+.scrollable{
+  /* width: 70vw; */
+  height: 60vh;
+  /* height: 100px; */
+  overflow-y: scroll;
+
+}

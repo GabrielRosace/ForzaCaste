@@ -11,12 +11,14 @@ addFormats(ajv)
 const validatorSchema = { //TODO aggiungere altri nullable se ce ne sono
   type: "object",
   properties: {
+    //id: { type: "any" },
     type: { type: "string" },
     text: { type: "string", nullable: true },
     sender: { type: "string" },
     receiver: { type: "string", nullable: true },
     deleted: { type: "boolean" },
-    state: { type: "boolean", nullable: true}
+    state: { type: "boolean", nullable: true },
+    ranking: {type: "number"}
   },
   required: ["type", "sender", "deleted"],
   additionalProperties: true
@@ -28,12 +30,14 @@ const validate = ajv.compile(validatorSchema)
 
 // A notification has a type of notification, some text content and a string that identify the sender
 export interface Notification extends mongoose.Document {
+  _id: mongoose.Types.ObjectId,
   type: string,
   text?: string,
   sender: string,
   receiver?: string,
   deleted: boolean,
   state?: boolean,//It's used to show if a request is accepted
+  ranking?: number,
   isFriendRequest: () => boolean,
   isNotification: () => boolean
 }
@@ -44,6 +48,10 @@ export function isNotification(arg: any): arg is Notification {
 }*/
 
 var notificationSchema = new mongoose.Schema<Notification>({
+  _id: {
+    type: mongoose.SchemaTypes.ObjectId,
+    required: true
+  },
   type: {
     type: mongoose.SchemaTypes.String,
     required: true
@@ -64,6 +72,10 @@ var notificationSchema = new mongoose.Schema<Notification>({
   },
   state: {
     type: mongoose.SchemaTypes.Boolean,
+    required: false
+  },
+  ranking: {
+    type: mongoose.SchemaTypes.Number,
     required: false
   }
 })

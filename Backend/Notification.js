@@ -11,12 +11,14 @@ const ajv = new Ajv(); // options can be passed, e.g. {allErrors: true}
 const validatorSchema = {
     type: "object",
     properties: {
+        //id: { type: "any" },
         type: { type: "string" },
         text: { type: "string", nullable: true },
         sender: { type: "string" },
         receiver: { type: "string", nullable: true },
         deleted: { type: "boolean" },
-        state: { type: "boolean", nullable: true }
+        state: { type: "boolean", nullable: true },
+        ranking: { type: "number" }
     },
     required: ["type", "sender", "deleted"],
     additionalProperties: true
@@ -27,6 +29,10 @@ export function isNotification(arg: any): arg is Notification {
     return arg && arg.text && typeof(arg.text) == 'string' && arg.type && Array.isArray(arg.tags) && arg.timestamp && arg.timestamp instanceof Date && arg.authormail && typeof(arg.authormail) == 'string' ;
 }*/
 var notificationSchema = new mongoose.Schema({
+    _id: {
+        type: mongoose.SchemaTypes.ObjectId,
+        required: true
+    },
     type: {
         type: mongoose.SchemaTypes.String,
         required: true
@@ -47,6 +53,10 @@ var notificationSchema = new mongoose.Schema({
     },
     state: {
         type: mongoose.SchemaTypes.Boolean,
+        required: false
+    },
+    ranking: {
+        type: mongoose.SchemaTypes.Number,
         required: false
     }
 });
