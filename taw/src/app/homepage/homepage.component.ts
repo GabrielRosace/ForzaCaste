@@ -34,5 +34,8 @@ export class HomepageComponent implements OnInit {
       })
     }
   }
+  navigate(route: String) {
+    this.router.navigate([route])
+  }
 
 }

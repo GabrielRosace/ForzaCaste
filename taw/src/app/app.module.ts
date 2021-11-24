@@ -17,6 +17,7 @@ import { UserProfileComponent } from './user-profile/user-profile.component';
 import { NewModeratorComponent } from './new-moderator/new-moderator.component';
 import { SocketioService } from './socketio.service';
 import { UserDeletionComponent } from './user-deletion/user-deletion.component';
+import { GameComponent } from './game/game.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { UserDeletionComponent } from './user-deletion/user-deletion.component';
     SidebarComponent,
     UserProfileComponent,
     NewModeratorComponent,
-    UserDeletionComponent
+    UserDeletionComponent,
+    GameComponent
   ],
   imports: [
     BrowserModule,

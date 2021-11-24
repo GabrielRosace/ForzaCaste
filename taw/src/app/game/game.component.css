@@ -1,0 +1,61 @@
+.myContainer{
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 40px;
+    padding-bottom: 40px;
+    background-color: #f5f5f5;
+}
+
+.homepagecontainer {
+    display: flex;
+    align-items: center;
+
+}
+.gettone {
+    height: 4vw;
+    width: 4vw;
+    border-radius: 50%;
+    display: inline-block;
+  }
+.griglia {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height:8vw;
+    width:8vw;
+    background-image: url('/assets/img/rvuoto.png');
+    background-size: cover;
+}
+table {
+    max-width: 56vw;
+    overflow: hidden;
+    transform: rotate(0deg);
+    border-collapse: collapse;
+    border-radius: 4%;
+    }
+  
+  td:hover {
+    background-color: #587B7F;
+  }
+  td, tr {
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+    border: none;
+    height:8vw;
+    width:8vw;
+    max-width: 8vw;
+    
+  }
+  td:hover::after{
+    content: "";
+    position: absolute;
+    background-color: #587B7F;
+    left: 0;
+    top: -5000px;
+    height: 10000px;
+    width:8vw;
+    z-index: -1;
+  }
