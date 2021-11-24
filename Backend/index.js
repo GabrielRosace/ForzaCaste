@@ -421,6 +421,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
                     console.log(doc);
                     doc.save().then((data) => {
                         if (notification.isNotification(data)) {
+                            socketIOclients[req.body.oppositePlayer].emit("gameRequest", "You have a new game request from your friend " + us.username);
                             console.log("New creation of matchmaking request, player1 is: " + data.sender);
                             return res.status(200).json({ error: false, message: "Waiting for other player..." });
                         }
