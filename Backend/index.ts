@@ -473,11 +473,12 @@ app.post('/matchmaking', auth, (req, res, next) => {
               let pl1Turn = JSON.stringify({yourTurn : false})
               client1.emit('move', JSON.parse(pl1Turn))
             }
-            ios.to(`${randomMatch.player1.toString()}Watchers`).emit('gameStatus', `${randomMatch.player1.toString()} starts`)
+            let watchersMessage = JSON.stringify({playerTurn : randomMatch.player1.toString() })
+            ios.to(randomMatch.player1.toString() + 'Watchers').emit('gameStatus', JSON.parse(watchersMessage))
           }
           else {
             console.log("Match request already exists");
-            return res.status(200).json({ error: false, message: "Match request already exists" });
+            return res.status(200).json({ error: false, essage: "Match request already exists" });
           }
         } else {
           // Whene the client get this message he will send a message to the server to create a match room
@@ -1238,18 +1239,17 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
             match.getModel().findOne({ inProgress: true, $or: [{ player1: clientData.player }, { player2: clientData.player }] }).then((m: Match) => { // Si dovrebbe usare n.username
               if (m != null) {
                 if (match.isMatch(m)) {
-                  if (!matchRooms[clientData.player][clientData.username]) {
-                    matchRooms[clientData.player][clientData.username] = client
-                    client.join(clientData.player)
-                    // console.log(matchRooms);
+                  if (!matchRooms[m.player1.toString()][n.username]) {
+                    matchRooms[m.player1.toString()][n.username] = client
+                    client.join(m.player1)
 
                   }
-                  if (!matchWatcherRooms[clientData.player][clientData.username]) {
-                    matchWatcherRooms[clientData.player][clientData.username] = client
-                    client.join(clientData.player + 'Watchers')
-                    // console.log(matchWatcherRooms)
+                  if (!matchWatcherRooms[m.player1.toString()][n.username]) {
+                    matchWatcherRooms[m.player1.toString()][n.username] = client
+                    client.join(m.player1.toString() + 'Watchers')
                   }
-                  client.emit('enterGameWatchMode', true)
+                  let watcherMessage = m.nTurns % 2 ? JSON.stringify({playerTurn : m.player1.toString()}) : JSON.stringify({playerTurn : m.player2.toString()})
+                  client.emit('enterGameWatchMode', JSON.parse(watcherMessage))
                 }
               }
             })

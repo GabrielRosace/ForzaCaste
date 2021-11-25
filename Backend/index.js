@@ -311,8 +311,7 @@ app.put("/users", auth, (req, res, next) => {
 });
 app.post('/matchmaking', auth, (req, res, next) => {
     let client = socketIOclients[req.user.username];
-    let clientData = client; //? non saprei se è giusta.
-    if (matchRooms[req.user.username] != clientData) {
+    if (matchRooms[req.user.username] != client) {
         matchRooms[req.user.username] = {};
         matchRooms[req.user.username][req.user.username] = client;
         matchWatcherRooms[req.user.username] = {};
@@ -364,19 +363,24 @@ app.post('/matchmaking', auth, (req, res, next) => {
                         client2.emit('lobby', 'true');
                         if (randomMatch.player1.toString() == player1.toString()) {
                             console.log("starts player1");
-                            client1.emit('move', "it's your turn");
-                            client2.emit('move', "it's your opponent's turn");
+                            let pl1Turn = JSON.stringify({ yourTurn: true });
+                            client1.emit('move', JSON.parse(pl1Turn));
+                            let pl2Turn = JSON.stringify({ yourTurn: false });
+                            client2.emit('move', JSON.parse(pl2Turn));
                         }
                         else {
                             console.log("starts player2");
-                            client2.emit('move', "it's your turn");
-                            client1.emit('move', "it's your opponent's turn");
+                            let pl2Turn = JSON.stringify({ yourTurn: true });
+                            client2.emit('move', JSON.parse(pl2Turn));
+                            let pl1Turn = JSON.stringify({ yourTurn: false });
+                            client1.emit('move', JSON.parse(pl1Turn));
                         }
-                        ios.to(`${randomMatch.player1.toString()}Watchers`).emit('gameStatus', `${randomMatch.player1.toString()} starts`);
+                        let watchersMessage = JSON.stringify({ playerTurn: randomMatch.player1.toString() });
+                        ios.to(randomMatch.player1.toString() + 'Watchers').emit('gameStatus', JSON.parse(watchersMessage));
                     }
                     else {
                         console.log("Match request already exists");
-                        return res.status(200).json({ error: false, message: "Match request already exists" });
+                        return res.status(200).json({ error: false, essage: "Match request already exists" });
                     }
                 }
                 else {
@@ -900,7 +904,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                                             client.emit('move', JSON.parse(moveMessage));
                                             let opponentMessage = JSON.stringify({ move: index });
                                             socketIOclients[m.player2.toString()].emit('move', JSON.parse(opponentMessage));
-                                            let watchersMessage = JSON.stringify({ player: m.player1, move: index });
+                                            let watchersMessage = JSON.stringify({ player: m.player1, move: index, nextTurn: m.player2 });
                                             client.broadcast.to(m.player1 + 'Watchers').emit('gameStatus', JSON.parse(watchersMessage));
                                             m.nTurns += 1;
                                             m.save().then((data) => {
@@ -930,7 +934,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                                             client.emit('move', JSON.parse(moveMessage));
                                             let opponentMessage = JSON.stringify({ move: index });
                                             socketIOclients[m.player1.toString()].emit('move', JSON.parse(opponentMessage));
-                                            let watchersMessage = JSON.stringify({ player: m.player2, move: index });
+                                            let watchersMessage = JSON.stringify({ player: m.player2, move: index, nextTurn: m.player1 });
                                             client.broadcast.to(m.player1 + 'Watchers').emit('gameStatus', JSON.parse(watchersMessage));
                                             m.nTurns += 1;
                                             m.save().then((data) => {
@@ -1071,17 +1075,16 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                     match.getModel().findOne({ inProgress: true, $or: [{ player1: clientData.player }, { player2: clientData.player }] }).then((m) => {
                         if (m != null) {
                             if (match.isMatch(m)) {
-                                if (!matchRooms[clientData.player][clientData.username]) {
-                                    matchRooms[clientData.player][clientData.username] = client;
-                                    client.join(clientData.player);
-                                    // console.log(matchRooms);
+                                if (!matchRooms[m.player1.toString()][n.username]) {
+                                    matchRooms[m.player1.toString()][n.username] = client;
+                                    client.join(m.player1);
                                 }
-                                if (!matchWatcherRooms[clientData.player][clientData.username]) {
-                                    matchWatcherRooms[clientData.player][clientData.username] = client;
-                                    client.join(clientData.player + 'Watchers');
-                                    // console.log(matchWatcherRooms)
+                                if (!matchWatcherRooms[m.player1.toString()][n.username]) {
+                                    matchWatcherRooms[m.player1.toString()][n.username] = client;
+                                    client.join(m.player1.toString() + 'Watchers');
                                 }
-                                client.emit('enterGameWatchMode', true);
+                                let watcherMessage = m.nTurns % 2 ? JSON.stringify({ playerTurn: m.player1.toString() }) : JSON.stringify({ playerTurn: m.player2.toString() });
+                                client.emit('enterGameWatchMode', JSON.parse(watcherMessage));
                             }
                         }
                     });
