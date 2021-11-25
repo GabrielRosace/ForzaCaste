@@ -13,9 +13,15 @@
  *
  *  /users/mod              -                   POST            Create a new moderator, only moderator can do it
  *
- *
- *
- *
+ *  /notification           -                   POST            Create a new request of different type
+ *  /notification           -                   GET             Return all the notification of the specified user
+ *  /notification/inbox     -                   GET             Return the inbox of the current logged user
+ *  /notification           *                   PUT             Change the status of a existing notification  
+ *  
+ *  /friend                 -                   POST            Add a friend if an existing friendRequest notification is accepted
+ *  /friend                 -                   GET             Return the friendlist of the current logged user
+ *  /friend                 -                   DELETE          Deletion of a friends in the friendlist of the current logged user
+ *  /friend                 -                   PUT             Change the attribute isBlocked of the specified user in the friendlist               
  *
  * To install the required modules:
  * $ npm install
