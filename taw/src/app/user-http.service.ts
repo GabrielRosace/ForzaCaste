@@ -172,6 +172,18 @@ export class UserHttpService {
     }
     return this.http.get(`${this.url}/friend`,options)
   }
+  create_matchmaking(){
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      type: "randomMatchmaking",
+    }
+    return this.http.post(`${this.url}/matchmaking`,body,options)
+
+  }
 
   has_moderator_role():boolean {
     return this.get_role() === 'MODERATOR'

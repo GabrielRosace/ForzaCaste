@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserHttpService } from '../user-http.service';
+import { SocketioService } from '../socketio.service';
 
 @Component({
   selector: 'app-homepage',
@@ -11,7 +12,7 @@ export class HomepageComponent implements OnInit {
 
   public username: string = ''
   public friendlist: any[] = []
-  constructor(private us: UserHttpService, private router: Router) { }
+  constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { }
 
   ngOnInit(): void {
 
@@ -20,8 +21,13 @@ export class HomepageComponent implements OnInit {
     }else if (this.us.has_nonregmod_role()) {
       this.router.navigate(['/profile'])
     } else {
+      this.sio.lobby().subscribe(msg => {
+        console.log('got a msg: ' + msg);
+      });
+      this.sio.move().subscribe(msg => {
+        console.log('got a msg: ' + msg);
+      });
       this.username = this.us.get_username()
-
       this.us.get_friendlist().subscribe((u) => {
         this.friendlist = []
         console.log()
@@ -33,6 +39,15 @@ export class HomepageComponent implements OnInit {
         console.log(this.friendlist);
       })
     }
+  }
+  findmatch(){
+    this.us.create_matchmaking().subscribe(
+      (u)=>{
+        console.log(u);
+        this.sio.creatematchroomemit();
+        
+      }
+    )
   }
   navigate(route: String) {
     this.router.navigate([route])
