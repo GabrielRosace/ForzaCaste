@@ -437,12 +437,13 @@ app.post('/matchmaking', auth, (req, res, next) => {
                 return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
               })
             }
-            let player1 = n.sender
-            let player2 = us.username
+            let player1 = randomMatch.player1.toString()
+            let player2 = randomMatch.player2.toString()
             let client1 = socketIOclients[player1]
             let client2 = socketIOclients[player2]
             matchRooms[player1][player2] = client2
             client2.join(player1)
+            delete matchRooms[player2]
 
             // When the clients receive this message they will redirect by himself to the match route
             client1.emit('lobby', 'true')
@@ -1016,9 +1017,6 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 
       /*
         - Permette di "giocare" anche se uno ha già vinto -> Andrebbe bloccata ogni mossa.
-        - è randomico l'inizio, non mi sembra...
-        - //*Aggiornare le statistiche
-          //* matcha in base alle statistiche
         - Vorrei che lo stato si aggiornasse, es. Notifica che devi eseguire/avvenuta la mossa (potrebbe essere fatto sfruttando gameStatus)
       */
       client.on('move', (clientData) => {
@@ -1034,6 +1032,12 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                       if (m.playground[5][index] == '/') {
                         m.playground = insertMove(m.playground, index, 'X')
                         client.emit('move', 'Mossa inserita')
+
+
+                        client.emit('move', "it's your opponent's turn")
+                        socketIOclients[m.player2.toString()].emit('move',`your opponent has inserted in col ${index}`)
+                        socketIOclients[m.player2.toString()].emit('move',"it's your turn")
+
                         m.nTurns += 1
                         m.save().then((data) => {
                           console.log("Playground updated".green)
@@ -1057,6 +1061,11 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                       if (m.playground[5][index] == '/') {
                         m.playground = insertMove(m.playground, index, 'O')
                         client.emit('move', 'Mossa inserita')
+
+                        client.emit('move', "it's your opponent's turn")
+                        socketIOclients[m.player1.toString()].emit('move',`your opponent has inserted in col ${index}`)
+                        socketIOclients[m.player1.toString()].emit('move',"it's your turn")
+
                         m.nTurns += 1
                         m.save().then((data) => {
                           console.log("Playground updated".green)
@@ -1396,7 +1405,13 @@ function updateStats(player,nTurns, isWinner) {
     }
     stats.nGamesPlayed++
     stats.nTotalMoves += nTurns
-    stats.ranking += getRank(getMMR(stats),isWinner)
+    let rank = getRank(getMMR(stats),isWinner)
+    stats.ranking += rank
+
+    let msg = rank>0?`you earned ${rank} points`:`you lost ${rank} points`
+
+    socketIOclients[player].emit("gameStatus",msg)
+
     p.updateOne({ statistics: stats }).then((d) => {
       console.log("Stats updated".green)
     }).catch((reason)=>{
