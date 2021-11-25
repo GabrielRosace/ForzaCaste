@@ -28,6 +28,7 @@
  * $ npm run start
 */
 Object.defineProperty(exports, "__esModule", { value: true });
+// TODO modifica commento sopra
 const result = require('dotenv').config();
 if (result.error) {
     console.log("Unable to load '.env' file. Please provide one to store the JWT secret key");
@@ -114,17 +115,11 @@ passport.use(new passportHTTP.BasicStrategy(function (username, password, done) 
         }
         return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid password" });
     });
-    // return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid password" });
 }));
 //TODO add console.log
 //* Add API routes to express application
 app.get("/", (req, res) => {
-    // match.getModel().findOne({_id:"615c5b00ffdfbf0142511956"}).then((m)=>{
-    //   console.log(m)
-    //   console.log("-----------------")
-    //   console.log(match.isMatch(m))
-    // })
-    res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/randomgame"] }); //TODO setta gli endpoints
+    res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/matchmaking", "/game", "/notification", "/friend", "/whoami"] }); //TODO setta gli endpoints
 });
 // Login endpoint uses passport middleware to check
 // user credentials before generating a new JWT
@@ -133,11 +128,6 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
     // has been injected into req.user
     // We now generate a JWT with the useful user data
     // and return it as response
-    // if (!req.user.mail) {
-    //   console.log("It's your first login, please change your info".red)
-    //   // return done(null, false, {statusCode: 403, error: true, errormessage: "It's your first login, please change your info"})
-    //   return res.status(401).json({error: true, errormessage: "It's your first login, please change your info"})
-    // }
     //TODO: add useful info to JWT
     var tokendata = {
         username: req.user.username,
@@ -148,8 +138,7 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
         avatarImgURL: req.user.avatarImgURL
     };
     console.log("Login granted. Generating token");
-    var token_signed = jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '1h' });
-    // Note: You can manually check the JWT content at https://jwt.io
+    var token_signed = jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '24h' });
     return res.status(200).json({ error: false, errormessage: "", token: token_signed });
 });
 // Create new user
@@ -157,7 +146,9 @@ app.post('/users', (req, res, next) => {
     const basicStats = new (statistics.getModel())({
         nGamesWon: 0,
         nGamesLost: 0,
-        nGamesPlayed: 0
+        nGamesPlayed: 0,
+        nTotalMoves: 0,
+        ranking: 0
     });
     console.log("Request Body".blue);
     console.log(req.body);
@@ -178,8 +169,9 @@ app.post('/users', (req, res, next) => {
 // Get user by username
 app.get('/users/:username', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((u) => {
-        // return res.status(200).json({ error: false, errormessage: "", user: { username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList } });
         return res.status(200).json({ username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList });
+    }).catch((reason) => {
+        return res.status(401).json({ error: true, errormessage: `DB error ${reason}` });
     });
 });
 app.get('/users', auth, (req, res, next) => {
@@ -206,7 +198,9 @@ app.post("/users/mod", auth, (req, res, next) => {
             const basicStats = new (statistics.getModel())({
                 nGamesWon: 0,
                 nGamesLost: 0,
-                nGamesPlayed: 0
+                nGamesPlayed: 0,
+                nTotalMoves: 0,
+                ranking: 0
             });
             console.log("Request Body".blue);
             console.log(req.body);
@@ -256,19 +250,20 @@ app.delete("/users/:username", auth, (req, res, next) => {
                     return res.status(401).json({ error: true, errormessage: "You cannot delete a mod" });
                 }
                 else {
-                    //! Eliminazione Fisica
-                    // user.getModel().deleteOne({ username: req.params.username }).then(
-                    //   (q) => {
-                    //     if (q.deletedCount > 0) {
-                    //       return res.status(200).json({ error: false, errormessage: "" })
-                    //     } else {
-                    //       return res.status(404).json({ error: true, errormessage: "Invalid username" })
-                    //     }
-                    //   }
-                    // ).catch((reason) => {
-                    //   return next({ statusCode: 404, error: true, errormessage: "DB error " + reason })
-                    // })
-                    //! Eliminazione Logica
+                    for (let i = 0; i < d.friendList.length; i++) {
+                        user.getModel().findOne({ username: d.friendList[i].username }).then((u) => {
+                            let newFriendList = [];
+                            for (let j = 0; j < u.friendList.length; j++) {
+                                if (u.friendList[j].username != req.params.username) {
+                                    newFriendList.push(u.friendList[i]);
+                                }
+                            }
+                            u.friendList = newFriendList;
+                            u.save().then(() => {
+                                console.log("Removed player from friend");
+                            });
+                        });
+                    }
                     d.deleteUser();
                     d.save().then((data) => {
                         console.log(data.username + " deleted".blue);
@@ -292,15 +287,14 @@ app.put("/users", auth, (req, res, next) => {
     console.log("Update user information for ".blue + req.user.username);
     console.log("Request Body".blue);
     console.log(req.body);
-    if (!req.body.password || !req.body.name || !req.body.surname || !req.body.mail || !req.body.avatarImgURL) {
-        return next({ statusCode: 404, error: true, errormessage: "Some field missing, update cannot be possibile" });
-    }
     const doc = user.getModel().findOne({ username: req.user.username, deleted: false }).then((u) => {
-        u.name = req.body.name;
-        u.surname = req.body.surname;
-        u.mail = req.body.mail;
-        u.avatarImgURL = req.body.avatarImgURL;
-        u.setPassword(req.body.password);
+        u.name = req.body.name ? req.body.name : u.name;
+        u.surname = req.body.surname ? req.body.surname : u.surname;
+        u.mail = req.body.mail ? req.body.mail : u.mail;
+        u.avatarImgURL = req.body.avatarImgURL ? req.body.avatarImgURL : u.avatarImgURL;
+        if (req.body.password) {
+            u.setPassword(req.body.password);
+        }
         if (u.hasNonRegisteredModRole()) {
             console.log("Changing user role to moderator, now all operations are permitted".blue);
             u.setModerator();
@@ -316,9 +310,23 @@ app.put("/users", auth, (req, res, next) => {
     });
 });
 app.post('/matchmaking', auth, (req, res, next) => {
+    let client = socketIOclients[req.user.username];
+    let clientData = client; //? non saprei se è giusta.
+    if (matchRooms[req.user.username] != clientData) {
+        matchRooms[req.user.username] = {};
+        matchRooms[req.user.username][req.user.username] = client;
+        matchWatcherRooms[req.user.username] = {};
+    }
+    else {
+        console.log("L'utente è già inserito in una room".red);
+        client.emit('alreadyCreatedRoom');
+    }
+    client.join(req.user.username);
+    // console.log(clientData)
+    console.log("Client joined the room ".green + req.user.username);
+    // console.log(matchRooms);
     if (req.body.type == 'randomMatchmaking') {
         const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
-            // const matchRequest = notification.getModel().findOne({ type: "randomMatchmaking", receiver: null, deleted: false }).then
             const matchRequest = notification.getModel().find({ type: "randomMatchmaking", receiver: null, deleted: false }).then((nList) => {
                 let n = undefined;
                 for (let i = 0; i < nList.length; i++) {
@@ -847,22 +855,22 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
             console.log(socketIOclients);
         });
         // This event is triggered when a client want to play a random match but there is no match request active, so it creates a game request
-        client.on('createMatchRoom', (clientData) => {
-            // console.log("Joining...".green);
-            if (matchRooms[clientData.username] != clientData) {
-                matchRooms[clientData.username] = {};
-                matchRooms[clientData.username][clientData.username] = client;
-                matchWatcherRooms[clientData.username] = {};
-            }
-            else {
-                console.log("L'utente è già inserito in una room".red);
-                client.emit('alreadyCreatedRoom');
-            }
-            client.join(clientData.username);
-            // console.log(clientData)
-            console.log("Client joined the room ".green + clientData.username);
-            // console.log(matchRooms);
-        });
+        // client.on('createMatchRoom', (clientData) => {
+        //   // console.log("Joining...".green);
+        //   if (matchRooms[clientData.username] != clientData) {
+        //     matchRooms[clientData.username] = {}
+        //     matchRooms[clientData.username][clientData.username] = client
+        //     matchWatcherRooms[clientData.username] = {}
+        //   }
+        //   else {
+        //     console.log("L'utente è già inserito in una room".red);
+        //     client.emit('alreadyCreatedRoom')
+        //   }
+        //   client.join(clientData.username)
+        //   // console.log(clientData)
+        //   console.log("Client joined the room ".green + clientData.username);
+        //   // console.log(matchRooms);
+        // })
         // client.on('isInRoom', () => {
         //   for (const [k, v] of Object.entries(matchRooms)) {
         //     for (const [k1, v1] of Object.entries(v)) {

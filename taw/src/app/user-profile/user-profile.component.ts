@@ -18,6 +18,8 @@ export class UserProfileComponent implements OnInit {
   public mail: string = ''
   public role: string = ''
   public statistics: any[] = []
+
+  public ranking: any
   
   constructor(private us: UserHttpService, private router: Router) {  }
 
@@ -38,9 +40,21 @@ export class UserProfileComponent implements OnInit {
         this.statistics = []
   
         for (let [x, y] of Object.entries(u.statistics)) {
+          if (x == "nGamesWon") {
+            x = "Number of games won"
+          } else if (x == "nGamesLost") {
+            x = "Number of games lost"
+          } else if (x == "nTotalMoves") {
+            x = "Number of total moves"
+          } else if (x == "ranking") {
+            x = "Total points gained"
+          } else if (x == "nGamesPlayed") {
+            x = "Total number of games played"
+          }
           this.statistics.push({ name: x, value:y })
         }
         this.statistics.pop()
+        this.ranking = this.statistics.pop()
       })  
     }
 
