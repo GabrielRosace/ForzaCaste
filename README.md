@@ -71,7 +71,18 @@ Per effettuare una partita sono necessari due utenti, quindi:
  3)Infine per aggiunger l'utente alla propria lista bisogna fare una richiesta POST sull'url localhost:8080/friend col seguente
    body--> "sender": NomeUtente(che ha inviato la richiesta)
  per inviare il messaggio a un amico bisogna fare una richiesta in POST sull'url "localhost:8080/notification", col seguente body--> "receiver": NomeUtente,
-                                                                                                                                     "type": "friendMessage",
-                                                                                                                                     "text": "Salve salvino mio caro vicino"
+
+ Quando un player fa la mossa, successivamente riceve un oggetto JSON nel seguente formato:
+ {
+   "error" : true (si è verificato un errore e la mossa non è stata inserita) / false (nessun errore, la mossa è stata inserita),
+   "codeError" : contiene il codice di errore
+   "errorMessage" : se error = false, questo campo è null, altrimenti contiene il motivo dell'errore
+ }
+
+ Quando un player fa la mossa, l'altro player riceve un oggetto JSON nel seguente formato:
+ {
+   "move" : cols
+ }
+ Dove col è la colonna dove la mossa è stata fatta, questo permette di aggiornare il campo da gioco del giocatore avversario
 ```
 

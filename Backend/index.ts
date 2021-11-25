@@ -980,6 +980,8 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         }
         else
           console.log("Utente già esistente");
+        console.log(socketIOclients);
+        
       })
 
       // This event is triggered when a client want to play a random match but there is no match request active, so it creates a game request
@@ -1031,12 +1033,15 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                     if (index >= 0 && index <= 6) {
                       if (m.playground[5][index] == '/') {
                         m.playground = insertMove(m.playground, index, 'X')
-                        client.emit('move', 'Mossa inserita')
 
+                        let moveMessage = JSON.stringify({"error" : false, "codeError" : null, "errorMessage" : null})
+                        client.emit('move',JSON.parse(moveMessage))
 
-                        client.emit('move', "it's your opponent's turn")
-                        socketIOclients[m.player2.toString()].emit('move',`your opponent has inserted in col ${index}`)
-                        socketIOclients[m.player2.toString()].emit('move',"it's your turn")
+                        let opponentMessage = JSON.stringify({move : index})
+                        socketIOclients[m.player2.toString()].emit('move', JSON.parse(opponentMessage))
+
+                        let watchersMessage = JSON.stringify({player : m.player1, move : index, nextTurn : m.player2})
+                        client.broadcast.to(m.player1 +'Watchers').emit('gameStatus', JSON.parse(watchersMessage))
 
                         m.nTurns += 1
                         m.save().then((data) => {
@@ -1047,12 +1052,14 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                       }
                       else {
                         //! Errore: la colonna è già piena
-                        client.emit('move', 'La colonna è piena')
+                        let errorMessage = JSON.stringify({"error" : true, "codeError" : 1, "errorMessage" : "The column is full"})
+                        client.emit('move', JSON.parse(errorMessage))
                       }
                     }
                     else {
                       // ! La mossa inserita non è permessa, esce dal campo
-                      client.emit('move', 'Mossa non consentita')
+                      let errorMessage = JSON.stringify({"error" : true, "codeError" : 2, "errorMessage" : "Move not allowed, out of playground"})
+                      client.emit('move', JSON.parse(errorMessage))
                     }
                   }
                   // Mossa del player 2
@@ -1060,11 +1067,15 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                     if (index >= 0 && index <= 6) {
                       if (m.playground[5][index] == '/') {
                         m.playground = insertMove(m.playground, index, 'O')
-                        client.emit('move', 'Mossa inserita')
 
-                        client.emit('move', "it's your opponent's turn")
-                        socketIOclients[m.player1.toString()].emit('move',`your opponent has inserted in col ${index}`)
-                        socketIOclients[m.player1.toString()].emit('move',"it's your turn")
+                        let moveMessage = JSON.stringify({"error" : false, "codeError" : null, "errorMessage" : null})
+                        client.emit('move',JSON.parse(moveMessage))
+
+                        let opponentMessage = JSON.stringify({move : index})
+                        socketIOclients[m.player1.toString()].emit('move', JSON.parse(opponentMessage))
+
+                        let watchersMessage = JSON.stringify({player : m.player2, move : index, nextTurn : m.player1})
+                        client.broadcast.to(m.player1 +'Watchers').emit('gameStatus', JSON.parse(watchersMessage))
 
                         m.nTurns += 1
                         m.save().then((data) => {
@@ -1075,34 +1086,43 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                       }
                       else {
                         //! Errore: la colonna è già piena
-                        client.emit('move', 'La colonna è piena')
+                        let errorMessage = JSON.stringify({"error" : true, "codeError" : 1, "errorMessage" : "The column is full"})
+                        client.emit('move', JSON.parse(errorMessage))
                         return null
                       }
                     }
                     else {
                       // ! La mossa inserita non è permessa, esce dal campo
-                      client.emit('move', 'Mossa non consentita')
+                      let errorMessage = JSON.stringify({"error" : true, "codeError" : 2, "errorMessage" : "Move not allowed, out of playground"})
+                      client.emit('move', JSON.parse(errorMessage))
                       return null
                     }
                   }
                   // Si sta cercando di eseguire una mossa quando non è il proprio turno
                   else {
-                    client.emit('move', 'Turno errato')
+                    let errorMessage = JSON.stringify({"error" : true, "codeError" : 3, "errorMessage" : "Wrong turn"})
+                    client.emit('move', JSON.parse(errorMessage))
                     return null
                   }
                   // ! Invio la mossa a chi guarda la partita e all'avversario
                   // TODO se si è verificato un errore nell'inserimento della mossa, il campo non deve essere inviato
-                  client.broadcast.to(m.player1).emit('move', m.playground)
+                  // client.broadcast.to(m.player1).emit('move', m.playground)
 
                   // ! Controllo se la partita è finita
                   // Controllo se c'è un vincitore
                   if (n.username == m.player1.toString()) {
                     // Controllo per il player1
                     if (checkWinner(m.playground, 'X')) {
-                      client.emit('gameStatus', 'Hai vinto')
+                      let winnerMessage = JSON.stringify({win : true})
+                      client.emit('result', JSON.parse(winnerMessage))
+
+                      let loserMessage = JSON.stringify({win : false})
                       let loserClient = socketIOclients[m.player2.toString()]
-                      loserClient.emit('gameStatus', 'Hai perso')
-                      client.broadcast.to(m.player1).emit('result', 'Il vincitore è: ' + m.player1) // Non ha funzionato...
+                      loserClient.emit('result', JSON.parse(loserMessage))
+
+                      // Se il campo winner è null allora c'è stato un pareggio
+                      let watchersMessage = JSON.stringify({winner : m.player1})
+                      client.broadcast.to(m.player1 +'Watchers').emit('result', JSON.parse(watchersMessage))
                       // m.winner = m.player1
                       // m.inProgress = false
                       // m.set({
@@ -1129,10 +1149,20 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                   else {
                     // Controllo per il player 2
                     if (checkWinner(m.playground, 'O')) {
-                      client.emit('gameStatus', 'Hai vinto')
+                      // client.emit('gameStatus', 'Hai vinto')
+                      // let loserClient = socketIOclients[m.player1.toString()]
+                      // loserClient.emit('gameStatus', 'Hai perso')
+                      // client.broadcast.to(m.player1).emit('result', 'Il vincitore è: ' + m.player2)
+                      let winnerMessage = JSON.stringify({win : true})
+                      client.emit('result', JSON.parse(winnerMessage))
+
+                      let loserMessage = JSON.stringify({win : false})
                       let loserClient = socketIOclients[m.player1.toString()]
-                      loserClient.emit('gameStatus', 'Hai perso')
-                      client.broadcast.to(m.player1).emit('result', 'Il vincitore è: ' + m.player2)
+                      loserClient.emit('result', JSON.parse(loserMessage))
+
+                      // Se il campo winner è null allora c'è stato un pareggio
+                      let watchersMessage = JSON.stringify({winner : m.player1})
+                      client.broadcast.to(m.player1 +'Watchers').emit('result', JSON.parse(watchersMessage))
                       // m.winner = m.player2
                       // m.inProgress = false
                       // m.save().then((data) => {
@@ -1167,10 +1197,11 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                     }
                   }
                   if (!fullCheck) {
+                    let drawnMessage = JSON.stringify({"win" : null})
                     // Send the message to all clients room, except the client now connected
-                    client.broadcast.to(m.player1).emit('gameStatus', 'Campo pieno: pareggio')
+                    client.broadcast.to(m.player1).emit('result', JSON.parse(drawnMessage))
                     // Send the message to the client now connected
-                    client.emit('gameStatus', 'Campo pieno: pareggio')
+                    client.emit('result', JSON.parse(drawnMessage))
                   }
                 }
               }
@@ -1408,9 +1439,10 @@ function updateStats(player,nTurns, isWinner) {
     let rank = getRank(getMMR(stats),isWinner)
     stats.ranking += rank
 
-    let msg = rank>0?`you earned ${rank} points`:`you lost ${rank} points`
+    // let msg = rank>0?`you earned ${rank} points`:`you lost ${rank} points`
+    let msg = JSON.stringify({"rank" : rank})
 
-    socketIOclients[player].emit("gameStatus",msg)
+    socketIOclients[player].emit("gameStatus", JSON.parse(msg))
 
     p.updateOne({ statistics: stats }).then((d) => {
       console.log("Stats updated".green)
