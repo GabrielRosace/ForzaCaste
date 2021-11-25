@@ -28,6 +28,10 @@
         <small class="text-muted">{{stat.name}}</small>
         <h6>{{stat.value}}</h6>
       </div>
+      <div class="d-flex flex-column align-items-center w-100 mb-10" *ngIf='ranking'>
+        <small class="text-muted">{{ranking.name}}</small>
+        <h6>{{ranking.value}}</h6>
+      </div>
     </div>
   </div>
 
@@ -67,8 +71,7 @@
           </div>
 
           <div class="form-floating mt-1">
-            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" #changedpassword
-              required>
+            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" #changedpassword>
             <label for="floatingPassword">New Password</label>
           </div>
         </div>
