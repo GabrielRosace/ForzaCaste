@@ -5,11 +5,11 @@ const mongoose = require("mongoose");
 const message = require("./Message");
 var privateChatSchema = new mongoose.Schema({
     user1: {
-        type: mongoose.SchemaTypes.ObjectId,
+        type: mongoose.SchemaTypes.String,
         required: true
     },
     user2: {
-        type: mongoose.SchemaTypes.ObjectId,
+        type: mongoose.SchemaTypes.String,
         required: true
     },
     msg: {
