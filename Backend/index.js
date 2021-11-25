@@ -69,7 +69,7 @@ var app = express();
 var socketIOclients = {};
 // This dictionary contains the match rooms: when an user creates a game requests in order to play a game
 // he creates a room, named with his username (since the username is unique, cannot exists rooms with the same key)
-// A match room contains the two player and all the users that want to watch the match. 
+// A match room contains the two player and all the users that want to watch the match.
 var matchRooms = {};
 // This dictionary contains all the users that are watching a game. It is used for managing the chat of a game.
 var matchWatcherRooms = {};
@@ -350,7 +350,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
                         let client2 = socketIOclients[player2];
                         matchRooms[player1][player2] = client2;
                         client2.join(player1);
-                        // When the clients receive this message they will redirect by himself to the match route 
+                        // When the clients receive this message they will redirect by himself to the match route
                         client1.emit('lobby', 'true');
                         client2.emit('lobby', 'true');
                         if (randomMatch.player1.toString() == player1.toString()) {
@@ -371,7 +371,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
                     }
                 }
                 else {
-                    // Whene the client get this message he will send a message to the server to create a match room          
+                    // Whene the client get this message he will send a message to the server to create a match room
                     socketIOclients[us.username].emit('createMatchRoom', 'true');
                     const doc = createNewGameRequest(req.body, us.username, us.statistics.ranking);
                     console.log(doc);
@@ -412,7 +412,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
                         let client2 = socketIOclients[player2];
                         matchRooms[player1][player2] = client2;
                         client2.join(player1);
-                        // When the clients receive this message they will redirect by himself to the match route 
+                        // When the clients receive this message they will redirect by himself to the match route
                         client1.emit('lobby', 'true');
                         client2.emit('lobby', 'true');
                     }
@@ -422,7 +422,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
                     }
                 }
                 else {
-                    // Whene the client get this message he will send a message to the server to create a match room          
+                    // Whene the client get this message he will send a message to the server to create a match room
                     socketIOclients[us.username].emit('createMatchRoom', 'true');
                     // Check if the opposite player is a friend
                     if (!us.isFriend(req.body.oppositePlayer))
@@ -454,7 +454,7 @@ app.post('/notification', auth, (req, res, next) => {
     const u = user.getModel().findOne({ username: req.user.username }).then((u) => {
         //Verify if the user is register
         if (u.hasModeratorRole() || u.hasUserRole()) {
-            //Check the type of the request for the creation of the new notification 
+            //Check the type of the request for the creation of the new notification
             if (req.body.type === "friendRequest") { //Send a friendRequest
                 //TODO WEBSOCKET
                 const doc = notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {
@@ -504,7 +504,7 @@ app.post('/notification', auth, (req, res, next) => {
                 }
             }
             else if (req.body.type === "friendlyMatchmaking") {
-                //TODO WEBSOCKET
+                //TODO WEBSOCKET(esempio della chat data dal sito di socket.io)
                 if (u.isFriend(req.body.receiver) || u.hasModeratorRole()) { //Check if the receiver is a friend, in case i am a regular user
                     const doc = notification.getModel().findOne({ type: "friendlyMatchmaking", sender: req.user.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {
                         if (n !== null) {
@@ -825,7 +825,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     const option = {
         allowEIO3: true,
         cors: {
-            origin: ["http://localhost:4200", "http://localhost:4201"],
+            origin: ["http://localhost:4200", "http://localhost:4201", "http://0.0.0.0:4200"],
             methods: ["GET", "POST"],
             allowedHeaders: ["enableCORS"],
             credentials: true
@@ -844,7 +844,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
             else
                 console.log("Utente già esistente");
         });
-        // This event is triggered when a client want to play a random match but there is no match request active, so it creates a game request 
+        // This event is triggered when a client want to play a random match but there is no match request active, so it creates a game request
         client.on('createMatchRoom', (clientData) => {
             // console.log("Joining...".green);
             if (matchRooms[clientData.username] != clientData) {
@@ -884,7 +884,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                         if (m != null) {
                             if (match.isMatch(m)) {
                                 let index = parseInt(clientData.move);
-                                // Mossa del player1                
+                                // Mossa del player1
                                 if (m.nTurns % 2 == 1 && m.player1 == clientData.username) {
                                     if (index >= 0 && index <= 6) {
                                         if (m.playground[5][index] == '/') {
@@ -1044,7 +1044,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                                 if (!matchWatcherRooms[clientData.player][clientData.username]) {
                                     matchWatcherRooms[clientData.player][clientData.username] = client;
                                     client.join(clientData.player + 'Watchers');
-                                    // console.log(matchWatcherRooms)                    
+                                    // console.log(matchWatcherRooms)
                                 }
                                 client.emit('enterGameWatchMode', true);
                             }
@@ -1058,18 +1058,18 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
             user.getModel().findOne({ username: clientData.username }).then((u) => {
                 // TODO controllare user.isUser(u)
                 if (u != null) {
-                    // console.log(clientData.player)            
+                    // console.log(clientData.player)
                     match.getModel().findOne({ inProgress: true, $or: [{ player1: clientData.player }, { player2: clientData.player }] }).then((m) => {
                         if (m != null) {
                             if (match.isMatch(m)) {
                                 // TODO deve essere inviato un JSON che contiene tutte le informazioni del messaggio come sender e timestamp
                                 if (u.username == m.player1.toString() || u.username == m.player2.toString()) {
                                     client.broadcast.to(m.player1).emit('gameChat', clientData.message);
-                                    console.log("Sented");
+                                    // console.log("Sented");
                                 }
                                 else {
                                     client.broadcast.to(m.player1 + 'Watchers').emit('gameChat', clientData.message);
-                                    console.log("sented");
+                                    // console.log("sented");
                                 }
                                 m.updateOne({ $push: { chat: createChatMessage(u.username, clientData.message) } }).then((data) => {
                                     console.log("Message saved".green);
@@ -1096,12 +1096,15 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                 if (sender != null) {
                     user.getModel().findOne({ username: clientData.receiver }).then((receiver) => {
                         if (receiver != null) {
-                            if (sender.isFriend(receiver.username)) {
+                            if (sender.isFriend(receiver.username) || sender.hasModeratorRole()) {
                                 privateChat.getModel().findOne({ $or: [{ $and: [{ user1: sender.username }, { user2: receiver.username }] }, { $and: [{ user1: receiver.username }, { user2: sender.username }] }] }).then((p) => {
                                     if (p != null) {
+                                        // Chat già esistente
                                         p.updateOne({ $push: { msg: createMessage(p.user1, p.user2, clientData.message) } }).then((data) => {
-                                            console.log("Messaggio inserito correttamente");
-                                            socketIOclients[receiver.username].emit('getMessage', clientData.message);
+                                            console.log("Messaggio inserito correttamente".green);
+                                            let messageData = '{"sender" : "' + sender.username + '", "message" : "' + clientData.message + '", "timestamp" : "' + new Date().toLocaleString('it-IT') + '"}';
+                                            // console.log(JSON.parse(messageData))
+                                            socketIOclients[receiver.username].emit('getMessage', JSON.parse(messageData));
                                         }).catch((reason) => {
                                             console.log("Error: " + reason);
                                         });
@@ -1111,9 +1114,10 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                                         let doc = createPrivateChat(sender.username, receiver.username);
                                         doc.save().then((data) => {
                                             console.log("Chat creata".green);
-                                            p.updateOne({ $push: { msg: createMessage(p.user1, p.user2, clientData.message) } }).then((data) => {
+                                            doc.updateOne({ $push: { msg: createMessage(doc.user1, doc.user2, clientData.message) } }).then((data) => {
                                                 console.log("Messaggio inserito correttamente");
-                                                socketIOclients[receiver.username].emit('getMessage', clientData.message);
+                                                let messageData = '{"sender" : "' + sender.username + '", "message" : "' + clientData.message + '", "timestamp" : "' + new Date().toLocaleString('it-IT') + '"}';
+                                                socketIOclients[receiver.username].emit('getMessage', JSON.parse(messageData));
                                             }).catch((reason) => {
                                                 console.log("Error: " + reason);
                                             });
@@ -1138,6 +1142,40 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                 else {
                     // ! Errore: il mittente non è un'utente
                     console.log("Errore: il mittente non è un'utente");
+                }
+            });
+        });
+        // TODO fare le richieste hhtp per i messagi e le notifiche (per quando un utente si logga e si vanno a recuperare le pending notificoation)
+        client.on("notification", (clientData) => {
+            console.log(clientData.username);
+            const u = user.getModel().findOne({ username: clientData.username }).then((u) => {
+                //Verify if the user is register
+                if (u.hasModeratorRole() || u.hasUserRole()) {
+                    //Check the type of the request for the creation of the new notification 
+                    if (clientData.type === "friendRequest") { //Send a friendRequest
+                        //TODO WEBSOCKET
+                        const doc = notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: clientData.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {
+                            if (n !== null) {
+                                console.log("You have already sent a request to this user.");
+                                //return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
+                            }
+                            else {
+                                const fr = createNewFriendRequest(clientData, u.username);
+                                fr.save().then((data) => {
+                                    //if (notification.isNotification(data)) {
+                                    console.log("Request forwarded.");
+                                    //return res.status(200).json({ error: false, message: "Request forwarded to "+req.body.receiver });
+                                    //}
+                                }).catch((reason) => {
+                                    //return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                                    console.log("DB error2");
+                                });
+                            }
+                        }).catch((reason) => {
+                            console.log("DB error1: " + reason);
+                            //return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                        });
+                    }
                 }
             });
         });
@@ -1283,7 +1321,7 @@ function checkWinner(playground, player) {
             }
         }
     }
-    // ascendingDiagonalCheck 
+    // ascendingDiagonalCheck
     for (let i = 3; i < 6; i++) {
         for (let j = 0; j < 4; j++) {
             if (playground[i][j] == player && playground[i - 1][j + 1] == player && playground[i - 2][j + 2] == player && playground[i - 3][j + 3] == player)

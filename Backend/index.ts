@@ -88,7 +88,7 @@ import * as match from './Match'
 import { Message } from './Message'
 import * as message from './Message'
 import { isObject } from 'util';
-import { table } from 'console';
+import { table, timeStamp } from 'console';
 
 import {PrivateChat} from './PrivateChat'
 import * as privateChat from './PrivateChat'
@@ -1216,12 +1216,11 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                   // TODO deve essere inviato un JSON che contiene tutte le informazioni del messaggio come sender e timestamp
                   if(u.username == m.player1.toString() || u.username == m.player2.toString()){
                     client.broadcast.to(m.player1).emit('gameChat', clientData.message)
-                    console.log("Sented");
+                    // console.log("Sented");
                   }
                   else{
                     client.broadcast.to(m.player1 + 'Watchers').emit('gameChat', clientData.message)
-                    console.log("sented");
-
+                    // console.log("sented");
                   }
 
                   m.updateOne({$push : {chat : createChatMessage(u.username, clientData.message)}}).then((data) => {
@@ -1250,13 +1249,14 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
           if(sender != null){
             user.getModel().findOne({username: clientData.receiver}).then((receiver : User) => {
               if(receiver != null){
-                if(sender.isFriend(receiver.username)){
+                if(sender.isFriend(receiver.username) || sender.hasModeratorRole()){
                   privateChat.getModel().findOne({ $or: [{ $and: [{user1: sender.username}, {user2: receiver.username}]}, { $and: [{user1: receiver.username}, {user2: sender.username}]}]}).then((p) => {
                     if(p != null){
                       // Chat già esistente
                       p.updateOne({$push : { msg : createMessage(p.user1, p.user2, clientData.message)}}).then((data) => {
-                        console.log("Messaggio inserito correttamente");
-                        socketIOclients[receiver.username].emit('getMessage', clientData.message)
+                        console.log("Messaggio inserito correttamente".green)
+                        let messageData = '{"sender" : "' + sender.username +'", "message" : "' + clientData.message + '", "timestamp" : "' + new Date().toLocaleString('it-IT') +'"}'
+                        socketIOclients[receiver.username].emit('getMessage', JSON.parse(messageData))
                       }).catch((reason) => {
                         console.log("Error: " + reason);
                       })
@@ -1266,9 +1266,10 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                       let doc = createPrivateChat(sender.username, receiver.username)            
                       doc.save().then((data) => {
                         console.log("Chat creata".green);
-                        p.updateOne({$push : { msg : createMessage(p.user1, p.user2, clientData.message)}}).then((data) => {
+                        doc.updateOne({$push : { msg : createMessage(doc.user1, doc.user2, clientData.message)}}).then((data) => {
                           console.log("Messaggio inserito correttamente");
-                          socketIOclients[receiver.username].emit('getMessage', clientData.message)
+                          let messageData = '{"sender" : "' + sender.username +'", "message" : "' + clientData.message + '", "timestamp" : "' + new Date().toLocaleString('it-IT') +'"}'
+                          socketIOclients[receiver.username].emit('getMessage', JSON.parse(messageData))
                         }).catch((reason) => {
                           console.log("Error: " + reason);
                         })
@@ -1298,6 +1299,8 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
           }
         })
       })
+
+      // TODO fare le richieste hhtp per i messagi e le notifiche (per quando un utente si logga e si vanno a recuperare le pending notificoation)
 
       client.on("notification", (clientData) => {
         console.log(clientData.username)
