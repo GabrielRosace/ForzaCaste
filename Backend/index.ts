@@ -1448,7 +1448,8 @@ function updateStats(player, nTurns, isWinner) {
       stats.nGamesLost++
     }
     stats.nGamesPlayed++
-    stats.nTotalMoves += nTurns
+    // stats.nTotalMoves += nTurns
+    stats.nTotalMoves += Math.trunc(nTurns/2)
     let rank = getRank(getMMR(stats), isWinner)
     stats.ranking += rank
 
