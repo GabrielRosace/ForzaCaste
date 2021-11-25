@@ -412,12 +412,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
     client.emit('alreadyCreatedRoom')
   }
   client.join(req.user.username)
-
-  // console.log(clientData)
   console.log("Client joined the room ".green + req.user.username);
-
-  // console.log(matchRooms);
-
 
   if (req.body.type == 'randomMatchmaking') {
     const u = user.getModel().findOne({ username: req.user.username }).then((us: User) => {
@@ -967,9 +962,6 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
   }
 ).then(
   () => {
-
-    // console.log("Fatto".green)
-
     let server = http.createServer(app);
     const option = {
       allowEIO3: true,
@@ -1112,8 +1104,8 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                       return null
                     }
                   }
-                  // Si sta cercando di eseguire una mossa quando non è il proprio turno
                   else {
+                    // ! Si sta cercando di eseguire una mossa quando non è il proprio turno
                     let errorMessage = JSON.stringify({"error" : true, "codeError" : 3, "errorMessage" : "Wrong turn"})
                     client.emit('move', JSON.parse(errorMessage))
                     return null
