@@ -14,9 +14,15 @@
  *
  *  /users/mod              -                   POST            Create a new moderator, only moderator can do it
  *
+ *  /notification           -                   POST            Create a new request of different type
+ *  /notification           -                   GET             Return all the notification of the specified user
+ *  /notification/inbox     -                   GET             Return the inbox of the current logged user
+ *  /notification           *                   PUT             Change the status of a existing notification
  *
- *
- *
+ *  /friend                 -                   POST            Add a friend if an existing friendRequest notification is accepted
+ *  /friend                 -                   GET             Return the friendlist of the current logged user
+ *  /friend                 -                   DELETE          Deletion of a friends in the friendlist of the current logged user
+ *  /friend                 -                   PUT             Change the attribute isBlocked of the specified user in the friendlist
  *
  * To install the required modules:
  * $ npm install
@@ -321,9 +327,7 @@ app.post('/matchmaking', auth, (req, res, next) => {
         client.emit('alreadyCreatedRoom');
     }
     client.join(req.user.username);
-    // console.log(clientData)
     console.log("Client joined the room ".green + req.user.username);
-    // console.log(matchRooms);
     if (req.body.type == 'randomMatchmaking') {
         const u = user.getModel().findOne({ username: req.user.username }).then((us) => {
             const matchRequest = notification.getModel().find({ type: "randomMatchmaking", receiver: null, deleted: false }).then((nList) => {
@@ -833,7 +837,6 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         console.log("Admin user already exists".blue);
     }
 }).then(() => {
-    // console.log("Fatto".green)
     let server = http.createServer(app);
     const option = {
         allowEIO3: true,
@@ -957,8 +960,8 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                                         return null;
                                     }
                                 }
-                                // Si sta cercando di eseguire una mossa quando non è il proprio turno
                                 else {
+                                    // ! Si sta cercando di eseguire una mossa quando non è il proprio turno
                                     let errorMessage = JSON.stringify({ "error": true, "codeError": 3, "errorMessage": "Wrong turn" });
                                     client.emit('move', JSON.parse(errorMessage));
                                     return null;
@@ -1201,11 +1204,12 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                                 fr.save().then((data) => {
                                     //if (notification.isNotification(data)) {
                                     console.log("Request forwarded.");
+                                    socketIOclients[data.receiver].emit('friendNot', 'new Friend Notification');
                                     //return res.status(200).json({ error: false, message: "Request forwarded to "+req.body.receiver });
                                     //}
                                 }).catch((reason) => {
                                     //return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-                                    console.log("DB error2");
+                                    console.log("DB error2" + reason);
                                 });
                             }
                         }).catch((reason) => {
