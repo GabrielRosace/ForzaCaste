@@ -1370,11 +1370,12 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                   fr.save().then((data) => {
                     //if (notification.isNotification(data)) {
                     console.log("Request forwarded.")
+                    socketIOclients[data.receiver].emit('friendNot', 'new Friend Notification');
                     //return res.status(200).json({ error: false, message: "Request forwarded to "+req.body.receiver });
                     //}
                   }).catch((reason) => {
                     //return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-                    console.log("DB error2");
+                    console.log("DB error2" + reason);
                   })
                 }
               }).catch((reason) => {
