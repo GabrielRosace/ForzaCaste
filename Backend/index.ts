@@ -1097,10 +1097,10 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                   if (n.username == m.player1.toString()) {
                     // Controllo per il player1
                     if (checkWinner(m.playground, 'X')) {
-                      let winnerMessage = JSON.stringify({win : true})
+                      let winnerMessage = JSON.stringify({winner : true})
                       client.emit('result', JSON.parse(winnerMessage))
 
-                      let loserMessage = JSON.stringify({win : false})
+                      let loserMessage = JSON.stringify({winner : false})
                       let loserClient = socketIOclients[m.player2.toString()]
                       loserClient.emit('result', JSON.parse(loserMessage))
 
@@ -1137,10 +1137,10 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                       // let loserClient = socketIOclients[m.player1.toString()]
                       // loserClient.emit('gameStatus', 'Hai perso')
                       // client.broadcast.to(m.player1).emit('result', 'Il vincitore è: ' + m.player2)
-                      let winnerMessage = JSON.stringify({win : true})
+                      let winnerMessage = JSON.stringify({winner : true})
                       client.emit('result', JSON.parse(winnerMessage))
 
-                      let loserMessage = JSON.stringify({win : false})
+                      let loserMessage = JSON.stringify({winner : false})
                       let loserClient = socketIOclients[m.player1.toString()]
                       loserClient.emit('result', JSON.parse(loserMessage))
 
@@ -1181,7 +1181,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                     }
                   }
                   if (!fullCheck) {
-                    let drawnMessage = JSON.stringify({"win" : null})
+                    let drawnMessage = JSON.stringify({"winner" : null})
                     // Send the message to all clients room, except the client now connected
                     client.broadcast.to(m.player1).emit('result', JSON.parse(drawnMessage))
                     // Send the message to the client now connected
@@ -1218,7 +1218,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                     matchWatcherRooms[m.player1.toString()][n.username] = client
                     client.join(m.player1.toString() + 'Watchers')
                   }
-                  let watcherMessage = m.nTurns % 2 ? JSON.stringify({playerTurn : m.player1.toString()}) : JSON.stringify({playerTurn : m.player2.toString()})
+                  let watcherMessage = m.nTurns % 2 ? JSON.stringify({playerTurn : m.player1.toString(), playground : m.playground}) : JSON.stringify({playerTurn : m.player2.toString(), playground : m.playground})
                   client.emit('enterGameWatchMode', JSON.parse(watcherMessage))
                 }
               }

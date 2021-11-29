@@ -150,6 +150,38 @@ Nel caso di pareggio il messaggio che viene inviato ad entrambi i player assume 
   }
 Dove n_rank è il "numero di trofei" persi o ottenuti. Nel caso del vincitore n_rank sarà > 0, nel caso dello sconfitto invece sarà <0. In base al numero n_rank che si riceve dovrà essere mostrato un messaggio diverso all'utente che indica se ha guadagnato o perso rank.
 ```
+
+### Osservatori di una partita
+Deve essere iniziata una partita, l'utente deve essere loggato e deve essere stato effettuato il saveClient.
+
+1) L'utente che vuole diventare osservatore di una partita deve inviare un messaggio all'EL "enterGameWatchMode" del server SocketIO con body:
+  {
+    "username" : "my_username",
+    "player" : username di uno dei due player
+  }
+
+2) Il client allora riceverà un messaggio dal server all'EL "enterGameWatchMode" dove il server indica al client di chi è il turno e lo stato del campo di gioco, in modo che queste informazioni vengano visualizzate all'utente. Il body del messaggio è cos' composto:
+  {
+    playerTurn : username del giocatore che deve fare la prossima mossa,
+    playground: matrice che contiene il campo di gioco
+  }
+
+3) A questo punto l'osservatore riceverà tutte le informazioni sulla partita che si sta svolgendo e che sta seguendo. In particolare:
+
+  MOSSA
+  L'osservatore riceve un messaggio dal server all'EL "gameStatus". Il body del messaggio segue il formato:
+  {
+    "player" : username del giocatore che ha fatto la mossa,
+    "move" : colonna dove è stata eseguita la mossa,
+    "nextTutn" : username del giocatore del prossimo turno
+  }
+
+  VITTORIA
+  Quando la partita termina con una vittoria il server invia un messaggio all'osservatore che indica chi è il vincitore. L'EL del client che riceve il messaggio è "result" e il messaggio ha il seguente formato:
+  {
+    "winner" : username del giocatore che ha vinto la partita
+  } 
+
 ### Richiesta d'amicizia e messaggi amici
 ```
  per aggiungere un utente tra gli amici:
