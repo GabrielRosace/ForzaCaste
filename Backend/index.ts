@@ -569,8 +569,10 @@ app.get('/game', auth, (req, res, next) => {
   res.status(200).json({ api_version: "1.0", message: "The game has been started" });
 })
 
+// ! Da fare in SocketIO
+// Create a new request of different type
 app.post('/notification', auth, (req, res, next) => {
-  console.log("Sei :", req.user)
+  // console.log("Sei :", req.user)
   const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     //Verify if the user is register
     if (u.hasModeratorRole() || u.hasUserRole()) {
@@ -582,7 +584,7 @@ app.post('/notification', auth, (req, res, next) => {
             console.log("You have already sent a request to this user.");
             return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
           } else {
-            const fr = createNewFriendRequest(req.body, u.username);
+            const fr = createNewFriendRequest(req.body.type, u.username, req.body.receiver);
 
             fr.save().then((data) => {
               //if (notification.isNotification(data)) {
@@ -660,11 +662,12 @@ app.post('/notification', auth, (req, res, next) => {
   })
 })
 
+// Return all the notification of the specified user (no messages)
+// Returns all the notification that the user have received and that are not read yet
 app.get('/notification', auth, (req, res, next) => {
-  const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
-    //Verify if the user is register
+  user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
-      const u = notification.getModel().find({ $or: [{ receiver: req.user.username }, { sender: req.user.username }], deleted: false }).then((n) => {
+      notification.getModel().find({ receiver: u.username.toString() , deleted: false, state: true }).then((n) => {
         return res.status(200).json({ error: false, errormessage: "", notification: n });
       }).catch((reason) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
@@ -675,6 +678,7 @@ app.get('/notification', auth, (req, res, next) => {
   })
 })
 
+// Return the inbox of the current logged user
 app.get('/notification/inbox', auth, (req, res, next) => {
   const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     //Verify if the user is register
@@ -863,15 +867,15 @@ function createPlayground() {
   return playground
 }
 
-function createNewFriendRequest(bodyRequest, username) {
+function createNewFriendRequest(type, username, receiver) {
   const model = notification.getModel()
   const id1 = mongoose.Types.ObjectId()
   const doc = new model({
     _id: id1,
-    type: bodyRequest.type,
+    type: type,
     text: "New friend request by " + username + ".",
     sender: username,
-    receiver: bodyRequest.receiver,
+    receiver: receiver,
     state: false,
     deleted: false
   })
@@ -996,38 +1000,6 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         console.log(socketIOclients);
         
       })
-
-      // This event is triggered when a client want to play a random match but there is no match request active, so it creates a game request
-      // client.on('createMatchRoom', (clientData) => {
-      //   // console.log("Joining...".green);
-
-      //   if (matchRooms[clientData.username] != clientData) {
-      //     matchRooms[clientData.username] = {}
-      //     matchRooms[clientData.username][clientData.username] = client
-      //     matchWatcherRooms[clientData.username] = {}
-      //   }
-      //   else {
-      //     console.log("L'utente è già inserito in una room".red);
-      //     client.emit('alreadyCreatedRoom')
-      //   }
-      //   client.join(clientData.username)
-
-      //   // console.log(clientData)
-      //   console.log("Client joined the room ".green + clientData.username);
-
-      //   // console.log(matchRooms);
-
-      // })
-
-      // client.on('isInRoom', () => {
-      //   for (const [k, v] of Object.entries(matchRooms)) {
-      //     for (const [k1, v1] of Object.entries(v)) {
-      //       if (v1 == client)
-      //         client.emit('isInRoom', 'Yes')
-      //     }
-      //   }
-      //   client.emit('IsInRoom', 'No')
-      // })
 
       /*
         - Permette di "giocare" anche se uno ha già vinto -> Andrebbe bloccata ogni mossa.
@@ -1355,31 +1327,40 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 
       client.on("notification", (clientData) => {
         console.log(clientData.username)
-        const u = user.getModel().findOne({ username: clientData.username }).then((u: User) => {
+        user.getModel().findOne({ username: clientData.username }).then((sender: User) => {
           //Verify if the user is register
-          if (u.hasModeratorRole() || u.hasUserRole()) {
+          if (sender.hasModeratorRole() || sender.hasUserRole()) {
             //Check the type of the request for the creation of the new notification 
             if (clientData.type === "friendRequest") {//Send a friendRequest
               //TODO WEBSOCKET
-              const doc = notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: clientData.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
-                if (n !== null) {
-                  console.log("You have already sent a request to this user.");
-                  //return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
-                } else {
-                  const fr = createNewFriendRequest(clientData, u.username);
-                  fr.save().then((data) => {
-                    //if (notification.isNotification(data)) {
-                    console.log("Request forwarded.")
-                    //return res.status(200).json({ error: false, message: "Request forwarded to "+req.body.receiver });
-                    //}
+              user.getModel().findOne({username : clientData.receiver}).then((receiver : User) => {
+                if(sender.isFriend(receiver.username.toString())){
+                  notification.getModel().findOne({ type: "friendRequest", sender: sender.username, receiver: receiver.username, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
+                    if (n !== null) {
+                      console.log("You have already sent a request to this user.");
+                      let clientMessage = JSON.stringify({error : true, message : "You have already sent a request to this user."})
+                      client.emit('notification', JSON.parse(clientMessage))
+                    } else {
+                      const fr = createNewFriendRequest(clientData.type, sender.username, receiver.username)
+                      fr.save().then((data) => {
+                        console.log("Request forwarded.".green)
+                        let clientMessage = JSON.stringify({error : false, message: "The request haa been forwarded"})
+                        client.emit('notification', JSON.parse(clientMessage))
+  
+                        let receiverMessage = JSON.stringify({type : clientData.type, sender : sender.username.toString()})
+                        socketIOclients[receiver.username.toString()].emit('notification', JSON.parse(receiverMessage))
+                      }).catch((reason) => {
+                        console.log("Error: " + reason);
+                      })
+                    }
                   }).catch((reason) => {
-                    //return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-                    console.log("DB error2");
+                    console.log("Error: " + reason);
                   })
                 }
-              }).catch((reason) => {
-                console.log("DB error1: " + reason);
-                //return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                else{
+                  let clientMessage = JSON.stringify({errore : true, message : "You are already friend of that user"})
+                  client.emit('notification', JSON.parse(clientMessage))
+                }
               })
             }
           }
