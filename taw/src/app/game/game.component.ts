@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserHttpService } from '../user-http.service';
 import { SocketioService } from '../socketio.service';
@@ -14,17 +14,37 @@ interface Alert {
   styleUrls: ['./game.component.css']
 })
 export class GameComponent implements OnInit {
-  public game:number[][]=[]
-  public txtturno:string="Waiting..."
-  public visibility:string="none"
+  public game:number[][]=[];
+  public txtturno:string="Waiting...";
+  public visibility:string="none";
   public opacity: number=0.5;
   public alerts: any[]=[];
   public boss:number=0;
   public calledcol:number=0;
   public urturn:boolean=false;
-  private move: Subscription
-  private lobby: Subscription
+  private move: Subscription;
+  private lobby: Subscription;
+  private result: Subscription;
+  public win:string="";
+  public rank:number=0;
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
+    this.result=this.sio.result().subscribe(msg => {
+      console.log('got a msg result: ' + JSON.stringify(msg));
+      var response=JSON.parse(JSON.stringify(msg));
+      if(response.win){
+        this.win="Nice! You Win!";
+      }
+      if(!response.win){
+        this.win="oh you looose :(";
+      }
+
+      this.rank=response.rank
+      this.visibility="none";
+      this.opacity=0.5;
+
+      document.getElementById("openstats")!.click();
+
+    });
     this.lobby=this.sio.lobby().subscribe(msg => {
       console.log('got a msg lobby: ' + msg);
     });
