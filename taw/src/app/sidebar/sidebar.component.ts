@@ -2,6 +2,9 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { UserHttpService } from '../user-http.service';
+import { Socket } from 'socket.io-client';
+import { SocketioService } from '../socketio.service';
+
 
 @Component({
   selector: 'app-sidebar',
@@ -15,12 +18,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private tok: string = ""
   private subscriptionName: Subscription
   public role: string = ""
+  public msg: string = ""
 
-  constructor(private us: UserHttpService,private router:Router) {
+  constructor(private sio: SocketioService, private us: UserHttpService,private router:Router) {
     this.subscriptionName = this.us.get_update().subscribe((msg) => {
       // Update username and icon of logged user
       this.ngOnInit()
-
+      
     })
   }
 
@@ -34,6 +38,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.username = ''
       this.avatarImgURL = ''
     }
+    this.sio.request().subscribe(msg => {
+      this.msg = msg;
+      console.log('got a msg: ' + msg);
+    });
   }
 
   ngOnDestroy(): void {
@@ -52,6 +60,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
       return this.us.has_nonregmod_role()
     }
     return false
+  }
+
+  request(){
+    this.sio.request().subscribe()
+  }
+  addFriend(receiver: String, type: String){
+    this.sio.addFriend( receiver, type);
   }
 
   navigate(route: String) {

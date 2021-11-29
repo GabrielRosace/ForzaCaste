@@ -22,6 +22,16 @@
           </button>
         </li>
 
+        <li class="nav-item">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="floatingInput" placeholder="username" #username required>
+            <label for="floatingInput">Username</label>
+          </div>
+          <button (click)="addFriend(username.value, 'friendRequest')" class="nav-link text-white">
+            Notification
+          </button>
+        </li>
+
         <li *ngIf="has_moderator_role()" class="nav-item">
           <button (click)="navigate('new-mod')" class="nav-link text-white">
             Add new mod
@@ -35,6 +45,15 @@
         </li>
       </ul>
       <hr>
+
+      <div *ngIf="msg" class="toast show">
+        <div class="toast-header">
+          <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">
+          {{msg}}
+        </div>
+      </div>
 
       <div *ngIf="username"  class="dropdown ms-3 profileIcon mb-3">
         <a href="#" class="align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown">

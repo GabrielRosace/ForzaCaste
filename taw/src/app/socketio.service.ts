@@ -18,11 +18,18 @@ export class SocketioService {
       }
     })
   }
-
-  creatematchroom() {
-    console.log("Created createMatchRoom")
+  result(){
+    console.log(" Created result")
     return new Observable(observer => {
-      this.socket.on('createMatchRoom', msg => {
+      this.socket.on('result', msg => {
+        observer.next(msg);
+      });
+    });
+  }
+  gameStatus(){
+    console.log(" Created gameStatus")
+    return new Observable(observer => {
+      this.socket.on('gameStatus', msg => {
         observer.next(msg);
       });
     });
@@ -34,6 +41,11 @@ export class SocketioService {
         observer.next(msg);
       });
     });
+  }
+  makemove(col:String){
+    console.log(" Created makemove")
+    console.log(this.us.get_username())
+    this.socket.emit('move',{username:this.us.get_username(),move:col})
   }
   lobby(){
     console.log("Created lobby")
@@ -52,7 +64,18 @@ export class SocketioService {
     this.socket.emit('saveClient',{username:this.us.get_username()})
   }
 
+  addFriend(receiver: String, type: String): void{
+    console.log("Add friend")
+    this.socket.emit('notification',{username:this.us.get_username(), receiver, type})
+  } 
 
+  request(){
+    return new Observable<string>(observer =>{
+      this.socket.on('friendNot', msg => {
+        observer.next(msg);
+      });
+    })
+  }
   leaveClient(): void{
     console.log("Non ancora implementato")
   }

@@ -1,20 +1,30 @@
+
 <div class=" myContainer">
-  <div class="homepagecontainer">
-    <table class="table">
-      <tbody>
-        <tr *ngFor='let row of game'>
-          <td *ngFor='let column of row;let i=index;'>
-            <div class="griglia" (click)="add(i)">
-              <span class="gettone"style="background-color:red;" *ngIf="isred(column)"></span>
-              <span class="gettone"style="background-color:gold;" *ngIf="isyellow(column)"></span> 
-              <span class="gettone"style="background-color:trasparent;"*ngIf="isempty(column)"></span>    
-              </div>
-            <!--<img src="assets/img/rvuoto.png" alt="Forza quattro logo" width="100px" height="100px">-->
-            
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="alert alert-warning alert-dismissible fade show" role="alert" *ngFor="let alert of alerts">
+      {{alert.message }}
+      <button type="button" class="btn-close btn-close-black" aria-label="Close" (click)="close(alert)"></button>
     </div>
+  <h1 class="h3 mb-3 fw-normal">{{txtturno}}</h1>
+  <div class="enable" [style.pointer-events]="visibility"[style.opacity]="opacity">
+    <div class="gameboard">
+    
+      <table class="table">
+        <tbody>
+          <tr *ngFor='let row of game'>
+            <td *ngFor='let column of row;let i=index;'>
+              <div class="griglia" (click)="makemove(i)">
+                <span class="gettone"style="background-color:red;" *ngIf="isred(column)"></span>
+                <span class="gettone"style="background-color:gold;" *ngIf="isyellow(column)"></span> 
+                <span class="gettone"style="background-color:trasparent;"*ngIf="isempty(column)"></span>    
+                </div>
+              <!--<img src="assets/img/rvuoto.png" alt="Forza quattro logo" width="100px" height="100px">-->
+              
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+  </div>
+  
 </div>
 
