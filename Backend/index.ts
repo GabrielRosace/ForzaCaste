@@ -186,7 +186,21 @@ app.get("/", (req, res) => {
   res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/matchmaking", "/game", "/notification", "/friend", "/whoami"] }); //TODO setta gli endpoints
 });
 
+function getToken(username, id, avatarImgURL, roles, mail, state) {
+  return {
+    username: username,
+    id: id,
+    avatarImgURL: avatarImgURL, //? Quando lo aggiorno allora dovrò aggiornare il jwt, o rifacendo il login o ottenendone un altro
+    roles: roles, //? Penso sia inutile
+    mail: mail, //? Penso sia inutile
+    state: state //? Penso sia inutile
+  };
+}
 
+function signToken(tokendata) {
+  // return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, {expiresIn: '900s'})
+  return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, {expiresIn: '1h'})
+}
 // Login endpoint uses passport middleware to check
 // user credentials before generating a new JWT
 app.get("/login", passport.authenticate('basic', { session: false }), (req, res, next) => {
@@ -198,17 +212,10 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
   // and return it as response
 
   //TODO: add useful info to JWT
-  var tokendata = {
-    username: req.user.username,
-    roles: req.user.roles,
-    mail: req.user.mail,
-    id: req.user.id,
-    state: req.user.state,
-    avatarImgURL: req.user.avatarImgURL
-  };
+  const tokendata = getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state)
 
   console.log("Login granted. Generating token");
-  var token_signed = jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '24h' });
+  var token_signed = signToken(tokendata)
 
   return res.status(200).json({ error: false, errormessage: "", token: token_signed });
 
@@ -386,6 +393,10 @@ app.put("/users", auth, (req, res, next) => {
     u.avatarImgURL = req.body.avatarImgURL ? req.body.avatarImgURL : u.avatarImgURL
     if (req.body.password) {
       u.setPassword(req.body.password)
+    }
+
+    if (u.hasNonRegisteredModRole() && !(req.body.name && req.body.surname && req.body.mail && req.body.avatarImgURL && req.body.password)) {
+      return res.status(400).json({error:true, errormessage: "Some field are missing"})
     }
 
     if (u.hasNonRegisteredModRole()) {
@@ -912,8 +923,21 @@ function createNewFriendMessage(bodyRequest, username) {
 }
 
 app.get("/whoami", auth, (req, res, next) => {
-  console.log(req.user)
-  return res.status(200).json({ error: false, errormessage: `L'utente loggato è ${req.user.username}` });
+  let next5Minutes = new Date()
+  next5Minutes.setMinutes(next5Minutes.getMinutes()+5)
+
+  let response = {
+    error: false,
+    errormessage: `L'utente loggato è ${req.user.username}`
+  }
+
+
+  if (req.user.exp * 1000 <= next5Minutes.getTime()) {
+    console.log("Your token will expires within 5 minutes, generating new one".blue)
+    response["token"] = signToken(getToken(req.user.username, req.user.id,req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state))
+  }
+
+  return res.status(200).json(response);
 })
 
 
