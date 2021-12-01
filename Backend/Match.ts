@@ -29,9 +29,9 @@ const validate = ajv.compile(validatorSchema)
 
 export interface Match {
   inProgress: boolean,
-  player1: mongoose.Schema.Types.String,
-  player2: mongoose.Schema.Types.String,
-  winner: mongoose.Schema.Types.String,
+  player1: string,
+  player2: string,
+  winner: string,
   playground: Array<any>[6][7],
   chat: message.Message[],
   nTurns: number

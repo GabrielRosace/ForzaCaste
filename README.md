@@ -154,13 +154,13 @@ Dove n_rank è il "numero di trofei" persi o ottenuti. Nel caso del vincitore n_
 ### Osservatori di una partita
 Deve essere iniziata una partita, l'utente deve essere loggato e deve essere stato effettuato il saveClient.
 
-1) L'utente che vuole diventare osservatore di una partita deve inviare un messaggio all'EL "enterGameWatchMode" del server SocketIO con body:
+1) L'utente che vuole diventare osservatore di una partita invia una richiesta http a localhost/game in post, con il seguente body:
   {
-    "username" : "my_username",
+    "type" : "watchGame",
     "player" : username di uno dei due player
   }
 
-2) Il client allora riceverà un messaggio dal server all'EL "enterGameWatchMode" dove il server indica al client di chi è il turno e lo stato del campo di gioco, in modo che queste informazioni vengano visualizzate all'utente. Il body del messaggio è cos' composto:
+2) L'utente allora riceverà un messaggio SocketIO dal server all'EL "enterGameWatchMode" dove il server indica al client di chi è il turno e lo stato del campo di gioco, in modo che queste informazioni vengano visualizzate all'utente. Il body del messaggio è cos' composto:
   {
     playerTurn : username del giocatore che deve fare la prossima mossa,
     playground: matrice che contiene il campo di gioco
@@ -180,7 +180,58 @@ Deve essere iniziata una partita, l'utente deve essere loggato e deve essere sta
   Quando la partita termina con una vittoria il server invia un messaggio all'osservatore che indica chi è il vincitore. L'EL del client che riceve il messaggio è "result" e il messaggio ha il seguente formato:
   {
     "winner" : username del giocatore che ha vinto la partita
-  } 
+  }
+
+### Chat di gioco
+Dopo che è stata creata una partita, quindi sono presenti due player e possibili osservatori che sono entrati nel mathc ( vedi ``` ### Osservatori di una partita```) i vari utenti possono inviare messaggi, in particolare i messaggi inviati dai player sono inviati a tutti, i messaggi inviati dagli osservatori vengono inviati a solo gli osservatori, i messaggi inviati da un moderatore non giocatore sono inviati a tutti.
+
+Per inviare un messaggio nella chat di gioco, rispettando le precedenti premesse, invia una richiesta http a localhost/gameMessage in POST, con il messaggio che contiene il seguente contenuto:
+{
+  "player" : username di uno dei due player
+  "message" : messaggio
+}
+
+Gli utenti connessi alla partita ricevono un messaggio SocketIO all'EL 'gameChat' che segue il formato:
+{
+    "_id": identificatore,
+    "content": messaggio,
+    "sender": username dell'utente che ha inviato un messaggio,
+    "receiver": null perchè non c'è un vero destinatario dato che è inviato a tutti gli utenti connessi alla partita,
+    "timestamp": timestamp di quando è stato inviato il messaggio,
+    "inpending" : null
+}
+
+### Invio di messaggi tra utenti (chat p2p)
+
+Premessa: i due utenti devono essere amici
+
+INVIO DI MESSAGGI
+Quando un utente vuole inviare un messaggio deve inviare una richiesta http in POST a localhost/message, con il seguente body:
+{
+  "receiver" : username dell'utente a cui si vuole inviare il messaggio,
+  "message" : messaggio
+}
+
+Se l'utente destinatario è online (ha fatto il login e il suo socketIO è salvato), riceverà un messaggio SocketIO all'EL 'message' con il seguente body:
+  {
+    "_id": identificatore,
+    "content": messaggio,
+    "sender": username dell'utente che ha inviato un messaggio,
+    "receiver": username dell'utente che ha ricevuto il messaggio,
+    "timestamp": timestamp di quando è stato inviato il messaggio,
+    "indpending" : true
+}
+
+LETTURA MESSAGGI
+Quando il destinatario di un messaggio ne riceve uno o più, deve comunicare al server che il o i messaggi/io sono stati letti, in modo tale che l'attributo "inpending" dei messagi vengano settati a false. PEr far ciò bisogna fare una richieta http in PUT a localhost/message con il seguente body:
+{
+  "sender" : username dell'utente che ha inviato i messaggi e per i quali si vogliono indicare come letti
+}
+
+RICHIESTA MESSAGGI NON LETTI
+Quando un utente effettua il login bisogna verificare se questo ha messaggi non letti, quindi ricevuti mentre era offline, e notificarglielo in moda che li legga. Per ottenere i messaggi non letti deve fare una richiesta in GET a localhost/message con il seguente body:
+{}
+Vuoto perchè basta solo il suo username
 
 ### Richiesta d'amicizia e messaggi amici
 ```

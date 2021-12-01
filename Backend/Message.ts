@@ -16,7 +16,8 @@ const validatorSchema = {
     content: { type: "string" },
     sender: { type: "string" },
     receiver: { type: "string"},
-    timestamp: { type: "string", format: "date-time" }
+    timestamp: { type: "string", format: "date-time" },
+    inpending: { type : "boolean"}
   },
   required: ["content", "sender", "timestamp"],
   additionalProperties: false
@@ -31,7 +32,8 @@ export interface Message {
   content: string,
   timestamp: Date,
   sender: string,
-  receiver: string
+  receiver: string,
+  inpending : boolean
 }
 
 // User defined type guard
@@ -69,6 +71,10 @@ var messageSchema = new mongoose.Schema({
   },
   receiver: {
     type: mongoose.SchemaTypes.String,
+    required: false
+  },
+  inpending: {
+    type: mongoose.SchemaTypes.Boolean,
     required: false
   }
 })
