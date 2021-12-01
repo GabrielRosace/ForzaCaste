@@ -22,14 +22,14 @@ export class UserLoginComponent implements OnInit {
     if (this.us.get_token()) {
       let response = this.us.whoami()
       if (response) {
-        response.subscribe((username) => {
+        response.subscribe((username:any) => {
           console.log(`Hello, ${username}`)
 
           // Register client to socket.io
-          this.sio.saveClient()
+          this.sio.connect()
 
           this.router.navigate(["/home"])
-        }, (err) => {
+        }, (err:any) => {
           console.log("Your token is expired!")
           this.us.logout()
           this.router.navigate(["/login"])
@@ -51,7 +51,7 @@ export class UserLoginComponent implements OnInit {
       this.us.send_update("User logged in") // Notify to subscriber that jwt change
 
       // Register client to socket.io
-      this.sio.saveClient()
+      this.sio.connect()
 
       if (this.us.has_nonregmod_role()) {
         // console.log("Bisogna bloccare le info e fargli cambiare tutto") //TODO

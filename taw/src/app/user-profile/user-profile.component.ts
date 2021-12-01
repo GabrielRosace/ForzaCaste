@@ -19,7 +19,7 @@ export class UserProfileComponent implements OnInit {
   public role: string = ''
   public statistics: any[] = []
 
-  public ranking: any
+  public ranking: any[] = []
   
   constructor(private us: UserHttpService, private router: Router) {  }
 
@@ -32,6 +32,10 @@ export class UserProfileComponent implements OnInit {
       this.avatarImg = this.us.get_avatarImgURL()
       this.mail = this.us.get_mail()
       this.role = this.us.get_role()
+
+      this.us.getRankingstory().subscribe((r:any) => {
+        this.ranking = r.matchmakingList
+      })
   
       this.us.get_user().subscribe((u) => {
         this.name = u.name
@@ -39,22 +43,32 @@ export class UserProfileComponent implements OnInit {
   
         this.statistics = []
   
+        let draw = 0
         for (let [x, y] of Object.entries(u.statistics)) {
+          let icon = ''
           if (x == "nGamesWon") {
-            x = "Number of games won"
+            x = "Win"
+            draw = y
+            icon = 'bi-emoji-smile'
           } else if (x == "nGamesLost") {
-            x = "Number of games lost"
+            x = "Lost"
+            draw-=y
+            icon = 'bi-emoji-frown'
+            this.statistics.push({name: "Draw", value:draw, icon: "bi-emoji-neutral"})
           } else if (x == "nTotalMoves") {
-            x = "Number of total moves"
-          } else if (x == "ranking") {
-            x = "Total points gained"
+            x = "Total moves"
+            icon = 'bi-arrows-move'
           } else if (x == "nGamesPlayed") {
-            x = "Total number of games played"
+            x = "Games played"
+            icon = 'bi-joystick'
           }
-          this.statistics.push({ name: x, value:y })
+          this.statistics.push({ name: x, value:y, icon: icon })
         }
         this.statistics.pop()
-        this.ranking = this.statistics.pop()
+        this.statistics.pop()
+        let play=this.statistics.pop()
+        this.statistics.pop()
+        this.statistics.push(play)
       })  
     }
 

@@ -85,7 +85,6 @@ import * as user from './User';
 
 import { Statistics } from './Statistics'
 import * as statistics from './Statistics'
-import { decode } from 'punycode';
 
 import { Notification } from './Notification'
 import * as notification from './Notification'
@@ -198,7 +197,7 @@ function getToken(username, id, avatarImgURL, roles, mail, state) {
 }
 
 function signToken(tokendata) {
-  // return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, {expiresIn: '900s'})
+  // return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, {expiresIn: '360s'})
   return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '1h' })
 }
 // Login endpoint uses passport middleware to check
@@ -414,6 +413,28 @@ app.put("/users", auth, (req, res, next) => {
     return res.status(401).json({ error: true, errormessage: "DB error: " + reason })
   })
 })
+
+
+//? è utile?
+app.get('/rankingstory', auth, (req, res, next) => {
+  user.getModel().findOne({ username: req.user.username, deleted: false }).then((u: User) => {
+    if (u.hasModeratorRole() || u.hasUserRole()) {
+      // match.getModel().find({ inProgress: false, $or: [{player1: req.user.username},{player2: req.user.username} ]}, "player1 player2 winner winnerPoints loserPoints").then((matchList)=>{
+      //   return res.status(200).json({error: false, errormessage: "", matchList: matchList})
+      // })
+      notification.getModel().find({ deleted: true, sender: req.user.username, $or: [{ type: "randomMatchmaking" }, { type: "friendlyMatchmaking" }] },"ranking").then((matchmakingList) => {
+        // console.log(matchmakingList)
+        return res.status(200).json({error: false, errormessage: "", matchmakingList: matchmakingList})
+        
+      })
+    }else{
+      return res.status(401).json({error: true, errormessage: "You cannot do it"})
+    }
+  }).catch((err) => {
+    return res.status(401).json({error: true, errormessage: `DB error: ${err}`})
+  })
+})
+
 
 app.post('/game', auth, (req, res, next) => {
 
@@ -1271,6 +1292,26 @@ function winnerControl(client, m,loser,winner) {
 }
 
 
+function saveClient(client) {
+  let token = client.handshake.query['jwt']
+
+  if (token) {
+    jsonwebtoken.verify(token,process.env.JWT_SECRET, (err, dec)=>{
+      // console.log(dec)
+      let username = dec.username
+      if(!socketIOclients[username]){
+        socketIOclients[username] = client
+        console.log("User registered".green)
+      } else {
+        console.log("User already registered")
+      }
+    })
+  } else {
+    console.log(`No jwt found, disconnetion`.red)
+    client.disconnect()
+  }
+}
+
 // Add error handling middleware
 app.use(function (err, req, res, next) {
   console.log("Request error: ".red + JSON.stringify(err));
@@ -1336,210 +1377,200 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     ios = new Server(server, option)
 
     ios.on("connection", function (client) {
-      // console.log("Socket.io client connected".green);
-      // console.log(client.handshake.query['user'])
+      console.log("Socket.io client connected".green);
       
-      // if (!socketIOclients[client.username]) {
-      //   socketIOclients[client.username] = client
-      //   console.log("User registered".green);
-
-      // }
-      // else
-      //   console.log("Utente già esistente");
-      // console.log(socketIOclients);
+      saveClient(client)
 
       // This message is send by the client when he log in
       // TODO spostarlo nel login
-      client.on('saveClient', (clientData) => {
-        //? Qui potrebbe accadere che il client sia diverso?
-        if (!socketIOclients[clientData.username]) {
-          socketIOclients[clientData.username] = client
-          console.log("User registered".green);
-
-        }
-        else
-          console.log("Utente già esistente");
-        // console.log(socketIOclients);
-      })
+      // client.on('saveClient', (clientData) => {
+      //   //? Qui potrebbe accadere che il client sia diverso?
+      //   if (!socketIOclients[clientData.username]) {
+      //     socketIOclients[clientData.username] = client
+      //     console.log("User registered".green);
+      //   }
+      //   else
+      //     console.log("Utente già esistente");
+      // })
 
       /*
         - Permette di "giocare" anche se uno ha già vinto -> Andrebbe bloccata ogni mossa.
         - Vorrei che lo stato si aggiornasse, es. Notifica che devi eseguire/avvenuta la mossa (potrebbe essere fatto sfruttando gameStatus)
       */
-      client.on('move', (clientData) => {
-        let u = user.getModel().findOne({ username: clientData.username }).then((n) => {
-          if (n != null) {
-            let doc = match.getModel().findOne({ inProgress: true, $or: [{ player1: clientData.username }, { player2: clientData.username }] }).then((m) => { // Si dovrebbe usare n.username
-              if (m != null) {
-                if (match.isMatch(m)) {
-                  let index = parseInt(clientData.move)
-                  // Mossa del player1
-                  if (m.nTurns % 2 == 1 && m.player1 == clientData.username) {
-                    if (index >= 0 && index <= 6) {
-                      if (m.playground[5][index] == '/') {
-                        m.playground = insertMove(m.playground, index, 'X')
+      // client.on('move', (clientData) => {
+      //   let u = user.getModel().findOne({ username: clientData.username }).then((n) => {
+      //     if (n != null) {
+      //       let doc = match.getModel().findOne({ inProgress: true, $or: [{ player1: clientData.username }, { player2: clientData.username }] }).then((m) => { // Si dovrebbe usare n.username
+      //         if (m != null) {
+      //           if (match.isMatch(m)) {
+      //             let index = parseInt(clientData.move)
+      //             // Mossa del player1
+      //             if (m.nTurns % 2 == 1 && m.player1 == clientData.username) {
+      //               if (index >= 0 && index <= 6) {
+      //                 if (m.playground[5][index] == '/') {
+      //                   m.playground = insertMove(m.playground, index, 'X')
 
-                        let moveMessage = JSON.stringify({"error" : false, "codeError" : null, "errorMessage" : null})
-                        client.emit('move',JSON.parse(moveMessage))
+      //                   let moveMessage = JSON.stringify({"error" : false, "codeError" : null, "errorMessage" : null})
+      //                   client.emit('move',JSON.parse(moveMessage))
 
-                        let opponentMessage = JSON.stringify({move : index})
-                        socketIOclients[m.player2.toString()].emit('move', JSON.parse(opponentMessage))
+      //                   let opponentMessage = JSON.stringify({move : index})
+      //                   socketIOclients[m.player2.toString()].emit('move', JSON.parse(opponentMessage))
 
-                        let watchersMessage = JSON.stringify({player : m.player1, move : index, nextTurn : m.player2})
-                        client.broadcast.to(m.player1 +'Watchers').emit('gameStatus', JSON.parse(watchersMessage))
+      //                   let watchersMessage = JSON.stringify({player : m.player1, move : index, nextTurn : m.player2})
+      //                   client.broadcast.to(m.player1 +'Watchers').emit('gameStatus', JSON.parse(watchersMessage))
 
-                        m.nTurns += 1
-                        m.save().then((data) => {
-                          console.log("Playground updated".green)
-                        }).catch((reason) => {
-                          console.log("Error: " + reason)
-                        })
-                      }
-                      else {
-                        //! Errore: la colonna è già piena
-                        let errorMessage = JSON.stringify({"error" : true, "codeError" : 1, "errorMessage" : "The column is full"})
-                        client.emit('move', JSON.parse(errorMessage))
-                      }
-                    }
-                    else {
-                      // ! La mossa inserita non è permessa, esce dal campo
-                      let errorMessage = JSON.stringify({"error" : true, "codeError" : 2, "errorMessage" : "Move not allowed, out of playground"})
-                      client.emit('move', JSON.parse(errorMessage))
-                    }
-                  }
-                  // Mossa del player 2
-                  else if (m.nTurns % 2 == 0 && m.player2 == clientData.username) {
-                    if (index >= 0 && index <= 6) {
-                      if (m.playground[5][index] == '/') {
-                        m.playground = insertMove(m.playground, index, 'O')
+      //                   m.nTurns += 1
+      //                   m.save().then((data) => {
+      //                     console.log("Playground updated".green)
+      //                   }).catch((reason) => {
+      //                     console.log("Error: " + reason)
+      //                   })
+      //                 }
+      //                 else {
+      //                   //! Errore: la colonna è già piena
+      //                   let errorMessage = JSON.stringify({"error" : true, "codeError" : 1, "errorMessage" : "The column is full"})
+      //                   client.emit('move', JSON.parse(errorMessage))
+      //                 }
+      //               }
+      //               else {
+      //                 // ! La mossa inserita non è permessa, esce dal campo
+      //                 let errorMessage = JSON.stringify({"error" : true, "codeError" : 2, "errorMessage" : "Move not allowed, out of playground"})
+      //                 client.emit('move', JSON.parse(errorMessage))
+      //               }
+      //             }
+      //             // Mossa del player 2
+      //             else if (m.nTurns % 2 == 0 && m.player2 == clientData.username) {
+      //               if (index >= 0 && index <= 6) {
+      //                 if (m.playground[5][index] == '/') {
+      //                   m.playground = insertMove(m.playground, index, 'O')
 
-                        let moveMessage = JSON.stringify({"error" : false, "codeError" : null, "errorMessage" : null})
-                        client.emit('move',JSON.parse(moveMessage))
+      //                   let moveMessage = JSON.stringify({"error" : false, "codeError" : null, "errorMessage" : null})
+      //                   client.emit('move',JSON.parse(moveMessage))
 
-                        let opponentMessage = JSON.stringify({move : index})
-                        socketIOclients[m.player1.toString()].emit('move', JSON.parse(opponentMessage))
+      //                   let opponentMessage = JSON.stringify({move : index})
+      //                   socketIOclients[m.player1.toString()].emit('move', JSON.parse(opponentMessage))
 
-                        let watchersMessage = JSON.stringify({player : m.player2, move : index, nextTurn : m.player1})
-                        client.broadcast.to(m.player1 +'Watchers').emit('gameStatus', JSON.parse(watchersMessage))
+      //                   let watchersMessage = JSON.stringify({player : m.player2, move : index, nextTurn : m.player1})
+      //                   client.broadcast.to(m.player1 +'Watchers').emit('gameStatus', JSON.parse(watchersMessage))
 
-                        m.nTurns += 1
-                        m.save().then((data) => {
-                          console.log("Playground updated".green)
-                        }).catch((reason) => {
-                          console.log("Error: " + reason)
-                        })
-                      }
-                      else {
-                        //! Errore: la colonna è già piena
-                        let errorMessage = JSON.stringify({"error" : true, "codeError" : 1, "errorMessage" : "The column is full"})
-                        client.emit('move', JSON.parse(errorMessage))
-                        return null
-                      }
-                    }
-                    else {
-                      // ! La mossa inserita non è permessa, esce dal campo
-                      let errorMessage = JSON.stringify({"error" : true, "codeError" : 2, "errorMessage" : "Move not allowed, out of playground"})
-                      client.emit('move', JSON.parse(errorMessage))
-                      return null
-                    }
-                  }
-                  else {
-                    // ! Si sta cercando di eseguire una mossa quando non è il proprio turno
-                    let errorMessage = JSON.stringify({"error" : true, "codeError" : 3, "errorMessage" : "Wrong turn"})
-                    client.emit('move', JSON.parse(errorMessage))
-                    return null
-                  }
-                  // ! Invio la mossa a chi guarda la partita e all'avversario
-                  // TODO se si è verificato un errore nell'inserimento della mossa, il campo non deve essere inviato
-                  // client.broadcast.to(m.player1).emit('move', m.playground)
+      //                   m.nTurns += 1
+      //                   m.save().then((data) => {
+      //                     console.log("Playground updated".green)
+      //                   }).catch((reason) => {
+      //                     console.log("Error: " + reason)
+      //                   })
+      //                 }
+      //                 else {
+      //                   //! Errore: la colonna è già piena
+      //                   let errorMessage = JSON.stringify({"error" : true, "codeError" : 1, "errorMessage" : "The column is full"})
+      //                   client.emit('move', JSON.parse(errorMessage))
+      //                   return null
+      //                 }
+      //               }
+      //               else {
+      //                 // ! La mossa inserita non è permessa, esce dal campo
+      //                 let errorMessage = JSON.stringify({"error" : true, "codeError" : 2, "errorMessage" : "Move not allowed, out of playground"})
+      //                 client.emit('move', JSON.parse(errorMessage))
+      //                 return null
+      //               }
+      //             }
+      //             else {
+      //               // ! Si sta cercando di eseguire una mossa quando non è il proprio turno
+      //               let errorMessage = JSON.stringify({"error" : true, "codeError" : 3, "errorMessage" : "Wrong turn"})
+      //               client.emit('move', JSON.parse(errorMessage))
+      //               return null
+      //             }
+      //             // ! Invio la mossa a chi guarda la partita e all'avversario
+      //             // TODO se si è verificato un errore nell'inserimento della mossa, il campo non deve essere inviato
+      //             // client.broadcast.to(m.player1).emit('move', m.playground)
 
-                  // ! Controllo se la partita è finita
-                  // Controllo se c'è un vincitore
-                  if (n.username == m.player1.toString()) {
-                    // Controllo per il player1
-                    if (checkWinner(m.playground, 'X')) {
-                      let winnerMessage = JSON.stringify({winner : true})
-                      client.emit('result', JSON.parse(winnerMessage))
+      //             // ! Controllo se la partita è finita
+      //             // Controllo se c'è un vincitore
+      //             if (n.username == m.player1.toString()) {
+      //               // Controllo per il player1
+      //               if (checkWinner(m.playground, 'X')) {
+      //                 let winnerMessage = JSON.stringify({winner : true})
+      //                 client.emit('result', JSON.parse(winnerMessage))
 
-                      let loserMessage = JSON.stringify({winner : false})
-                      let loserClient = socketIOclients[m.player2.toString()]
-                      loserClient.emit('result', JSON.parse(loserMessage))
+      //                 let loserMessage = JSON.stringify({winner : false})
+      //                 let loserClient = socketIOclients[m.player2.toString()]
+      //                 loserClient.emit('result', JSON.parse(loserMessage))
 
-                      // Se il campo winner è null allora c'è stato un pareggio
-                      let watchersMessage = JSON.stringify({winner : m.player1})
-                      client.broadcast.to(m.player1 +'Watchers').emit('result', JSON.parse(watchersMessage))
-                      // m.winner = m.player1
-                      // m.inProgress = false
-                      // m.set({
-                      //   winner : m.player1,
-                      //   inProgress : false
-                      // })
-                      // m.updateOne({ inProgress:false}).then((data) => {
-                      //   data.updateOne({ winner: m.player1 }).then((d) => {
-                      //     console.log("Winner updated".green)
-                      //   })
-                      // }).catch((reason)=>{
-                      //   console.log("Error: " + reason)
-                      // })
-                      updateStats(m.player1, m.nTurns, true)
-                      updateStats(m.player2, m.nTurns, false)
+      //                 // Se il campo winner è null allora c'è stato un pareggio
+      //                 let watchersMessage = JSON.stringify({winner : m.player1})
+      //                 client.broadcast.to(m.player1 +'Watchers').emit('result', JSON.parse(watchersMessage))
+      //                 // m.winner = m.player1
+      //                 // m.inProgress = false
+      //                 // m.set({
+      //                 //   winner : m.player1,
+      //                 //   inProgress : false
+      //                 // })
+      //                 // m.updateOne({ inProgress:false}).then((data) => {
+      //                 //   data.updateOne({ winner: m.player1 }).then((d) => {
+      //                 //     console.log("Winner updated".green)
+      //                 //   })
+      //                 // }).catch((reason)=>{
+      //                 //   console.log("Error: " + reason)
+      //                 // })
+      //                 updateStats(m.player1, m.nTurns, true)
+      //                 updateStats(m.player2, m.nTurns, false)
 
-                      m.updateOne({ inProgress: false, winner: m.player1 }).then((d) => {
-                        console.log("Winner updated".green)
-                      }).catch((reason) => {
-                        console.log("Error: " + reason)
-                      })
-                    }
-                  }
-                  else {
-                    // Controllo per il player 2
-                    if (checkWinner(m.playground, 'O')) {
-                      // client.emit('gameStatus', 'Hai vinto')
-                      // let loserClient = socketIOclients[m.player1.toString()]
-                      // loserClient.emit('gameStatus', 'Hai perso')
-                      // client.broadcast.to(m.player1).emit('result', 'Il vincitore è: ' + m.player2)
-                      let winnerMessage = JSON.stringify({winner : true})
-                      client.emit('result', JSON.parse(winnerMessage))
+      //                 m.updateOne({ inProgress: false, winner: m.player1 }).then((d) => {
+      //                   console.log("Winner updated".green)
+      //                 }).catch((reason) => {
+      //                   console.log("Error: " + reason)
+      //                 })
+      //               }
+      //             }
+      //             else {
+      //               // Controllo per il player 2
+      //               if (checkWinner(m.playground, 'O')) {
+      //                 // client.emit('gameStatus', 'Hai vinto')
+      //                 // let loserClient = socketIOclients[m.player1.toString()]
+      //                 // loserClient.emit('gameStatus', 'Hai perso')
+      //                 // client.broadcast.to(m.player1).emit('result', 'Il vincitore è: ' + m.player2)
+      //                 let winnerMessage = JSON.stringify({winner : true})
+      //                 client.emit('result', JSON.parse(winnerMessage))
 
-                      let loserMessage = JSON.stringify({winner : false})
-                      let loserClient = socketIOclients[m.player1.toString()]
-                      loserClient.emit('result', JSON.parse(loserMessage))
+      //                 let loserMessage = JSON.stringify({winner : false})
+      //                 let loserClient = socketIOclients[m.player1.toString()]
+      //                 loserClient.emit('result', JSON.parse(loserMessage))
 
-                      // Se il campo winner è null allora c'è stato un pareggio
-                      let watchersMessage = JSON.stringify({winner : m.player1})
-                      client.broadcast.to(m.player1 +'Watchers').emit('result', JSON.parse(watchersMessage))
-                      // m.winner = m.player2
-                      // m.inProgress = false
-                      // m.save().then((data) => {
-                      //   console.log("Winner updated".green)
-                      // }).catch((reason) => {
-                      //   console.log("Error: " + reason)
-                      // })
-                      // m.updateOne({ inProgress:false}).then((data) => {
-                      //   data.updateOne({ winner: m.player2 }).then((d) => {
-                      //     console.log("Winner updated".green)
-                      //   })
-                      // }).catch((reason)=>{
-                      //   console.log("Error: " + reason)
-                      // })
-                      updateStats(m.player2, m.nTurns, true)
-                      updateStats(m.player1, m.nTurns, false)
+      //                 // Se il campo winner è null allora c'è stato un pareggio
+      //                 let watchersMessage = JSON.stringify({winner : m.player1})
+      //                 client.broadcast.to(m.player1 +'Watchers').emit('result', JSON.parse(watchersMessage))
+      //                 // m.winner = m.player2
+      //                 // m.inProgress = false
+      //                 // m.save().then((data) => {
+      //                 //   console.log("Winner updated".green)
+      //                 // }).catch((reason) => {
+      //                 //   console.log("Error: " + reason)
+      //                 // })
+      //                 // m.updateOne({ inProgress:false}).then((data) => {
+      //                 //   data.updateOne({ winner: m.player2 }).then((d) => {
+      //                 //     console.log("Winner updated".green)
+      //                 //   })
+      //                 // }).catch((reason)=>{
+      //                 //   console.log("Error: " + reason)
+      //                 // })
+      //                 updateStats(m.player2, m.nTurns, true)
+      //                 updateStats(m.player1, m.nTurns, false)
 
-                      m.updateOne({ inProgress: false, winner: m.player2 }).then((d) => {
-                        console.log("Winner updated".green)
-                      }).catch((reason) => {
-                        console.log("Error: " + reason)
-                      })
-                    }
-                  }
-                }
-              }
-            })
-          }
-        })
-        console.log(socketIOclients);
+      //                 m.updateOne({ inProgress: false, winner: m.player2 }).then((d) => {
+      //                   console.log("Winner updated".green)
+      //                 }).catch((reason) => {
+      //                   console.log("Error: " + reason)
+      //                 })
+      //               }
+      //             }
+      //           }
+      //         }
+      //       })
+      //     }
+      //   })
+      //   console.log(socketIOclients);
 
-      })
+      // })
 
       // Quando si vuole osservare una partita il client deve accedere allo username del player1
       // Assicura che un client entri una sola volta nella room della partita

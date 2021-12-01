@@ -18,7 +18,9 @@ const validatorSchema = {
         winner: { type: "string", nullable: true },
         playground: { type: "array" },
         chat: { type: "array", nullable: true },
-        nTurns: { type: "number" }
+        nTurns: { type: "number" },
+        winnerPoints: { type: "number", nullable: true },
+        loserPoints: { type: "number", nullable: true }
     },
     required: ["inProgress", "player1", "player2", "playground", "chat", "nTurns"],
     additionalProperties: true
@@ -53,6 +55,14 @@ var matchSchema = new mongoose.Schema({
         type: mongoose.SchemaTypes.Number,
         required: true
     },
+    winnerPoints: {
+        type: mongoose.SchemaTypes.Number,
+        required: false
+    },
+    loserPoints: {
+        type: mongoose.SchemaTypes.Number,
+        required: false
+    }
 });
 function getSchema() { return matchSchema; }
 exports.getSchema = getSchema;
