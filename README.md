@@ -41,6 +41,9 @@ password: tommy
 ```
 username: gabriel_mod1
 password: gabriel
+
+username: admin
+password: admin
 ```
 
 ### Matchmaking
@@ -53,7 +56,7 @@ Entrambi gli utenti:
     "username" : "my_username"
   }
 
-2) Fare la richiesta di gioco: viene fatta una richiesta HTTP in post con url 'localhost:8080/matchmaking', il payload di questa richiesta è: 
+2) Fare la richiesta di gioco: prima di tutto mandare un emit sull'evento createMatchRoom passando lo username dopo di che, viene fatta una richiesta HTTP in post con url 'localhost:8080/matchmaking', il payload di questa richiesta è: 
   {
     "type" : "randomMatchmaking"
   }
@@ -70,13 +73,13 @@ Il player1 (primo player che fa la richiesta), rimane in attesa finchè non fa l
     }
 
 Ora verranno spiegati i passi che si effettuano ad ogni mossa, per il player che esegue la mossa e per quello in attesa della mossa dell'avversario. Assumiamo che sia player1 ad effettuare la mossa e quindi player2 in attesa di questa.
-4.1) Player1 per effettuare una mossa deve inviare un messaggio SocketIO al server, all'EL 'move', il contenuto del messaggio deve seguire questo formato:
-  {
-    "username" : "my_username",
-    "move" : col
-  }
-  Dove col è la colonna dove inserire la pedina. Questa deve essere compresa tra 1 e 7.
-  Dopo aver effettuato la mossa player1 rimane in attesa di un messaggio dal server per capire se la mossa è corretta e quindi è stata salvata correttamente. Questo messaggio viene ricevuto dall'EL 'move' del client. I casi sono:
+
+4.1) Player1 per effettuare una mossa deve fare la richiesta HTTP in POST all'endpoint /move, il contenuto del messaggio deve seguire questo formato:
+{
+  "move": col
+}
+  Dove col è la colonna dove inserire la pedina. Quest deve essere compresa tra 1 e 7.
+  Dopo aver effettuato la mossa il player1 rimane in attesa di un messaggio dale server per capire se la mossa è corretta e quindi è stata salvata correttamente. Questo messaggio viene ricevuto dell'EL 'move' del client. I caso sono:
   
   MOSSA CORRETTA
   La mossa è corretta, è stata eseguita e salvata senza alcun problema. Il messaggio ricevuto dal client è:

@@ -186,7 +186,21 @@ app.get("/", (req, res) => {
   res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/matchmaking", "/game", "/notification", "/friend", "/whoami"] }); //TODO setta gli endpoints
 });
 
+function getToken(username, id, avatarImgURL, roles, mail, state) {
+  return {
+    username: username,
+    id: id,
+    avatarImgURL: avatarImgURL, //? Quando lo aggiorno allora dovrò aggiornare il jwt, o rifacendo il login o ottenendone un altro
+    roles: roles, //? Penso sia inutile
+    mail: mail, //? Penso sia inutile
+    state: state //? Penso sia inutile
+  };
+}
 
+function signToken(tokendata) {
+  // return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, {expiresIn: '900s'})
+  return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '1h' })
+}
 // Login endpoint uses passport middleware to check
 // user credentials before generating a new JWT
 app.get("/login", passport.authenticate('basic', { session: false }), (req, res, next) => {
@@ -198,17 +212,10 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
   // and return it as response
 
   //TODO: add useful info to JWT
-  var tokendata = {
-    username: req.user.username,
-    roles: req.user.roles,
-    mail: req.user.mail,
-    id: req.user.id,
-    state: req.user.state,
-    avatarImgURL: req.user.avatarImgURL
-  };
+  const tokendata = getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state)
 
   console.log("Login granted. Generating token");
-  var token_signed = jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '24h' });
+  var token_signed = signToken(tokendata)
 
   return res.status(200).json({ error: false, errormessage: "", token: token_signed });
 
@@ -347,7 +354,7 @@ app.delete("/users/:username", auth, (req, res, next) => {
                   }
                 }
                 u.friendList = newFriendList
-                u.save().then(()=>{
+                u.save().then(() => {
                   console.log("Removed player from friend")
                 })
               })
@@ -386,6 +393,10 @@ app.put("/users", auth, (req, res, next) => {
     u.avatarImgURL = req.body.avatarImgURL ? req.body.avatarImgURL : u.avatarImgURL
     if (req.body.password) {
       u.setPassword(req.body.password)
+    }
+
+    if (u.hasNonRegisteredModRole() && !(req.body.name && req.body.surname && req.body.mail && req.body.avatarImgURL && req.body.password)) {
+      return res.status(400).json({ error: true, errormessage: "Some field are missing" })
     }
 
     if (u.hasNonRegisteredModRole()) {
@@ -464,18 +475,18 @@ app.post('/game', auth, (req, res, next) => {
 
             if (randomMatch.player1.toString() == player1.toString()) {
               console.log("starts player1")
-              let pl1Turn = JSON.stringify({yourTurn : true})
+              let pl1Turn = JSON.stringify({ yourTurn: true })
               client1.emit('move', JSON.parse(pl1Turn))
-              let pl2Turn = JSON.stringify({yourTurn: false}) 
+              let pl2Turn = JSON.stringify({ yourTurn: false })
               client2.emit('move', JSON.parse(pl2Turn))
             } else {
               console.log("starts player2")
-              let pl2Turn = JSON.stringify({yourTurn: true}) 
+              let pl2Turn = JSON.stringify({ yourTurn: true })
               client2.emit('move', JSON.parse(pl2Turn))
-              let pl1Turn = JSON.stringify({yourTurn : false})
+              let pl1Turn = JSON.stringify({ yourTurn: false })
               client1.emit('move', JSON.parse(pl1Turn))
             }
-            let watchersMessage = JSON.stringify({playerTurn : randomMatch.player1.toString() })
+            let watchersMessage = JSON.stringify({ playerTurn: randomMatch.player1.toString() })
             ios.to(randomMatch.player1.toString() + 'Watchers').emit('gameStatus', JSON.parse(watchersMessage))
           }
           else {
@@ -1113,13 +1124,151 @@ function createNewFriendMessage(bodyRequest, username) {
   return doc
 }
 
+
+// get connected user and refresh token if expires within 5 minutes
 app.get("/whoami", auth, (req, res, next) => {
-  console.log(req.user)
-  return res.status(200).json({ error: false, errormessage: `L'utente loggato è ${req.user.username}` });
+  let next5Minutes = new Date()
+  next5Minutes.setMinutes(next5Minutes.getMinutes() + 5)
+
+  let response = {
+    error: false,
+    errormessage: `L'utente loggato è ${req.user.username}`
+  }
+
+
+  if (req.user.exp * 1000 <= next5Minutes.getTime()) {
+    console.log("Your token will expires within 5 minutes, generating new one".blue)
+    response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state))
+  }
+
+  return res.status(200).json(response);
 })
 
 
+app.post("/move", auth, (req, res, next) => {
+  let username = req.user.username
+  let move = req.body.move
+
+  user.getModel().findOne({ username: username }).then((u: User) => {
+    if (u.hasModeratorRole() || u.hasUserRole()) {
+      if (!move) {
+        return res.status(400).json({ error: true, errormessage: "Bad request, you should pass your move" })
+      }
+
+      match.getModel().findOne({ inProgress: true, $or: [{ player1: username }, { player2: username }] }).then((m) => {
+        if (m) {
+          if (match.isMatch(m)) {
+            let client = socketIOclients[username]
+            let index = parseInt(move)
+            // post move logic
+            if (m.nTurns % 2 == 1 && m.player1 == username) {
+              return makeMove(index, m, client, 'X', m.player2, res,username)
+            } else if (m.nTurns % 2 == 0 && m.player2 == username) { //  player2's turns
+              return makeMove(index, m, client, '/', m.player1, res,username)
+            } else { // trying to post move out of right turn
+              let errorMessage = JSON.stringify({ "error": true, "codeError": 3, "errorMessage": "Wrong turn" })
+              client.emit('move', JSON.parse(errorMessage))
+              return res.status(400).json({ error: true, errormessage: "Wrong turn" })
+            }
+          }
+        } else {
+          console.log("Match does not exists".red)
+          return res.status(404).json({ error: true, errormessage: "Match does not exists" })
+        }
+      })
+    } else {
+      return res.status(403).json({ error: true, errormessage: "You cannot do it" })
+    }
+  })
+})
+
 //* END of API routes
+
+function makeMove(index, m, client, placehold, otherPlayer, res,username) {
+  if (index >= 0 && index <= 6) {
+    if (m.playground[5][index] == '/') {
+      m.playground = insertMove(m.playground, index, placehold)
+
+      let moveMessage = JSON.stringify({ "error": false, "codeError": null, "errorMessage": null })
+      client.emit('move', JSON.parse(moveMessage))
+
+      let opponentMessage = JSON.stringify({ move: index })
+
+      // Notify event to other player
+      socketIOclients[otherPlayer.toString()].emit('move', JSON.parse(opponentMessage))
+
+      let watchersMessage = JSON.stringify({ player: m.player1, move: index, nextTurn: otherPlayer })
+
+      // Notify event to watchers
+      client.broadcast.to(`${m.player1}Watchers`).emit('gameStatus', JSON.parse(watchersMessage))
+
+      m.nTurns += 1
+
+      m.save().then((data) => {
+        console.log("Playground updated".green)
+            // check winner
+            if (username == m.player1.toString()) { // player1 controls
+              if (checkWinner(m.playground, 'X')) {
+                winnerControl(client,m,m.player2,m.player1)
+              }
+            } else { // player2 controls
+              if (checkWinner(m.playground, 'O')) {
+                winnerControl(client,m,m.player1,m.player2)
+              }
+            }
+
+            //is playground full?
+            let fullCheck = false
+            for (let i = 0; i < 6; i++) {
+              for (let j = 0; j < 7; j++) {
+                if (m.playground[i][j] == '/') {
+                  fullCheck = true
+                }
+              }
+            }
+            if (!fullCheck) {
+              let drawnMessage = JSON.stringify({ "winner": null })
+              client.broadcast.to(m.player1).emit('result', JSON.parse(drawnMessage))
+              client.emit('result', JSON.parse(drawnMessage))
+            }
+            return res.status(200).json({error:false, errormessage: "added move"})
+      }).catch((reason) => {
+        console.log(`Error: ${reason}`)
+      })
+    } else {
+      // Column not empty
+      let errorMessage = JSON.stringify({ "error": true, "codeError": 1, "errorMessage": "The column is full" })
+      client.emit('move', JSON.parse(errorMessage))
+      return res.status(400).json({ error: true, errormessage: "This column is full, choose another one" })
+    }
+  } else { // move not allowed exit from playground dimension
+    let errorMessage = JSON.stringify({ "error": true, "codeError": 2, "errorMessage": "Move not allowed, out of playground" })
+    client.emit('move', JSON.parse(errorMessage))
+    return res.status(400).json({ error: true, errormessage: "Move not allowed, out of playground, choose another one" })
+  }
+}
+
+function winnerControl(client, m,loser,winner) {
+  let winnerMessage = JSON.stringify({ winner: true })
+  client.emit('result', JSON.parse(winnerMessage))
+
+  let loserMessage = JSON.stringify({ winner: false })
+  let loserClient = socketIOclients[loser.toString()]
+  loserClient.emit('result', JSON.parse(loserMessage))
+
+
+  let watchersMessage = JSON.stringify({ winner: m.player1 })
+  client.broadcast.to(`${m.player1}Watchers`).emit('result', JSON.parse(watchersMessage))
+
+  updateStats(winner, m.nTurns, true)
+  updateStats(loser, m.nTurns, false)
+
+  m.updateOne({ inProgress: false, winner: winner }).then((d) => {
+    console.log("Winner updated".green)
+  }).catch((reason) => {
+    console.log(`Error: ${reason}`)
+  })
+}
 
 
 // Add error handling middleware
@@ -1383,33 +1532,13 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                       })
                     }
                   }
-
-                  // Controllo se il campo è pieno
-                  let fullCheck = false
-                  for (let i = 0; i < 6; i++) {
-                    for (let j = 0; j < 7; j++) {
-                      if (m.playground[i][j] == '/')
-                        fullCheck = true
-                    }
-                  }
-                  if (!fullCheck) {
-                    let drawnMessage = JSON.stringify({"winner" : null})
-                    // Send the message to all clients room, except the client now connected
-                    client.broadcast.to(m.player1).emit('result', JSON.parse(drawnMessage))
-                    // Send the message to the client now connected
-                    client.emit('result', JSON.parse(drawnMessage))
-                  }
                 }
-              }
-              else {
-                // ! Errore: il match non esiste
               }
             })
           }
-          else {
-            // ! Errore: l'utente non esiste
-          }
         })
+        console.log(socketIOclients);
+
       })
 
       // Quando si vuole osservare una partita il client deve accedere allo username del player1
@@ -1644,13 +1773,16 @@ function updateStats(player, nTurns, isWinner) {
       stats.nGamesLost++
     }
     stats.nGamesPlayed++
-    // stats.nTotalMoves += nTurns
-    stats.nTotalMoves += Math.trunc(nTurns/2)
+    stats.nTotalMoves += Math.trunc(nTurns / 2)
     let rank = getRank(getMMR(stats), isWinner)
+
     stats.ranking += rank
 
-    // let msg = rank>0?`you earned ${rank} points`:`you lost ${rank} points`
-    let msg = JSON.stringify({"rank" : rank})
+    if (stats.ranking <= 0) {
+      stats.ranking = 0
+    }
+
+    let msg = JSON.stringify({ "rank": rank })
 
     socketIOclients[player].emit("result", JSON.parse(msg))
 
