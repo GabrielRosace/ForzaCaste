@@ -21,8 +21,8 @@ export class SocketioService {
       }
     })
   }
+  result():Observable<any>{
 
-  result(){
     console.log(" Created result")
     return new Observable(observer => {
       this.socket.on('result', msg => {

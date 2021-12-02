@@ -26,6 +26,29 @@
       </table>
       </div>
   </div>
+  <div class="mychat">
+    
+    <div class="chatcontainer">
+      <div class="container">
+        <img src="https://static.educalingo.com/img/it/800/mondo.jpg" alt="" width="32" height="32" class="rounded-circle me-2">
+        <p>Sweet! So, what do you wanna do today?</p>
+        <span class="time-right">Caste - 11:02</span>
+      </div>
+      
+      <div class="container darker">
+        <img src="https://static.educalingo.com/img/it/800/mondo.jpg" alt="" width="32" height="32" class="rounded-circle me-2">
+        <p>Nah, I dunno. Play soccer.. or learn more coding perhaps?</p>
+        <span class="time-left">You - 11:05</span>
+      </div>
+    </div>
+    <form class="form-inline">
+      <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Write something">
+    
+      <button type="button" class="w-100 btn btn-primary btn-lg mybtn">Send</button>
+    </form>
+  </div>
+  
+  
 </div>
 <div class="modal fade" id="w-stats" tabindex="-1" data-backdrop="false">
   <div class="modal-dialog modal-dialog-centered">
@@ -33,7 +56,9 @@
       <div class="modal-header">
         <h5 class="modal-title" id="editModalLabel1" >{{win}}</h5>
       </div>
-      <p class="text-center fs-2">Now your rank is: {{rank}}</p>
+      <p class="text-center fs-2">Now you get this ranking</p>
+      <p class="text-center fs-2" *ngIf="rank<=0" style="color: lightcoral;">{{rank}} points</p>
+      <p class="text-center fs-2" *ngIf="rank>0" style="color: lightgreen;">+{{rank}} points</p>
       <div class="dot-flashing" style="align-self: center;"></div>
       <div class="modal-footer">
         <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal">Close</button>
