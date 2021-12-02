@@ -68,7 +68,6 @@ const statistics = require("./Statistics");
 const notification = require("./Notification");
 const match = require("./Match");
 const message = require("./Message");
-const privateChat = require("./PrivateChat");
 //var ios = undefined;
 var app = express();
 // This dictionary contains the client that are conncted with the Socket.io server
@@ -347,14 +346,16 @@ app.get('/rankingstory', auth, (req, res, next) => {
 app.post('/game', auth, (req, res, next) => {
     if (req.body.type != 'watchGame') {
         let client = socketIOclients[req.user.username];
+        // console.log(client);
+        // console.log(matchRooms[req.user.username] != client);
         if (matchRooms[req.user.username] != client) {
             matchRooms[req.user.username] = {};
             matchRooms[req.user.username][req.user.username] = client;
             matchWatcherRooms[req.user.username] = {};
         }
         else {
-            console.log("L'utente è già inserito in una room".red);
-            client.emit('alreadyCreatedRoom');
+            console.log("L'utente è già inserito in una room: ".red);
+            // client.emit('alreadyCreatedRoom')
         }
         client.join(req.user.username);
         console.log("Client joined the room ".green + req.user.username);
@@ -524,6 +525,61 @@ app.post('/game', auth, (req, res, next) => {
     else {
         return res.status(400).json({ error: true, errormessage: "The payload does not match the required parameter" });
     }
+});
+app.delete('/game', auth, (req, res, next) => {
+    user.getModel().findOne({ username: req.user.username }).then((user) => {
+        if (user.hasModeratorRole() || user.hasUserRole()) {
+            match.getModel().findOne({ $or: [{ player1: user.username.toString() }, { player2: user.username.toString() }], inProgress: true }).then((match) => {
+                if (match != null) {
+                    match.inProgress = false;
+                    match.winner = user.username.toString() ? match.player1.toString() : match.player2.toString();
+                    match.save().then((data) => {
+                        // socketIOclients[user.username.toString() !? match.player1.toString() : match.player2.toString()].emit('prova', 'prova')
+                        if (user.username.toString() == match.player1.toString()) {
+                            let message = JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" });
+                            // socketIOclients[match.player2.toString()].emit('result', JSON.parse(message))
+                            socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message));
+                        }
+                        else {
+                            let message = JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" });
+                            socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message));
+                        }
+                        console.log("The match have been deleted correctely");
+                        return res.status(200).json({ error: false, message: "" });
+                    }).catch((reason) => {
+                        console.log("DB error: " + reason);
+                        return res.status(400).json({ error: true, errormessage: "DB error" });
+                    });
+                }
+                else {
+                    // Se non esiste un match, allora si annulla la richiesta del match
+                    notification.getModel().findOne({ type: 'randomMatchmaking', sender: user.username.toString(), receiver: null, deleted: false }).then((notification) => {
+                        if (notification != null) {
+                            notification.deleted = true;
+                            notification.save().then((data) => {
+                                delete matchRooms[notification.sender.toString()];
+                                console.log("The match request have been deleted correctely");
+                                return res.status(200).json({ error: false, message: "" });
+                            }).catch((reason) => {
+                                console.log("DB error: " + reason);
+                                return res.status(400).json({ error: true, errormessage: "DB error" });
+                            });
+                        }
+                        else {
+                            // ! Non esiste alcuna notification
+                            console.log("Non esiste alcune notification".red);
+                            return res.status(400).json({ error: true, errormessage: "Non esiste alcuna notification" });
+                        }
+                    });
+                }
+            });
+        }
+        else {
+            // ! L'utente non ha ruolo utente o moderatore
+            console.log("L'utente non ha ruolo utente o moderatore");
+            return res.status(400).json({ error: true, errormessage: "L'utente non ha ruolo utente o moderatore" });
+        }
+    });
 });
 // TODO controllare che l'utente sia dentro la stanza degli osservatori della partita
 app.post('/gameMessage', auth, (req, res, next) => {
@@ -986,33 +1042,33 @@ function createNewFriendRequest(type, username, receiver) {
     });
     return doc;
 }
-function createNewFriendlyMatchmaking(bodyRequest, username) {
-    const model = notification.getModel();
-    const id1 = mongoose.Types.ObjectId();
-    const doc = new model({
-        _id: id1,
-        type: bodyRequest.type,
-        text: "New invitation for a friendly match from " + username + ".",
-        sender: username,
-        receiver: bodyRequest.receiver,
-        inpending: false,
-        deleted: false
-    });
-    return doc;
-}
-function createNewFriendMessage(bodyRequest, username) {
-    const model = notification.getModel();
-    const id1 = mongoose.Types.ObjectId();
-    const doc = new model({
-        _id: id1,
-        type: bodyRequest.type,
-        text: bodyRequest.text,
-        sender: username,
-        receiver: bodyRequest.receiver,
-        deleted: false
-    });
-    return doc;
-}
+// function createNewFriendlyMatchmaking(bodyRequest, username) {
+//   const model = notification.getModel()
+//   const id1 = mongoose.Types.ObjectId()
+//   const doc = new model({
+//     _id: id1,
+//     type: bodyRequest.type,
+//     text: "New invitation for a friendly match from " + username + ".",
+//     sender: username,
+//     receiver: bodyRequest.receiver,
+//     inpending: false,
+//     deleted: false
+//   })
+//   return doc
+// }
+// function createNewFriendMessage(bodyRequest, username) {
+//   const model = notification.getModel()
+//   const id1 = mongoose.Types.ObjectId()
+//   const doc = new model({
+//     _id: id1,
+//     type: bodyRequest.type,
+//     text: bodyRequest.text,
+//     sender: username,
+//     receiver: bodyRequest.receiver,
+//     deleted: false
+//   })
+//   return doc
+// }
 // get connected user and refresh token if expires within 5 minutes
 app.get("/whoami", auth, (req, res, next) => {
     let next5Minutes = new Date();
@@ -1144,7 +1200,6 @@ function saveClient(client) {
     let token = client.handshake.query['jwt'];
     if (token) {
         jsonwebtoken.verify(token, process.env.JWT_SECRET, (err, dec) => {
-            // console.log(dec)
             let username = dec.username;
             if (!socketIOclients[username]) {
                 socketIOclients[username] = client;
@@ -1551,7 +1606,40 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         //   })
         // })
         client.on("disconnect", () => {
-            // client.close()
+            let token = client.handshake.query['jwt'];
+            if (token) {
+                jsonwebtoken.verify(token, process.env.JWT_SECRET, (err, dec) => {
+                    let username = dec.username.toString();
+                    user.getModel().findOne({ username: username }).then((user) => {
+                        match.getModel().findOne({ $or: [{ player1: user.username.toString() }, { player2: user.username.toString() }], inProgress: true, winner: null }).then((match) => {
+                            if (match != null) {
+                                match.inProgress = false;
+                                // Il match esiste, deve essere interrotto e avvisato l'avversario e gli osservatori
+                                // console.log(socketIOclients[user.username.toString()])
+                                if (user.username.toString() == match.player1.toString()) {
+                                    match.winner = match.player2.toString();
+                                    let message = JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" });
+                                    // socketIOclients[match.player2.toString()].emit('result', JSON.parse(message))
+                                    ios.to(match.player1).emit('result', JSON.parse(message));
+                                }
+                                else {
+                                    match.winner = match.player1.toString();
+                                    let message = JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" });
+                                    ios.to(match.player1).emit('result', JSON.parse(message));
+                                }
+                                match.save().then((data) => {
+                                    console.log("Match have been saved corretely");
+                                }).catch((reason) => {
+                                    console.log("DB error: " + reason);
+                                });
+                            }
+                            else {
+                                // Non esiste alcun match, il client può essere disconnesso
+                            }
+                        });
+                    });
+                });
+            }
             // Quando un client si disconette lo elimino dalla lista dei client connessi
             for (const [k, v] of Object.entries(socketIOclients)) {
                 if (v == client)
@@ -1565,14 +1653,14 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     console.log("Error Occurred during initialization".red);
     console.log(err);
 });
-function createPrivateChat(user1, user2) {
-    const model = privateChat.getModel();
-    const doc = new model({
-        user1: user1,
-        user2: user2
-    });
-    return doc;
-}
+// function createPrivateChat(user1, user2) {
+//   const model = privateChat.getModel()
+//   const doc = new model({
+//     user1: user1,
+//     user2: user2
+//   })
+//   return doc
+// }
 function createChatMessage(sender, text) {
     const model = message.getModel();
     const doc = new model({
