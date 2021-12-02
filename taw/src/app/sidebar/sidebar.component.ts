@@ -20,11 +20,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public role: string = ""
   public msg: string = ""
 
-  constructor(private sio: SocketioService, private us: UserHttpService,private router:Router) {
+  constructor(private sio: SocketioService, private us: UserHttpService, private router: Router) {
     this.subscriptionName = this.us.get_update().subscribe((msg) => {
       // Update username and icon of logged user
       this.ngOnInit()
-      
+      if (msg == "User logged out") {
+        this.tok = ""
+      } else if (msg == "User logged in") {
+        this.tok = this.us.get_token()
+      }
     })
   }
 

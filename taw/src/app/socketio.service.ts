@@ -8,10 +8,13 @@ import { Observable, observable } from 'rxjs';
 })
 export class SocketioService {
 
-  private socket: Socket
+  private socket!: Socket;
 
   constructor(private us: UserHttpService) {
-    this.socket = io(this.us.url, {
+  }
+
+  connect() {
+    this.socket = io(`${this.us.url}?jwt=${this.us.get_token()}`, {
       withCredentials: true,
       extraHeaders: {
         "enableCORS": "true"
@@ -19,6 +22,7 @@ export class SocketioService {
     })
   }
   result():Observable<any>{
+
     console.log(" Created result")
     return new Observable(observer => {
       this.socket.on('result', msg => {
@@ -59,10 +63,6 @@ export class SocketioService {
     console.log("createMatchRoom emit")
     this.socket.emit('createMatchRoom',{username:this.us.get_username()})
   }
-  saveClient(): void {
-    console.log("Save Client")
-    this.socket.emit('saveClient',{username:this.us.get_username()})
-  }
 
   addFriend(receiver: String, type: String): void{
     console.log("Add friend")
@@ -76,7 +76,7 @@ export class SocketioService {
       });
     })
   }
-  leaveClient(): void{
-    console.log("Non ancora implementato")
+  disconnect(): void{
+    this.socket.close()
   }
 }

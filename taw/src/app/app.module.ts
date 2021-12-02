@@ -44,6 +44,8 @@ import { GameComponent } from './game/game.component';
   bootstrap: [AppComponent]
 })
 export class AppModule{
-  constructor(private socket: SocketioService) { }
+  constructor(private socket: SocketioService) {
+    
+  }
   
 }

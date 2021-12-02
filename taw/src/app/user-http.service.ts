@@ -23,6 +23,8 @@ export class UserHttpService {
   public url = 'http://localhost:8080' //TODO cambiare indirizzo
   private subjectName = new Subject<any>()
 
+  private rememberToken: boolean = false
+
 
   send_update(message: string) {
     this.subjectName.next({ text: message })
@@ -41,9 +43,19 @@ export class UserHttpService {
     if (this.token.length < 1) {
       console.log("No token found in local storage")
       // this.router.navigate(['login'])
+      this.send_update("No token found in local storage")
     } else {
       console.log("JWT loaded from local storage")
     }
+  }
+
+  updateToken(payload: string) {
+    if (this.rememberToken) {
+      localStorage.setItem('app_token', payload)
+    } else {
+      sessionStorage.setItem('app_token', payload)
+    }
+    this.token = payload
   }
 
   login(username: string, password: string, remember: boolean): Observable<any> {
@@ -62,13 +74,21 @@ export class UserHttpService {
     return this.http.get(`${this.url}/login`, options,).pipe(
       tap((data: any) => {
         this.token = data.token
-        if (remember) {
-          localStorage.setItem('app_token', this.token)
-        }
+        this.rememberToken = remember
+        this.updateToken(this.token)
       })
     )
   }
 
+
+  getRankingstory() {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    return this.http.get(`${this.url}/rankingstory`,options)
+  }
 
   signin(username: string, password: string, name: string, surname: string, mail: string, avatarImgURL: string) {
     console.log(`Creation of user ${username}`);
@@ -115,11 +135,11 @@ export class UserHttpService {
   logout() {
     console.log("Logging out")
     this.token = ''
-    localStorage.setItem('app_token', this.token)
+    this.updateToken(this.token)
     this.send_update("User logged out")
   }
 
-  whoami() {
+  whoami(): any {
     const options = {
       headers: new HttpHeaders({
         'authorization': `Bearer ${this.get_token()}`
@@ -127,7 +147,7 @@ export class UserHttpService {
     }
     let response;
     try {
-      response = this.http.get(`${this.url}/whoami`,options)
+      return response = this.http.get(`${this.url}/whoami`, options)
     } catch (error) {
       console.log(error);
     }

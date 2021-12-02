@@ -22,15 +22,15 @@
           </button>
         </li>
 
-        <li class="nav-item">
+        <!-- <li class="nav-item">
           <div class="form-floating">
-            <input type="text" class="form-control" id="floatingInput" placeholder="username" #username required>
-            <label for="floatingInput">Username</label>
+            <input type="text" class="form-control" id="floatingInputA" placeholder="username" #username required>
+            <label for="floatingInputA">Username</label>
           </div>
           <button (click)="addFriend(username.value, 'friendRequest')" class="nav-link text-white">
             Notification
           </button>
-        </li>
+        </li> -->
 
         <li *ngIf="has_moderator_role()" class="nav-item">
           <button (click)="navigate('new-mod')" class="nav-link text-white">

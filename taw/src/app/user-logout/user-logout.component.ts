@@ -13,10 +13,8 @@ export class UserLogoutComponent implements OnInit {
   constructor(private us: UserHttpService, private router: Router, private socket: SocketioService) { }
 
   ngOnInit(): void {
+    this.socket.disconnect()
     this.us.logout()
-
-    this.socket.leaveClient()
-
     this.router.navigate(["/"])
   }
 
