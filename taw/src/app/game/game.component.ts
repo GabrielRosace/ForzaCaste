@@ -16,8 +16,8 @@ interface Alert {
 export class GameComponent implements OnInit {
   public game:number[][]=[];
   public txtturno:string="Waiting...";
-  public visibility:string="none";
-  public opacity: number=0.5;
+  public visibility:string="";//default="none"
+  public opacity: number=1;//default=0.5
   public alerts: any[]=[];
   public boss:number=0;
   public calledcol:number=0;
@@ -31,10 +31,15 @@ export class GameComponent implements OnInit {
     this.result=this.sio.result().subscribe(msg => {
       console.log('got a msg result: ' + JSON.stringify(msg));
       var response=JSON.parse(JSON.stringify(msg));
-      if(response.win){
+      console.log(msg.winner)
+      //console.log(JSON.parse(msg))
+
+      if(msg.winner){
+        console.log("Hai vinto")
         this.win="Nice! You Win!";
       }
-      if(!response.win){
+      if(msg.winner!=undefined && !msg.winner){
+        console.log("Hai perso")
         this.win="oh you looose :(";
       }
 
@@ -56,6 +61,7 @@ export class GameComponent implements OnInit {
           this.add(this.calledcol,0);
         }
       }
+      this.alerts=[];
       if(response.error==true){
         this.alerts.push({message:response.errorMessage})
       }
@@ -82,6 +88,7 @@ export class GameComponent implements OnInit {
   }
   ngOnDestroy(): void {
     this.move.unsubscribe();
+    this.result.unsubscribe();
     this.lobby.unsubscribe();
   }
   randomNumber(min:number, max:number) {
