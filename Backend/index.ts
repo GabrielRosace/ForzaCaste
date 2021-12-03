@@ -741,6 +741,8 @@ app.post('/gameMessage', auth, (req, res, next) => {
 
 // Create a new request of different type
 app.post('/notification', auth, (req, res, next) => {
+  console.log("Entrato")
+  console.log("Receiver:", req.body.receiver);
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       if (req.body.type === "friendRequest") {
@@ -759,6 +761,7 @@ app.post('/notification', auth, (req, res, next) => {
                 fr.save().then((data) => {
                   console.log("Request forwarded")
                   if(socketIOclients[receiver.username.toString()]){
+                    console.log("eccomi:", receiver.username.toString())
                     let receiverMessage = JSON.stringify({sender : u.username.toString(), type : "friendRequest"})
                     socketIOclients[receiver.username.toString()].emit('newNotification', JSON.parse(receiverMessage))
                   }

@@ -214,6 +214,20 @@ export class UserHttpService {
     }
     return this.http.get(`${this.url}/friend`,options)
   }
+
+  add_friendRequest(receiver: string){
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`,
+      })
+    }
+    const body = {
+      type: "friendRequest",
+      receiver: receiver,
+    }
+    return this.http.post(`${this.url}/notification`,body,options)
+  }
+
   create_matchmaking(){
     const options = {
       headers: new HttpHeaders({

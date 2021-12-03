@@ -4,6 +4,8 @@ import { Subscription } from 'rxjs';
 import { UserHttpService } from '../user-http.service';
 import { Socket } from 'socket.io-client';
 import { SocketioService } from '../socketio.service';
+import { AppComponent } from '../app.component';
+import { ToastService } from '../_services/toast.service';
 
 
 @Component({
@@ -17,10 +19,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public avatarImgURL: string = ""
   private tok: string = ""
   private subscriptionName: Subscription
+  private subscriptionReq: Subscription
   public role: string = ""
+  public friendlist: any[] = []
   public msg: string = ""
 
-  constructor(private sio: SocketioService, private us: UserHttpService, private router: Router) {
+  constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService,private router:Router) {
     this.subscriptionName = this.us.get_update().subscribe((msg) => {
       // Update username and icon of logged user
       msg = msg.text
@@ -36,6 +40,26 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.avatarImgURL = this.us.get_avatarImgURL()
       }
     })
+
+    this.subscriptionReq = this.sio.request().subscribe(msg => {
+      this.msg =JSON.parse(JSON.stringify(msg)).message
+      console.log('got a msg: ' + msg);
+      if(msg){
+        this.toastN(msg)
+        console.log('got a msg: ' + msg);
+      }
+    });
+
+    this.us.get_friendlist().subscribe((u) => {
+      this.friendlist = []
+      console.log()
+      u.friendlist.forEach((element: { [x: string]: any; }) => {
+        console.log(1)
+        this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
+        console.log(this.friendlist);
+      });
+      console.log(this.friendlist);
+    })
   }
 
   ngOnInit(): void {
@@ -48,14 +72,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.username = ''
       this.avatarImgURL = ''
     }
-    this.sio.request().subscribe(msg => {
-      this.msg = msg;
-      console.log('got a msg: ' + msg);
-    });
   }
 
   ngOnDestroy(): void {
     this.subscriptionName.unsubscribe()
+    this.subscriptionReq.unsubscribe()
   }
 
   has_moderator_role(): boolean{
@@ -72,11 +93,24 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return false
   }
 
+  toastN(msg: string) {
+    this.toast.show(msg, {
+      classname: 'bg-info text-light',
+      delay: 7000,
+      autohide: true
+    });
+  }
+
   request(){
+    console.log()
     this.sio.request().subscribe()
   }
-  addFriend(receiver: String, type: String){
-    this.sio.addFriend( receiver, type);
+
+  addFriend(receiver: string, type: string){
+    console.log("receiver: ", receiver)
+    this.us.add_friendRequest(receiver).subscribe((data) => {
+      this.toastN("Request Forwarded")
+    })
   }
 
   navigate(route: String) {
