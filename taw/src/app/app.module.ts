@@ -18,6 +18,8 @@ import { NewModeratorComponent } from './new-moderator/new-moderator.component';
 import { SocketioService } from './socketio.service';
 import { UserDeletionComponent } from './user-deletion/user-deletion.component';
 import { GameComponent } from './game/game.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { ToastComponent } from './toast/toast.component';
 
 @NgModule({
   declarations: [
@@ -30,13 +32,15 @@ import { GameComponent } from './game/game.component';
     UserProfileComponent,
     NewModeratorComponent,
     UserDeletionComponent,
-    GameComponent
+    GameComponent,
+    ToastComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
-    FontAwesomeModule
+    FontAwesomeModule,
+    NgbModule
   ],
   providers: [
     { provide: UserHttpService, useClass: UserHttpService }
