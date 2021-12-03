@@ -24,9 +24,12 @@
         <input type="mail" class="form-control" id="floatingMail" placeholder="Mail" #mail required>
         <label for="floatingMail">Mail</label>
       </div>
-      <div class="form-floating mt-1 mb-3">
-        <input type="text" class="form-control" id="floatingImg" placeholder="ImgURL" #img required>
-        <label for="floatingImg">Img URL</label>
+      <div class="d-flex flex-row  mt-1 mb-3">
+        <div class="form-floating flex-fill">
+          <input type="text" class="form-control" id="floatingImg" placeholder="ImgURL" #img required>
+          <label for="floatingImg">Img URL</label>
+        </div>
+        <button class="btn btn-outline-dark flex-fill" type="button" (click)="randomImage(username.value)"><i class="bi bi-arrow-repeat"></i></button>
       </div>
       
 

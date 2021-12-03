@@ -17,29 +17,19 @@
       <hr>
       <ul class="nav nav-pills flex-column mb-auto">
         <li class="nav-item">
-          <button (click)="navigate('home')" class="nav-link text-white">
+          <button (click)="navigate('home')" class="nav-link text-white w-100 text-start">
             Home
           </button>
         </li>
 
-        <!-- <li class="nav-item">
-          <div class="form-floating">
-            <input type="text" class="form-control" id="floatingInputA" placeholder="username" #username required>
-            <label for="floatingInputA">Username</label>
-          </div>
-          <button (click)="addFriend(username.value, 'friendRequest')" class="nav-link text-white">
-            Notification
-          </button>
-        </li> -->
-
         <li *ngIf="has_moderator_role()" class="nav-item">
-          <button (click)="navigate('new-mod')" class="nav-link text-white">
+          <button (click)="navigate('new-mod')" class="nav-link text-white w-100 text-start">
             Add new mod
           </button>
         </li>
 
         <li class="nav-item" *ngIf="has_moderator_role()">
-          <button class="nav-link text-white" (click)="navigate('user-deletion')">
+          <button class="nav-link text-white w-100 text-start" (click)="navigate('user-deletion')">
             Delete user
           </button>
         </li>

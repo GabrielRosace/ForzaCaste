@@ -56,6 +56,10 @@ export class UserHttpService {
       sessionStorage.setItem('app_token', payload)
     }
     this.token = payload
+
+    if (payload == '') {
+      this.rememberToken? localStorage.clear():sessionStorage.clear()
+    }
   }
 
   login(username: string, password: string, remember: boolean): Observable<any> {

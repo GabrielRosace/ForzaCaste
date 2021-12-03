@@ -12,7 +12,8 @@ body {
   background-color: #efefef;
   border: none;
   cursor: pointer;
-  transition: all 0.5s
+  transition: all 0.5s;
+  height: 55vh;
 }
 
 .image img {
@@ -90,12 +91,14 @@ hr .new1 {
 @media screen and (max-width: 1000px) {
   .direction {
     flex-direction: column;
+    padding-top: 100px;
   }
   .card{
     width: 350px;
   }
   .statistics{
     margin-top: 5px;
+    margin-left: 0px!important;
   }
 }
 
@@ -103,4 +106,14 @@ hr .new1 {
   .statistics{
     margin-left: 5px;
   }
+}
+
+
+.font{
+  font-size: 1.6vw;
+}
+
+.alert{
+  margin: -15vh 10px 0px 10px;
+  border-radius: 20px;
 }

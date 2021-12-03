@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserHttpService } from '../user-http.service';
 
@@ -10,6 +10,7 @@ import { UserHttpService } from '../user-http.service';
 export class UserSigninComponent implements OnInit {
 
   public errmessage: string = ''
+  @ViewChild("img") img!: ElementRef
 
   constructor(private us: UserHttpService, private router: Router) { }
 
@@ -26,6 +27,12 @@ export class UserSigninComponent implements OnInit {
     })
 
     return false
+  }
+
+  randomImage(username: string) {
+    let sprite = "bottts"
+    let random = Math.random()
+    this.img.nativeElement.value = `https://avatars.dicebear.com/api/${sprite}/${username}${random}.svg`
   }
 
 }
