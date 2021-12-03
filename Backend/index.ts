@@ -196,10 +196,7 @@ function getToken(username, id, avatarImgURL, roles, mail, state) {
   return {
     username: username,
     id: id,
-    avatarImgURL: avatarImgURL, //? Quando lo aggiorno allora dovrò aggiornare il jwt, o rifacendo il login o ottenendone un altro
-    roles: roles, //? Penso sia inutile
-    mail: mail, //? Penso sia inutile
-    state: state //? Penso sia inutile
+    roles: roles
   };
 }
 
@@ -262,11 +259,12 @@ app.post('/users', (req, res, next) => {
 // Get user by username
 app.get('/users/:username', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((u) => {
-    return res.status(200).json({ username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList })
+    return res.status(200).json({ username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList, role: u.roles })
   }).catch((reason) => {
     return res.status(401).json({ error: true, errormessage: `DB error ${reason}` })
   })
 })
+
 
 
 app.get('/users', auth, (req, res, next) => {
@@ -310,7 +308,7 @@ app.post("/users/mod", auth, (req, res, next) => {
       doc.setNonRegisteredMod()
 
       doc.save().then((data) => {
-        console.log("New creation of non registered moderator attempt from ".green + data.mail)
+        console.log("New creation of non registered moderator attempt from ".green + req.user.username)
         return res.status(200).json({ error: false, errormessage: "", id: data._id });
       }).catch((reason) => {
         if (reason.code === 11000)
@@ -422,18 +420,12 @@ app.put("/users", auth, (req, res, next) => {
   })
 })
 
-
-//? è utile?
+// getting ranking history associated to logged user
 app.get('/rankingstory', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username, deleted: false }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
-      // match.getModel().find({ inProgress: false, $or: [{player1: req.user.username},{player2: req.user.username} ]}, "player1 player2 winner winnerPoints loserPoints").then((matchList)=>{
-      //   return res.status(200).json({error: false, errormessage: "", matchList: matchList})
-      // })
       notification.getModel().find({ deleted: true, sender: req.user.username, $or: [{ type: "randomMatchmaking" }, { type: "friendlyMatchmaking" }] },"ranking").then((matchmakingList) => {
-        // console.log(matchmakingList)
-        return res.status(200).json({error: false, errormessage: "", matchmakingList: matchmakingList})
-        
+        return res.status(200).json({error: false, errormessage: "", matchmakingList: matchmakingList})        
       })
     }else{
       return res.status(401).json({error: true, errormessage: "You cannot do it"})

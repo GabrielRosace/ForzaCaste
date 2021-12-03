@@ -33,26 +33,57 @@ export class HomepageComponent implements OnInit {
   
   
   ngOnInit(): void {
+    // if (!this.us.get_token()) {
+    //   this.router.navigate(["/"])
+    //   this.us.userRole = ''
+    // } else {
+    //   this.us.get_update().subscribe((msg) => {
+    //     msg = msg.text
+    //     if (msg == "Update user") {
+    //       console.log(`Update user ${this.us.userRole}`)
+    //       if (this.us.has_nonregmod_role()) {
+    //         this.router.navigate(['/profile'])
+    //       } else {
+    //         console.log("OU")
+    //         this.username = this.us.get_username()
+    //         this.us.get_friendlist().subscribe((u) => {
+    //           this.friendlist = []
+    //           // console.log()
+    //           u.friendlist.forEach((element: { [x: string]: any; }) => {
+    //             // console.log(1)
+    //             this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
+    //             console.log(this.friendlist);
+    //           });
+    //           console.log(this.friendlist);
+    //         })
+    //         // this.router.navigate(['/'])
+    //         this.username = this.us.get_username()
+    //       }
+    //     }
+    //   }, (err) => {
+    //     console.log(err)
+    //   })
+    // }
 
     if (!this.us.get_token()) {
       this.router.navigate(['/'])
     }else if (this.us.has_nonregmod_role()) {
       this.router.navigate(['/profile'])
     } else {
-      
-      
       this.username = this.us.get_username()
       this.us.get_friendlist().subscribe((u) => {
         this.friendlist = []
-        console.log()
+        // console.log()
         u.friendlist.forEach((element: { [x: string]: any; }) => {
-          console.log(1)
+          // console.log(1)
           this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
-          console.log(this.friendlist);
+          // console.log(this.friendlist);
         });
-        console.log(this.friendlist);
+        // console.log(this.friendlist);
       })
     }
+
+
   }
   findmatch(){
     this.us.create_matchmaking().subscribe(

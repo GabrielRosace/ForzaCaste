@@ -21,6 +21,7 @@ export class AppComponent{
         if (msg.hasOwnProperty("token")) {
           console.log("Token refresh")
           this.us.updateToken(msg.token)
+          this.us.updateUserInfo()
           this.socket.disconnect()
           this.socket.connect()
         }

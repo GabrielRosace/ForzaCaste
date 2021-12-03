@@ -9,10 +9,10 @@ import { Router } from '@angular/router';
 interface TokenData {
   username: string,
   roles: string,
-  mail: string,
+  // mail: string,
   id: string,
-  state: string,
-  avatarImgURL: string
+  // state: string,
+  // avatarImgURL: string
 }
 
 
@@ -22,6 +22,9 @@ export class UserHttpService {
   private token = ''
   public url = 'http://localhost:8080' //TODO cambiare indirizzo
   private subjectName = new Subject<any>()
+  // public userRole: string = ''
+  private img: string = ''
+  private mail: string = ''
 
   private rememberToken: boolean = false
 
@@ -45,9 +48,20 @@ export class UserHttpService {
       // this.router.navigate(['login'])
       this.send_update("No token found in local storage")
     } else {
+      this.updateUserInfo()
       console.log("JWT loaded from local storage")
     }
   }
+
+  updateUserInfo() {
+    this.get_user().subscribe((u) => {
+      this.mail = u.mail
+      this.img = u.avatarImgURL
+      // this.userRole = u.role
+      this.send_update("Update user")
+    })
+  }
+
 
   updateToken(payload: string) {
     if (this.rememberToken) {
@@ -80,6 +94,7 @@ export class UserHttpService {
         this.token = data.token
         this.rememberToken = remember
         this.updateToken(this.token)
+        this.updateUserInfo()
       })
     )
   }
@@ -139,6 +154,8 @@ export class UserHttpService {
   logout() {
     console.log("Logging out")
     this.token = ''
+    this.img = ''
+    this.mail = ''
     this.updateToken(this.token)
     this.send_update("User logged out")
   }
@@ -167,11 +184,11 @@ export class UserHttpService {
   }
 
   get_avatarImgURL() {
-    return (jwt_decode(this.token) as TokenData).avatarImgURL
+    return this.img
   }
 
   get_mail() {
-    return (jwt_decode(this.token) as TokenData).mail
+    return this.mail
   }
 
   get_role() {
@@ -188,6 +205,7 @@ export class UserHttpService {
     }
     return this.http.get<User>(`${this.url}/users/${this.get_username()}`, options)
   }
+
   get_friendlist():Observable<any> {
     const options = {
       headers: new HttpHeaders({
@@ -210,10 +228,12 @@ export class UserHttpService {
   }
 
   has_moderator_role():boolean {
+    // return this.userRole === 'MODERATOR'
     return this.get_role() === 'MODERATOR'
   }
 
   has_nonregmod_role():boolean {
+    // return this.userRole === 'NONREGMOD'
     return this.get_role() === 'NONREGMOD'
   }
 
