@@ -18,6 +18,7 @@ import { NewModeratorComponent } from './new-moderator/new-moderator.component';
 import { SocketioService } from './socketio.service';
 import { UserDeletionComponent } from './user-deletion/user-deletion.component';
 import { GameComponent } from './game/game.component';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -36,7 +37,8 @@ import { GameComponent } from './game/game.component';
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
-    FontAwesomeModule
+    FontAwesomeModule,
+    FormsModule
   ],
   providers: [
     { provide: UserHttpService, useClass: UserHttpService }

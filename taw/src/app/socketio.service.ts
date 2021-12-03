@@ -21,6 +21,15 @@ export class SocketioService {
       }
     })
   }
+  gameChat():Observable<any>{
+
+    console.log(" Created gameChat")
+    return new Observable(observer => {
+      this.socket.on('gameChat', msg => {
+        observer.next(msg);
+      });
+    });
+  }
   result():Observable<any>{
 
     console.log(" Created result")
@@ -46,11 +55,13 @@ export class SocketioService {
       });
     });
   }
+  /*TO REMOVE
+
   makemove(col:String){
     console.log(" Created makemove")
     console.log(this.us.get_username())
     this.socket.emit('move',{username:this.us.get_username(),move:col})
-  }
+  }*/
   lobby(){
     console.log("Created lobby")
     return new Observable(observer => {

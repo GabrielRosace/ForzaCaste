@@ -28,26 +28,25 @@
   </div>
   <div class="mychat">
     
-    <div class="chatcontainer">
-      <div class="container">
-        <img src="https://static.educalingo.com/img/it/800/mondo.jpg" alt="" width="32" height="32" class="rounded-circle me-2">
-        <p>Sweet! So, what do you wanna do today?</p>
-        <span class="time-right">Caste - 11:02</span>
+    <div class="chatcontainer" #scrollMe [scrollTop]="scrollMe.scrollHeight">
+      <div class="elements" *ngFor='let message of chat'>
+        <div class="container" *ngIf="message.from=='me'">
+          <img src={{message.imgUrl}} alt="" width="32" height="32" class="rounded-circle me-2">
+          <p>{{message.text}}</p>
+          <span class="time-right">{{message.from}} - {{message.time}}</span>
+        </div>
+        <div class="container darker" *ngIf="message.from!='me'">
+          <img src={{message.imgUrl}} alt="" width="32" height="32" class="rounded-circle me-2">
+          <p>{{message.text}}</p>
+          <span class="time-left">{{message.from}} - {{message.time}}</span>
+        </div>
       </div>
-      
-      <div class="container darker">
-        <img src="https://static.educalingo.com/img/it/800/mondo.jpg" alt="" width="32" height="32" class="rounded-circle me-2">
-        <p>Nah, I dunno. Play soccer.. or learn more coding perhaps?</p>
-        <span class="time-left">You - 11:05</span>
-      </div>
-    </div>
-    <form class="form-inline">
-      <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Write something">
-    
-      <button type="button" class="w-100 btn btn-primary btn-lg mybtn">Send</button>
-    </form>
   </div>
+  <form class="form-inline" style="padding-left: 1vw;padding-right: 1vw; padding-top: 1vw; ">
+    <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Write something" #tosend>
   
+    <button type="submit" class="w-100 btn btn-primary btn-lg mybtn"(click)="sendmessage(tosend.value); tosend.value = ''">Send</button>
+  </form>
   
 </div>
 <div class="modal fade" id="w-stats" tabindex="-1" data-backdrop="false">

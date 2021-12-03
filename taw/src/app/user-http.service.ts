@@ -223,7 +223,7 @@ export class UserHttpService {
     const body = {
       type: "randomMatchmaking",
     }
-    return this.http.post(`${this.url}/matchmaking`,body,options)
+    return this.http.post(`${this.url}/game`,body,options)
 
   }
 
@@ -271,5 +271,38 @@ export class UserHttpService {
     return this.http.get(`${this.url}/users`,options)
   }
 
+  makemove(col: number) {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      move: String(col)
+    }
+    return this.http.post(`${this.url}/move`,body,options)
+  }
+  sendMessage(text: string) {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      player: this.get_username(),
+      message:text
+    }
+    return this.http.post(`${this.url}/gameMessage`,body,options)
+  }
+  get_Otheruser(username:string): Observable<User> {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`,
+        'cache-control': 'no-cache',
+        'Content-Type': 'application/json',
+      })
+    }
+    return this.http.get<User>(`${this.url}/users/${username}`, options)
+  }
 }
 
