@@ -315,6 +315,7 @@ app.put("/users", auth, (req, res, next) => {
             u.setModerator();
         }
         u.save().then((data) => {
+            ios.emit('updateUser', data);
             console.log("Data saved successfully".blue);
             return res.status(200).json({ error: false, errormessage: "" });
         }).catch((reason) => {
@@ -472,7 +473,7 @@ app.post('/game', auth, (req, res, next) => {
                 }
                 else {
                     // Whene the client get this message he will send a message to the server to create a match room
-                    socketIOclients[us.username].emit('createMatchRoom', 'true');
+                    // socketIOclients[us.username].emit('createMatchRoom', 'true')
                     // Check if the opposite player is a friend
                     if (!us.isFriend(req.body.oppositePlayer))
                         return res.status(400).json({ error: true, message: "The selected opposite player is not a friend" });
@@ -480,7 +481,8 @@ app.post('/game', auth, (req, res, next) => {
                     console.log(doc);
                     doc.save().then((data) => {
                         if (notification.isNotification(data)) {
-                            socketIOclients[req.body.oppositePlayer].emit("gameRequest", "You have a new game request from your friend " + us.username);
+                            let friendMessage = JSON.stringify({ player: us.username.toString() });
+                            socketIOclients[req.body.oppositePlayer].emit("gameRequest", JSON.parse(friendMessage));
                             console.log("New creation of matchmaking request, player1 is: " + data.sender);
                             return res.status(200).json({ error: false, message: "Waiting for other player..." });
                         }
@@ -737,13 +739,17 @@ app.get('/notification', auth, (req, res, next) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
     });
 });
-// Returns all the messages that are not been read
+// Returns all the messages
 app.get('/message', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((user) => {
         if (user.hasModeratorRole() || user.hasUserRole()) {
-            message.getModel().find({ receiver: user.username.toString(), inpending: true }).then((messages) => {
-                console.log("Messages obteined correctely".green);
-                return res.status(200).json({ error: false, message: "", messages: messages });
+            message.getModel().find({ receiver: user.username.toString(), inpending: true }).then((inPendingMessages) => {
+                message.getModel().find({ $or: [{ sender: user.username.toString() }, { receiver: user.username.toString() }] }).then((allMessages) => {
+                    return res.status(200).json({ error: false, message: "", inPendingMessages: inPendingMessages, allMessages: allMessages });
+                }).catch((reason) => {
+                    console.log("DB error: " + reason);
+                    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                });
             }).catch((reason) => {
                 console.log("DB error: " + reason);
                 return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });

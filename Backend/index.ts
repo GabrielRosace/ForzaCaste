@@ -404,6 +404,7 @@ app.put("/users", auth, (req, res, next) => {
     }
 
     u.save().then((data) => {
+      ios.emit('updateUser', data)
       console.log("Data saved successfully".blue)
       return res.status(200).json({ error: false, errormessage: "" })
     }).catch((reason) => {
