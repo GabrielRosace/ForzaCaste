@@ -12,13 +12,20 @@
  *  /users/:username        -                   GET             Return a user that has username specified
  *
  *  /users/mod              -                   POST            Create a new moderator, only moderator can do it
+ * 
+ *  /game                   -                   POST            Create a random or friendly match. Furthermore a user can enter in a game as observator
+ *  /game                   -                   DELETE          Used by a player in order to delete a started game or to delete a game request
+ * 
+ *  /gameMessage            -                   POST            Send a message in the game chat
  *
- *  /notification           -                   POST            Create a new request of different type
- *  /notification           -                   GET             Return all the notification of the specified user
- *  /notification/inbox     -                   GET             Return the inbox of the current logged user
- *  /notification           *                   PUT             Change the status of a existing notification  
+ *  /notification           -                   POST            Create a new friend request
+ *  /notification           -                   GET             Return all the notification of the specified user. This endpoint returns all the notification that are received and that are not read
+ *  /notification           *                   PUT             Change the status of the notification, so the indicated notification will appear as read
+ * 
+ *  /message                -                   GET             Returns all messages and all messages inpending
+ *  /message                -                   POST						Send a private message to a specific user
+ *	/message								-										PUT							Update a specific message and marks it as read
  *  
- *  /friend                 -                   POST            Add a friend if an existing friendRequest notification is accepted
  *  /friend                 -                   GET             Return the friendlist of the current logged user
  *  /friend                 -                   DELETE          Deletion of a friends in the friendlist of the current logged user
  *  /friend                 -                   PUT             Change the attribute isBlocked of the specified user in the friendlist               
