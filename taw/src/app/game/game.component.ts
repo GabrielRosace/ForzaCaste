@@ -37,12 +37,15 @@ export class GameComponent implements OnInit {
   public rank:number=0;
   public inputtext:string="";
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
+
     this.gameChat=this.sio.gameChat().subscribe(msg => {
+
       console.log('got a msg gameChat: ' + JSON.stringify(msg));
 
       if(msg.error){
         this.alerts.push({message:msg.errorMessage});
       }
+
       if(msg.sender.length>0){
         var img:string="https://static.educalingo.com/img/it/800/mondo.jpg";
         this.us.get_Otheruser(msg.sender).subscribe(fmsg=>{
@@ -57,6 +60,7 @@ export class GameComponent implements OnInit {
 
       }
     });
+
     this.result=this.sio.result().subscribe(msg => {
 
       console.log('got a msg result: ' + JSON.stringify(msg));
@@ -116,29 +120,33 @@ export class GameComponent implements OnInit {
       }
     });
   }
+  /* When component is destroyed it will unsubscribe from the sockets */
   ngOnDestroy(): void {
     this.move.unsubscribe();
     this.result.unsubscribe();
     this.lobby.unsubscribe();
     this.gameChat.unsubscribe();
   }
+  /* Create random number - USELESS */
   randomNumber(min:number, max:number) {
     return Math.floor(Math.random() * (max - min) + min);
   }
+  /* When components load, it will load the gameboard */
   ngOnInit(): void {
-    
     for(var i: number = 0; i < 6; i++) {
       this.game[i] = [];
       for(var j: number = 0; j< 7; j++) {
           this.game[i][j] = 0;
       }
-      
-      
+    }
   }
-  }
+
+  /* remove alert from the alters list, then from the view */
   close(alert: Alert) {
     this.alerts.splice(this.alerts.indexOf(alert), 1);
   }
+
+  /* make a turn, when is over, switch the player turn */
   add(c:number,who:number){
     if(who==0){
       for(var i:number=5;i>=0;i--){
@@ -166,12 +174,15 @@ export class GameComponent implements OnInit {
       }
     }
   }
+  /* Call the function for make a move */
   makemove(col:number){
     this.us.makemove(col).subscribe((msg)=>{
       console.log("ricevuto da make move: ",msg);
     });
     this.calledcol=col;
   }
+
+  /* Send a message to the chat */
   sendmessage(text:string){
     if(text==""){
       this.alerts=[];
@@ -186,9 +197,8 @@ export class GameComponent implements OnInit {
         }
       });
     }
-    
   }
-  
+  /* Check if there is some players's move */
   isempty(i:number){
     if(i==0){
       return true;
@@ -196,6 +206,7 @@ export class GameComponent implements OnInit {
       return false;
     }
   }
+  /* Check if there is some players's move */
   isyellow(i:number){
     if(i==1){
       return true;
@@ -203,6 +214,7 @@ export class GameComponent implements OnInit {
       return false;
     }
   }
+  /* Check if there is some players's move */
   isred(i:number){
     if(i==2){
       return true;

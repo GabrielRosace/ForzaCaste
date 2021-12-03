@@ -14,7 +14,9 @@ export class HomepageComponent implements OnInit {
   public username: string = ''
   public friendlist: any[] = []
   public lobby:Subscription
+
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
+    /* Subscribe to a socket's listener, the lobby, for knwo if i find a match */
     this.lobby=this.sio.lobby().subscribe(msg => {
       console.log('got a msg lobby: ' + msg);
       if(msg=='true'){
@@ -27,7 +29,9 @@ export class HomepageComponent implements OnInit {
       
     });
   }
+  
   ngOnDestroy(): void{
+    /* Delete the subscription from the socket's listener */
     this.lobby.unsubscribe();
   }
   
@@ -85,6 +89,7 @@ export class HomepageComponent implements OnInit {
 
 
   }
+  /* Call the function for creata a matchmaking */
   findmatch(){
     this.us.create_matchmaking().subscribe(
       (u)=>{
@@ -94,6 +99,7 @@ export class HomepageComponent implements OnInit {
       }
     )
   }
+  /* Navigate to one route */
   navigate(route: String) {
     this.router.navigate([route])
   }
