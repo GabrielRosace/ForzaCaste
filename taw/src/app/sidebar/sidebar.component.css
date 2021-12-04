@@ -21,8 +21,8 @@
    }
 }
 ::-webkit-scrollbar{
-  width: 2vw;
-  max-width: 3vw;
+  width: 1vw;
+  max-width: 2vw;
 }
 ::-webkit-scrollbar-track{
   border: 7px solid #232943;
@@ -39,8 +39,8 @@
 }
 .list-group{
   overflow-y: scroll;
-  scrollbar-width: 10em;
-  height:  75vh;
+  height:  65vh;
+  max-height: 75vh;
 }
 #friendList{
   position: fixed;

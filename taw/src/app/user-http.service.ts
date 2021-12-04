@@ -215,6 +215,15 @@ export class UserHttpService {
     return this.http.get(`${this.url}/friend`,options)
   }
 
+  get_notification():Observable<any> {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`,
+      })
+    }
+    return this.http.get(`${this.url}/notification`,options)
+  }
+
   add_friendRequest(receiver: string){
     const options = {
       headers: new HttpHeaders({
@@ -274,6 +283,20 @@ export class UserHttpService {
       })
     }
     return this.http.delete(`${this.url}/users/${username}`,options)
+  }
+
+  add_friend(sender: string, accepted: boolean){
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      sender: sender,
+      accepted: accepted,
+    }
+
+    return this.http.put(`${this.url}/notification`,body,options)
   }
 
   get_userlist() {

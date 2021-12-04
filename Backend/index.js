@@ -184,7 +184,7 @@ app.post('/users', (req, res, next) => {
 });
 // Get user by username
 app.get('/users/:username', auth, (req, res, next) => {
-    user.getModel().findOne({ username: req.user.username }).then((u) => {
+    user.getModel().findOne({ username: req.params.username }).then((u) => {
         return res.status(200).json({ username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList, role: u.roles });
     }).catch((reason) => {
         return res.status(401).json({ error: true, errormessage: `DB error ${reason}` });

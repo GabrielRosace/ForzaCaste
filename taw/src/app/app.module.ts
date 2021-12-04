@@ -20,6 +20,8 @@ import { UserDeletionComponent } from './user-deletion/user-deletion.component';
 import { GameComponent } from './game/game.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { ToastComponent } from './toast/toast.component';
+import {MatBadgeModule} from '@angular/material/badge';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -40,7 +42,9 @@ import { ToastComponent } from './toast/toast.component';
     AppRoutingModule,
     HttpClientModule,
     FontAwesomeModule,
-    NgbModule
+    NgbModule,
+    MatBadgeModule,
+    BrowserAnimationsModule
   ],
   providers: [
     { provide: UserHttpService, useClass: UserHttpService }

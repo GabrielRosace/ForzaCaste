@@ -6,6 +6,7 @@ import { Socket } from 'socket.io-client';
 import { SocketioService } from '../socketio.service';
 import { AppComponent } from '../app.component';
 import { ToastService } from '../_services/toast.service';
+import {MatBadgeModule} from '@angular/material/badge';
 
 
 @Component({
@@ -20,8 +21,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private tok: string = ""
   private subscriptionName: Subscription
   private subscriptionReq: Subscription
+  //private subsctiptionNot: Subscription
   public role: string = ""
+  public type: string = ""
   public friendlist: any[] = []
+  public notification: any[] = []
   public msg: string = ""
 
   constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService,private router:Router) {
@@ -49,7 +53,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         console.log('got a msg: ' + msg);
       }
     });
-
+/*
     this.us.get_friendlist().subscribe((u) => {
       this.friendlist = []
       console.log()
@@ -59,7 +63,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
         console.log(this.friendlist);
       });
       console.log(this.friendlist);
-    })
+    })*/
+
+    /*
+    this.subsctiptionNot =  this.us.get_notification().subscribe((u) => {
+      this.notification = []
+      console.log()
+      u.notification.forEach((element: { [x: string]: any; }) => {
+        console.log(1)
+        this.notification.push({ id: element['_id'], username: element['sender'], type: element['type'] })
+        console.log(this.notification);
+      });
+      console.log(this.notification);
+    })*/
   }
 
   ngOnInit(): void {
@@ -106,10 +122,53 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.sio.request().subscribe()
   }
 
+  getNotification(){
+    this.us.get_notification().subscribe((u) => {
+      this.notification = []
+      console.log()
+      u.notification.forEach((element: { [x: string]: any; }) => {
+        console.log(1)
+        if(!(element['type'] == 'randomMatchmaking')){
+          this.notification.push({ id: element['_id'], sender: element['sender'], type: element['type'] })
+          console.log(this.notification);
+        }
+      });
+      console.log(this.notification);
+    })
+  }
+  isFriendReq(type: string): boolean{
+    if(type=='friendRequest'){
+      return true
+    }else{
+      return false
+    }
+  }
+  getFriendlist(){
+    this.us.get_friendlist().subscribe((u) => {
+      this.friendlist = []
+      console.log()
+      u.friendlist.forEach((element: { [x: string]: any; }) => {
+        console.log(1)
+        this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
+        console.log(this.friendlist);
+      });
+      console.log(this.friendlist);
+    })
+  }
+
+  //Used to send a new friendRequest
   addFriend(receiver: string, type: string){
     console.log("receiver: ", receiver)
     this.us.add_friendRequest(receiver).subscribe((data) => {
       this.toastN("Request Forwarded")
+    })
+  }
+  
+  //Is used to add a new friend in the friendlist, when the friendRequest is accepted 
+  addFriendToFriendlist(sender: string, accepted: boolean){
+    console.log("sender: ", sender)
+    this.us.add_friend(sender,accepted).subscribe((data) => {
+      this.toastN("Request Accepted")
     })
   }
 
