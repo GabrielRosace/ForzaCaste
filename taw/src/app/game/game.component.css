@@ -1,15 +1,18 @@
+
 .myContainer{
-    display: block;
     align-items: center;
     align-content: center;
     padding-top: 5vw;
     padding-bottom: 5vw;
     padding-left: 5vw;
-    overflow-y: scroll;
     background-color: #f5f5f5;
+}
+.title{
+  width: 100%;
 }
 .chatcontainer{
   max-width: 100%;
+  width: 100%;
   max-height: 50vw;
   overflow-y: scroll;
   background-color: #f5f5f5;
@@ -18,7 +21,7 @@
   height: 51vw;
   width: 100%;
   max-width: 100%;
-  max-height: 51%;
+  max-height: 51vw;
   padding-top: 5vw;
   padding-right: 10vw;
   padding-left: 5vw;

@@ -49,6 +49,7 @@ export class GameComponent implements OnInit {
       if(msg.sender.length>0){
         var img:string="https://static.educalingo.com/img/it/800/mondo.jpg";
         this.us.get_Otheruser(msg.sender).subscribe(fmsg=>{
+          console.log('from photo: ' + JSON.stringify(fmsg));
           img=fmsg.avatarImgURL;
           var frm:string=msg.sender;
           var time:string=new Date(msg.timestamp).toLocaleTimeString();
@@ -56,6 +57,7 @@ export class GameComponent implements OnInit {
           this.chat.push({imgUrl:img,from:frm,text:txt,time:time});
           console.log('ur message parsed: ' + JSON.stringify({imgUrl:img,from:frm,text:txt,time:time}));
         });
+
         
 
       }
@@ -193,10 +195,11 @@ export class GameComponent implements OnInit {
         var response=JSON.parse(JSON.stringify(msg));
         if(response.error==false&&response.error!=undefined){
           var time = new Date();
-          this.chat.push({imgUrl:"https://static.educalingo.com/img/it/800/mondo.jpg",from:"me",text:text,time:time.toLocaleTimeString()});
+          this.chat.push({imgUrl:this.us.get_avatarImgURL(),from:"me",text:text,time:time.toLocaleTimeString()});
         }
       });
     }
+
   }
   /* Check if there is some players's move */
   isempty(i:number){

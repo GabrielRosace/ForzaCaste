@@ -1,14 +1,15 @@
-
-<div class=" myContainer">
+<div class="myContainer">
   <button type="button" id="openstats" [hidden]="true" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#w-stats"></button>
     <div class="alert alert-warning alert-dismissible fade show" role="alert" *ngFor="let alert of alerts">
       {{alert.message }}
       <button type="button" class="btn-close btn-close-black" aria-label="Close" (click)="close(alert)"></button>
     </div>
-  <h1 class="h3 mb-3 fw-normal">{{txtturno}}</h1>
+    <div class="title">
+      <h1 class="h3 mb-3 fw-normal">{{txtturno}}</h1>
+    </div>
+  
   <div class="enable" [style.pointer-events]="visibility"[style.opacity]="opacity">
     <div class="gameboard">
-    
       <table class="table">
         <tbody>
           <tr *ngFor='let row of game'>
@@ -18,8 +19,6 @@
                 <span class="gettone"style="background-color:gold;" *ngIf="isyellow(column)"></span> 
                 <span class="gettone"style="background-color:trasparent;"*ngIf="isempty(column)"></span>    
                 </div>
-              <!--<img src="assets/img/rvuoto.png" alt="Forza quattro logo" width="100px" height="100px">-->
-              
             </td>
           </tr>
         </tbody>
@@ -27,7 +26,6 @@
       </div>
   </div>
   <div class="mychat">
-    
     <div class="chatcontainer" #scrollMe [scrollTop]="scrollMe.scrollHeight">
       <div class="elements" *ngFor='let message of chat'>
         <div class="container" *ngIf="message.from=='me'">
@@ -42,10 +40,11 @@
         </div>
       </div>
   </div>
-  <form class="form-inline" style="padding-left: 1vw;padding-right: 1vw; padding-top: 1vw; ">
+  <form class="form-inline" style="padding-left: 1vw;padding-right: 1vw; padding-top: 1vw;" (submit)="sendmessage(tosend.value); tosend.value = '';false">
+    
     <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Write something" #tosend>
   
-    <button type="submit" class="w-100 btn btn-primary btn-lg mybtn"(click)="sendmessage(tosend.value); tosend.value = ''">Send</button>
+    <button type="button" class="w-100 btn btn-lg btn-primary" (click)="sendmessage(tosend.value); tosend.value = ''">Send</button>
   </form>
   
 </div>
