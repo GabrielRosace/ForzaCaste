@@ -22,6 +22,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { ToastComponent } from './toast/toast.component';
 import {MatBadgeModule} from '@angular/material/badge';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { WatchComponent } from './watch/watch.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     NewModeratorComponent,
     UserDeletionComponent,
     GameComponent,
-    ToastComponent
+    ToastComponent,
+    WatchComponent
   ],
   imports: [
     BrowserModule,

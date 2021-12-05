@@ -8,6 +8,7 @@ import { UserLoginComponent } from './user-login/user-login.component';
 import { UserLogoutComponent } from './user-logout/user-logout.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { UserSigninComponent } from './user-signin/user-signin.component';
+import { WatchComponent } from './watch/watch.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -18,7 +19,8 @@ const routes: Routes = [
   { path: 'profile', component: UserProfileComponent },
   { path: 'new-mod', component: NewModeratorComponent },
   { path: 'user-deletion', component: UserDeletionComponent },
-  { path: 'game', component: GameComponent }
+  { path: 'game', component: GameComponent },
+  { path: 'watch', component: WatchComponent }
 
 ];
 

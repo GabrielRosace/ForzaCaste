@@ -1,6 +1,6 @@
 @media screen and (min-width: 600px) {
   .myNav{
-    height: 100vh;
+    height: 100%;
   }
   .navbar-toggler{
     display: none;
