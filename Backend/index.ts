@@ -1333,7 +1333,7 @@ app.post("/move", auth, (req, res, next) => {
             if (m.nTurns % 2 == 1 && m.player1 == username) {
               return makeMove(index, m, client, 'X', m.player2, res,username)
             } else if (m.nTurns % 2 == 0 && m.player2 == username) { //  player2's turns
-              return makeMove(index, m, client, '/', m.player1, res,username)
+              return makeMove(index, m, client, 'O', m.player1, res,username)
             } else { // trying to post move out of right turn
               let errorMessage = JSON.stringify({ "error": true, "codeError": 3, "errorMessage": "Wrong turn" })
               client.emit('move', JSON.parse(errorMessage))
@@ -2088,15 +2088,17 @@ function checkWinner(playground, player) {
   // ascendingDiagonalCheck
   for (let i = 3; i < 6; i++) {
     for (let j = 0; j < 4; j++) {
-      if (playground[i][j] == player && playground[i - 1][j + 1] == player && playground[i - 2][j + 2] == player && playground[i - 3][j + 3] == player)
+      if (playground[i][j] == player && playground[i - 1][j + 1] == player && playground[i - 2][j + 2] == player && playground[i - 3][j + 3] == player){
         winCheck = true
+      }
     }
   }
   // descendingDiagonalCheck
   for (let i = 3; i < 6; i++) {
     for (let j = 3; j < 7; j++) {
-      if (playground[i][j] == player && playground[i - 1][j - 1] == player && playground[i - 2][j - 2] == player && playground[i - 3][j - 3] == player)
+      if (playground[i][j] == player && playground[i - 1][j - 1] == player && playground[i - 2][j - 2] == player && playground[i - 3][j - 3] == player){
         winCheck = true
+      }
     }
   }
   return winCheck
