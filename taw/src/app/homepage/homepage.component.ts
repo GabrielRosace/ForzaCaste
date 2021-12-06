@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { UserHttpService } from '../user-http.service';
 import { SocketioService } from '../socketio.service';
 import { Subscription } from 'rxjs';
+import { ToastService } from '../_services/toast.service';
 
 @Component({
   selector: 'app-homepage',
@@ -15,7 +16,7 @@ export class HomepageComponent implements OnInit {
   public friendlist: any[] = []
   public gameReady:Subscription
 
-  constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
+  constructor(private toast: ToastService, private sio: SocketioService,private us: UserHttpService, private router: Router) { 
     /* Subscribe to a socket's listener, the lobby, for knwo if i find a match */
     this.gameReady=this.sio.gameReady().subscribe(msg => {
       console.log('got a msg lobby: ' + msg);
@@ -89,6 +90,14 @@ export class HomepageComponent implements OnInit {
 
 
   }
+
+  toastN(msg: string) {
+    this.toast.show(msg, {
+      classname: 'bg-info text-light',
+      delay: 7000,
+      autohide: true
+    });
+  }
   /* Call the function for creata a matchmaking */
   findmatch(){
     this.us.create_matchmaking().subscribe(
@@ -99,6 +108,14 @@ export class HomepageComponent implements OnInit {
       }
     )
   }
+
+  inviteFriendToMatch(username: string){
+    console.log("Opposite Player: "+ username)
+    this.us.create_friendlymatchmaking(username).subscribe((data) => {
+      this.toastN("Request Forwarded")
+    })
+  }
+  
   /* Navigate to one route */
   navigate(route: String) {
     this.router.navigate([route])

@@ -91,6 +91,14 @@ export class SocketioService {
     })
   }
   
+  gameRequest(){
+    return new Observable<string>(observer =>{
+      this.socket.on('gameRequest', msg => {
+        observer.next(msg);
+      });
+    })
+  }
+
   isNull(){
     return this.socket == null
   }

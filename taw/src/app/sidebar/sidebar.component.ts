@@ -42,10 +42,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.tok = this.us.get_token()
         console.log("Sono in ascolto")
         this.notifyFriendReq()
+        this.notifyGameReq()
         this.username = this.us.get_username()
       } else if (msg == "Update user") {
         this.avatarImgURL = this.us.get_avatarImgURL()
         console.log("Sono in ascolto")
+        this.notifyGameReq()
         this.notifyFriendReq()
       }
     })
@@ -128,6 +130,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       console.log(this.notification);
     })
   }
+
   isFriendReq(type: string): boolean {
     if (type == 'friendRequest') {
       return true
@@ -135,6 +138,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       return false
     }
   }
+
   getFriendlist() {
     this.us.get_friendlist().subscribe((u) => {
       this.friendlist = []
@@ -159,6 +163,21 @@ export class SidebarComponent implements OnInit, OnDestroy {
   notifyFriendReq() {
     if (!this.sio.isNull()){
       this.subscriptionReq = this.sio.request().subscribe(msg => {
+        this.msg = JSON.parse(JSON.stringify(msg)).type
+        let user = JSON.parse(JSON.stringify(msg)).receiver
+        console.log(JSON.parse(JSON.stringify(msg)).type)
+        //console.log('got a msg: ' + msg);
+        if (msg) {
+          this.toastN("New "+this.msg+" by "+user)
+          //console.log('got a msg: ' + msg);
+        }
+      });
+    }
+  }
+
+  notifyGameReq(){
+    if (!this.sio.isNull()){
+      this.subscriptionReq = this.sio.gameRequest().subscribe(msg => {
         this.msg = JSON.parse(JSON.stringify(msg)).type
         let user = JSON.parse(JSON.stringify(msg)).receiver
         console.log(JSON.parse(JSON.stringify(msg)).type)

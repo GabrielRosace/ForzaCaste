@@ -250,6 +250,22 @@ export class UserHttpService {
 
   }
 
+  create_friendlymatchmaking(username: string){
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      type: "friendlyMatchmaking",
+      oppositePlayer: username,
+    }
+    return this.http.post(`${this.url}/game`,body,options)
+
+  }
+
+  block_unblock_friend(username: string){}
+
   has_moderator_role():boolean {
     // return this.userRole === 'MODERATOR'
     return this.get_role() === 'MODERATOR'
