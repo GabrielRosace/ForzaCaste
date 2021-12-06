@@ -1,10 +1,13 @@
 .myContainer{
-    height: 100%;
-    display: flex;
-    align-items: center;
-    padding-top: 40px;
-    padding-bottom: 40px;
-    background-color: #f5f5f5;
+  display: flex;
+  justify-content:center;
+  padding-top: 5vw;
+  padding-bottom: 10vw;
+  padding-left: 5vw;
+  padding-right: 5vw;
+  height: 100vh;
+  overflow-y: scroll;
+  background-color: #f5f5f5;
 }
 
 .homepagecontainer {
