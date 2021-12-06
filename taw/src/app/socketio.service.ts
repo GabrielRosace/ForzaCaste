@@ -21,6 +21,15 @@ export class SocketioService {
       }
     })
   }
+  gameChat():Observable<any>{
+
+    console.log(" Created gameChat")
+    return new Observable(observer => {
+      this.socket.on('gameChat', msg => {
+        observer.next(msg);
+      });
+    });
+  }
   result():Observable<any>{
 
     console.log(" Created result")
@@ -46,11 +55,13 @@ export class SocketioService {
       });
     });
   }
+  /*TO REMOVE
+
   makemove(col:String){
     console.log(" Created makemove")
     console.log(this.us.get_username())
     this.socket.emit('move',{username:this.us.get_username(),move:col})
-  }
+  }*/
   lobby(){
     console.log("Created lobby")
     return new Observable(observer => {
@@ -63,19 +74,22 @@ export class SocketioService {
     console.log("createMatchRoom emit")
     this.socket.emit('createMatchRoom',{username:this.us.get_username()})
   }
-
+/*
   addFriend(receiver: String, type: String): void{
-    console.log("Add friend")
-    this.socket.emit('notification',{username:this.us.get_username(), receiver, type})
-  } 
+    console.log("Add friend", this.us.get_username())
+    let clientMessage = JSON.stringify({error : false, username: this.us.get_username(), receiver: receiver, type: type})
+    console.log(clientMessage)
+    this.socket.emit('notification',JSON.parse(clientMessage))
+  } */
 
   request(){
     return new Observable<string>(observer =>{
-      this.socket.on('friendNot', msg => {
+      this.socket.on('newNotification', msg => {
         observer.next(msg);
       });
     })
   }
+
   disconnect(): void{
     this.socket.close()
   }

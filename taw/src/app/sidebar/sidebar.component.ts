@@ -4,6 +4,9 @@ import { Subscription } from 'rxjs';
 import { UserHttpService } from '../user-http.service';
 import { Socket } from 'socket.io-client';
 import { SocketioService } from '../socketio.service';
+import { AppComponent } from '../app.component';
+import { ToastService } from '../_services/toast.service';
+import {MatBadgeModule} from '@angular/material/badge';
 
 
 @Component({
@@ -17,19 +20,62 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public avatarImgURL: string = ""
   private tok: string = ""
   private subscriptionName: Subscription
+  private subscriptionReq: Subscription
+  //private subsctiptionNot: Subscription
   public role: string = ""
+  public type: string = ""
+  public friendlist: any[] = []
+  public notification: any[] = []
   public msg: string = ""
 
-  constructor(private sio: SocketioService, private us: UserHttpService, private router: Router) {
+  constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService,private router:Router) {
     this.subscriptionName = this.us.get_update().subscribe((msg) => {
       // Update username and icon of logged user
-      this.ngOnInit()
+      msg = msg.text
+
       if (msg == "User logged out") {
-        this.tok = ""
+        this.tok = ''
+        this.username = ''
+        this.avatarImgURL = ''
       } else if (msg == "User logged in") {
         this.tok = this.us.get_token()
+        this.username = this.us.get_username()
+      } else if (msg == "Update user") {
+        this.avatarImgURL = this.us.get_avatarImgURL()
       }
     })
+
+    this.subscriptionReq = this.sio.request().subscribe(msg => {
+      this.msg =JSON.parse(JSON.stringify(msg)).message
+      console.log('got a msg: ' + msg);
+      if(msg){
+        this.toastN(msg)
+        console.log('got a msg: ' + msg);
+      }
+    });
+/*
+    this.us.get_friendlist().subscribe((u) => {
+      this.friendlist = []
+      console.log()
+      u.friendlist.forEach((element: { [x: string]: any; }) => {
+        console.log(1)
+        this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
+        console.log(this.friendlist);
+      });
+      console.log(this.friendlist);
+    })*/
+
+    /*
+    this.subsctiptionNot =  this.us.get_notification().subscribe((u) => {
+      this.notification = []
+      console.log()
+      u.notification.forEach((element: { [x: string]: any; }) => {
+        console.log(1)
+        this.notification.push({ id: element['_id'], username: element['sender'], type: element['type'] })
+        console.log(this.notification);
+      });
+      console.log(this.notification);
+    })*/
   }
 
   ngOnInit(): void {
@@ -42,14 +88,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.username = ''
       this.avatarImgURL = ''
     }
-    this.sio.request().subscribe(msg => {
-      this.msg = msg;
-      console.log('got a msg: ' + msg);
-    });
   }
 
   ngOnDestroy(): void {
     this.subscriptionName.unsubscribe()
+    this.subscriptionReq.unsubscribe()
   }
 
   has_moderator_role(): boolean{
@@ -66,11 +109,67 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return false
   }
 
+  toastN(msg: string) {
+    this.toast.show(msg, {
+      classname: 'bg-info text-light',
+      delay: 7000,
+      autohide: true
+    });
+  }
+
   request(){
+    console.log()
     this.sio.request().subscribe()
   }
-  addFriend(receiver: String, type: String){
-    this.sio.addFriend( receiver, type);
+
+  getNotification(){
+    this.us.get_notification().subscribe((u) => {
+      this.notification = []
+      console.log()
+      u.notification.forEach((element: { [x: string]: any; }) => {
+        console.log(1)
+        if(!(element['type'] == 'randomMatchmaking')){
+          this.notification.push({ id: element['_id'], sender: element['sender'], type: element['type'] })
+          console.log(this.notification);
+        }
+      });
+      console.log(this.notification);
+    })
+  }
+  isFriendReq(type: string): boolean{
+    if(type=='friendRequest'){
+      return true
+    }else{
+      return false
+    }
+  }
+  getFriendlist(){
+    this.us.get_friendlist().subscribe((u) => {
+      this.friendlist = []
+      console.log()
+      u.friendlist.forEach((element: { [x: string]: any; }) => {
+        console.log(1)
+        this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
+        console.log(this.friendlist);
+      });
+      console.log(this.friendlist);
+    })
+  }
+
+  //Used to send a new friendRequest
+  addFriend(receiver: string, type: string){
+    console.log("receiver: ", receiver)
+    this.us.add_friendRequest(receiver).subscribe((data) => {
+      this.toastN("Request Forwarded")
+    })
+  }
+  
+  //Is used to add a new friend in the friendlist, when the friendRequest is accepted 
+  addFriendToFriendlist(sender: string, accepted: boolean){
+    console.log("sender: ", sender)
+    this.us.add_friend(sender,accepted).subscribe((data) => {
+      this.toastN("Request Accepted")
+    })
   }
 
   navigate(route: String) {

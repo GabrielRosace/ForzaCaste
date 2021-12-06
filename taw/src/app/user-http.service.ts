@@ -9,10 +9,10 @@ import { Router } from '@angular/router';
 interface TokenData {
   username: string,
   roles: string,
-  mail: string,
+  // mail: string,
   id: string,
-  state: string,
-  avatarImgURL: string
+  // state: string,
+  // avatarImgURL: string
 }
 
 
@@ -22,6 +22,9 @@ export class UserHttpService {
   private token = ''
   public url = 'http://localhost:8080' //TODO cambiare indirizzo
   private subjectName = new Subject<any>()
+  // public userRole: string = ''
+  private img: string = ''
+  private mail: string = ''
 
   private rememberToken: boolean = false
 
@@ -45,9 +48,20 @@ export class UserHttpService {
       // this.router.navigate(['login'])
       this.send_update("No token found in local storage")
     } else {
+      this.updateUserInfo()
       console.log("JWT loaded from local storage")
     }
   }
+
+  updateUserInfo() {
+    this.get_user().subscribe((u) => {
+      this.mail = u.mail
+      this.img = u.avatarImgURL
+      // this.userRole = u.role
+      this.send_update("Update user")
+    })
+  }
+
 
   updateToken(payload: string) {
     if (this.rememberToken) {
@@ -80,6 +94,7 @@ export class UserHttpService {
         this.token = data.token
         this.rememberToken = remember
         this.updateToken(this.token)
+        this.updateUserInfo()
       })
     )
   }
@@ -139,6 +154,8 @@ export class UserHttpService {
   logout() {
     console.log("Logging out")
     this.token = ''
+    this.img = ''
+    this.mail = ''
     this.updateToken(this.token)
     this.send_update("User logged out")
   }
@@ -167,11 +184,11 @@ export class UserHttpService {
   }
 
   get_avatarImgURL() {
-    return (jwt_decode(this.token) as TokenData).avatarImgURL
+    return this.img
   }
 
   get_mail() {
-    return (jwt_decode(this.token) as TokenData).mail
+    return this.mail
   }
 
   get_role() {
@@ -188,6 +205,7 @@ export class UserHttpService {
     }
     return this.http.get<User>(`${this.url}/users/${this.get_username()}`, options)
   }
+
   get_friendlist():Observable<any> {
     const options = {
       headers: new HttpHeaders({
@@ -196,6 +214,29 @@ export class UserHttpService {
     }
     return this.http.get(`${this.url}/friend`,options)
   }
+
+  get_notification():Observable<any> {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`,
+      })
+    }
+    return this.http.get(`${this.url}/notification`,options)
+  }
+
+  add_friendRequest(receiver: string){
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`,
+      })
+    }
+    const body = {
+      type: "friendRequest",
+      receiver: receiver,
+    }
+    return this.http.post(`${this.url}/notification`,body,options)
+  }
+
   create_matchmaking(){
     const options = {
       headers: new HttpHeaders({
@@ -205,15 +246,17 @@ export class UserHttpService {
     const body = {
       type: "randomMatchmaking",
     }
-    return this.http.post(`${this.url}/matchmaking`,body,options)
+    return this.http.post(`${this.url}/game`,body,options)
 
   }
 
   has_moderator_role():boolean {
+    // return this.userRole === 'MODERATOR'
     return this.get_role() === 'MODERATOR'
   }
 
   has_nonregmod_role():boolean {
+    // return this.userRole === 'NONREGMOD'
     return this.get_role() === 'NONREGMOD'
   }
 
@@ -242,6 +285,20 @@ export class UserHttpService {
     return this.http.delete(`${this.url}/users/${username}`,options)
   }
 
+  add_friend(sender: string, accepted: boolean){
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      sender: sender,
+      accepted: accepted,
+    }
+
+    return this.http.put(`${this.url}/notification`,body,options)
+  }
+
   get_userlist() {
     const options = {
       headers: new HttpHeaders({
@@ -251,5 +308,38 @@ export class UserHttpService {
     return this.http.get(`${this.url}/users`,options)
   }
 
+  makemove(col: number) {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      move: String(col)
+    }
+    return this.http.post(`${this.url}/move`,body,options)
+  }
+  sendMessage(text: string) {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      player: this.get_username(),
+      message:text
+    }
+    return this.http.post(`${this.url}/gameMessage`,body,options)
+  }
+  get_Otheruser(username:string): Observable<User> {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`,
+        'cache-control': 'no-cache',
+        'Content-Type': 'application/json',
+      })
+    }
+    return this.http.get<User>(`${this.url}/users/${username}`, options)
+  }
 }
 

@@ -2,7 +2,7 @@ export interface User{
   username: string,
   name: string,
   surname: string,
-  avatarImageURL: string,
+  avatarImgURL: string,
   mail: string,
   role: string,
   friendList: any[],

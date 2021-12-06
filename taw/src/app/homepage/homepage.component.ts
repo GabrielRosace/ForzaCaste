@@ -14,7 +14,9 @@ export class HomepageComponent implements OnInit {
   public username: string = ''
   public friendlist: any[] = []
   public lobby:Subscription
+
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
+    /* Subscribe to a socket's listener, the lobby, for knwo if i find a match */
     this.lobby=this.sio.lobby().subscribe(msg => {
       console.log('got a msg lobby: ' + msg);
       if(msg=='true'){
@@ -27,33 +29,67 @@ export class HomepageComponent implements OnInit {
       
     });
   }
+  
   ngOnDestroy(): void{
+    /* Delete the subscription from the socket's listener */
     this.lobby.unsubscribe();
   }
   
   
   ngOnInit(): void {
+    // if (!this.us.get_token()) {
+    //   this.router.navigate(["/"])
+    //   this.us.userRole = ''
+    // } else {
+    //   this.us.get_update().subscribe((msg) => {
+    //     msg = msg.text
+    //     if (msg == "Update user") {
+    //       console.log(`Update user ${this.us.userRole}`)
+    //       if (this.us.has_nonregmod_role()) {
+    //         this.router.navigate(['/profile'])
+    //       } else {
+    //         console.log("OU")
+    //         this.username = this.us.get_username()
+    //         this.us.get_friendlist().subscribe((u) => {
+    //           this.friendlist = []
+    //           // console.log()
+    //           u.friendlist.forEach((element: { [x: string]: any; }) => {
+    //             // console.log(1)
+    //             this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
+    //             console.log(this.friendlist);
+    //           });
+    //           console.log(this.friendlist);
+    //         })
+    //         // this.router.navigate(['/'])
+    //         this.username = this.us.get_username()
+    //       }
+    //     }
+    //   }, (err) => {
+    //     console.log(err)
+    //   })
+    // }
 
     if (!this.us.get_token()) {
       this.router.navigate(['/'])
     }else if (this.us.has_nonregmod_role()) {
       this.router.navigate(['/profile'])
     } else {
-      
-      
       this.username = this.us.get_username()
       this.us.get_friendlist().subscribe((u) => {
         this.friendlist = []
-        console.log()
+        // console.log()
         u.friendlist.forEach((element: { [x: string]: any; }) => {
-          console.log(1)
+          // console.log(1)
           this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
-          console.log(this.friendlist);
+          // console.log(this.friendlist);
         });
-        console.log(this.friendlist);
+        // console.log(this.friendlist);
       })
     }
+
+
   }
+  /* Call the function for creata a matchmaking */
   findmatch(){
     this.us.create_matchmaking().subscribe(
       (u)=>{
@@ -63,6 +99,7 @@ export class HomepageComponent implements OnInit {
       }
     )
   }
+  /* Navigate to one route */
   navigate(route: String) {
     this.router.navigate([route])
   }

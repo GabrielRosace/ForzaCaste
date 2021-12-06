@@ -18,6 +18,11 @@ import { NewModeratorComponent } from './new-moderator/new-moderator.component';
 import { SocketioService } from './socketio.service';
 import { UserDeletionComponent } from './user-deletion/user-deletion.component';
 import { GameComponent } from './game/game.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { ToastComponent } from './toast/toast.component';
+import {MatBadgeModule} from '@angular/material/badge';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { WatchComponent } from './watch/watch.component';
 
 @NgModule({
   declarations: [
@@ -30,13 +35,18 @@ import { GameComponent } from './game/game.component';
     UserProfileComponent,
     NewModeratorComponent,
     UserDeletionComponent,
-    GameComponent
+    GameComponent,
+    ToastComponent,
+    WatchComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
-    FontAwesomeModule
+    FontAwesomeModule,
+    NgbModule,
+    MatBadgeModule,
+    BrowserAnimationsModule
   ],
   providers: [
     { provide: UserHttpService, useClass: UserHttpService }

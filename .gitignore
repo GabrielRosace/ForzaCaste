@@ -110,4 +110,4 @@ mongo-volume/*
 .vscode/*
 *.map
 .vscodeignore
-*.js
+Backend/*.js

@@ -22,6 +22,13 @@
           </button>
         </li>
 
+        <li class="nav-item" *ngIf="username">
+          <!--Open the modal(modalNot)-->
+          <button class="nav-link text-white w-100 text-start" (click)="getNotification()" id="notification" data-bs-toggle="modal" data-bs-target="#modalNot">
+            Notification
+          </button>
+        </li>
+
         <li *ngIf="has_moderator_role()" class="nav-item">
           <button (click)="navigate('new-mod')" class="nav-link text-white w-100 text-start">
             Add new mod
@@ -36,18 +43,86 @@
       </ul>
       <hr>
 
-      <div *ngIf="msg" class="toast show">
-        <div class="toast-header">
+
+      <!--<p *ngIf="msg" ()="toastN('salve')"></p><div class="toast-header">
           <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
         </div>
         <div class="toast-body">
           {{msg}}
         </div>
-      </div>
+      </div>-->
 
-      <div *ngIf="username"  class="dropdown ms-3 profileIcon mb-3">
-        <a href="#" class="align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown">
-          <img *ngIf="!has_nonregmod_role()" src="{{avatarImgURL}}" alt="" width="32" height="32" class="rounded-circle me-2">
+      <!-- OFFCANVAS
+      <button class="btn btn-primary" id="friendList" type="button" data-bs-toggle="offcanvas"
+        data-bs-target="#friendListCanvas" aria-controls="friendListCanvas" width="32" height="32">FriendList</button>
+
+        <div class="offcanvas offcanvas-end text-black"  data-bs-backdrop="true" data-bs-scroll="true" id="friendListCanvas" aria-labelledby="offcanvasRightLabel">
+          <div class="offcanvas-header">
+            <h5 id="offcanvasRightLabel">Offcanvas right</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <label>sADLASDLASLDASLDASL</label>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalReq">
+              Launch static backdrop modal
+            </button>
+            
+            <div class="modal fade" id="modalReq" data-bs-backdrop="false" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalReqLabel" aria-hidden="false">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="modalReqLabel">Modal title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="form-floating">
+                      <input type="text" class="form-control" id="usernameFriend" placeholder="usernameAdd" #usernameAdd required>
+                      <label for="usernameFriend">Username</label>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" (click)="addFriend(usernameAdd.value, 'friendRequest')" class="btn btn-primary">Send the request</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>-->
+
+      <!--ModalNotification Display the list of all the notification except the randomMatchmaking notification-->
+      <div class="modal fade text-black" id="modalNot" data-bs-backdrop="true" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="modalReqLabel" aria-hidden="false">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalReqLabel">NOTIFICATION</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="list-group">
+                <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lnotification of notification' >
+                  <p  class="align-items-center">{{lnotification.type}} from {{lnotification.sender}} </p>
+                  <button *ngIf="lnotification.type == 'friendRequest'"  type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal"  (click)="addFriendToFriendlist(lnotification.sender,true)" >Accept</button>
+                  <button *ngIf="lnotification.type == 'friendRequest'" type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal"  (click)="addFriendToFriendlist(lnotification.sender,false)">Reject</button>
+                  <button *ngIf="lnotification.type == 'friendlyMatchmaking'"  type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal">Accept</button>
+                  <button *ngIf="lnotification.type == 'friendlyMatchmaking'" type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal">Reject</button>
+                </li>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--ModalNotification-->
+
+      <div *ngIf="username" class="dropdown ms-3 profileIcon mb-3">
+        <a href="#" class="align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1"
+          data-bs-toggle="dropdown">
+          <img *ngIf="!has_nonregmod_role()" src="{{avatarImgURL}}" alt="" width="32" height="32"
+            class="rounded-circle me-2">
           <strong>{{username}}</strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
@@ -57,6 +132,56 @@
           </li>
           <li><button class="dropdown-item" (click)="navigate('logout')">Sign out</button></li>
         </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OFFCANVAS -->
+<button *ngIf="username" class="btn btn-primary" (click)="getFriendlist()" id="friendList" type="button" data-bs-toggle="offcanvas"
+  data-bs-target="#friendListCanvas" aria-controls="friendListCanvas" width="32" height="32">FriendList</button>
+
+<div class="offcanvas offcanvas-end text-black" data-bs-backdrop="true" data-bs-scroll="true" id="friendListCanvas"
+  aria-labelledby="offcanvasRightLabel">
+  <div class="offcanvas-header">
+    <h5 id="offcanvasRightLabel">FriendList</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div class="list-group">
+      <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lfriend of friendlist'>
+        {{lfriend.username}}
+        <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal">Chat</button>
+        <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal">Block</button>
+      </li>
+    </div>
+    <button type="button" class="btn btn-primary" id="reqButton" data-bs-toggle="modal" data-bs-target="#modalReq">
+      ADD FRIEND
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="modalReq" data-bs-backdrop="false" data-bs-keyboard="false" tabindex="-1"
+      aria-labelledby="modalReqLabel" aria-hidden="false">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalReqLabel">ADD A NEW FRIEND</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-floating">
+              <input type="text" class="form-control" id="usernameFriend" placeholder="usernameAdd" #usernameAdd
+                required>
+              <label for="usernameFriend">Username</label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" (click)="addFriend(usernameAdd.value, 'friendRequest')"
+              (click)="usernameAdd.value = ''" class="btn btn-primary">Send
+              the request</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

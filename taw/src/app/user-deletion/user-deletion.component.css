@@ -14,10 +14,28 @@
   margin: auto;
 }
 
+::-webkit-scrollbar{
+  width: 2vw;
+  max-width: 3vw;
+}
+::-webkit-scrollbar-track{
+  border: 7px solid #232943;
+  box-shadow: inset 0 0 2.5px 2px rgba(0,0,0,0.5);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb{
+  background: linear-gradient(
+    45deg,
+    #6ff763,
+    #79ff6c
+  );
+  border-radius: 3px;
+}
+
 .scrollable{
   /* width: 70vw; */
   height: 60vh;
   /* height: 100px; */
   overflow-y: scroll;
-
+  scrollbar-width: 10em;
 }
