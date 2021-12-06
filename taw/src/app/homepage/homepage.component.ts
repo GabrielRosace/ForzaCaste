@@ -13,11 +13,11 @@ export class HomepageComponent implements OnInit {
 
   public username: string = ''
   public friendlist: any[] = []
-  public lobby:Subscription
+  public gameReady:Subscription
 
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
     /* Subscribe to a socket's listener, the lobby, for knwo if i find a match */
-    this.lobby=this.sio.lobby().subscribe(msg => {
+    this.gameReady=this.sio.gameReady().subscribe(msg => {
       console.log('got a msg lobby: ' + msg);
       if(msg=='true'){
         //rimuove il backdrop dei modal (bug di bootstrap)
@@ -32,7 +32,7 @@ export class HomepageComponent implements OnInit {
   
   ngOnDestroy(): void{
     /* Delete the subscription from the socket's listener */
-    this.lobby.unsubscribe();
+    this.gameReady.unsubscribe();
   }
   
   

@@ -62,10 +62,10 @@ export class SocketioService {
     console.log(this.us.get_username())
     this.socket.emit('move',{username:this.us.get_username(),move:col})
   }*/
-  lobby(){
-    console.log("Created lobby")
+  gameReady(){
+    console.log("Created gameReady")
     return new Observable(observer => {
-      this.socket.on('lobby', msg => {
+      this.socket.on('gameReady', msg => {
         observer.next(msg);
       });
     });
