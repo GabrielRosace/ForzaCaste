@@ -439,7 +439,7 @@ app.post('/game', auth, (req, res, next) => {
     }
     else if (req.body.type == 'friendlyMatchmaking') {
         user.getModel().findOne({ username: req.user.username }).then((us) => {
-            notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: us.username, deleted: false }).then((n) => {
+            notification.getModel().findOne({ type: "friendlyMatchmaking", sender: us.username, deleted: false }).then((n) => {
                 // if (notification.isNotification(n)) {
                 //   if (n != null && n.sender != us.username) {
                 //     const randomMatch = createNewRandomMatch(n.sender, n.receiver)
@@ -502,6 +502,8 @@ app.post('/game', auth, (req, res, next) => {
                             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
                         });
                     });
+                }
+                else {
                 }
             });
         });
