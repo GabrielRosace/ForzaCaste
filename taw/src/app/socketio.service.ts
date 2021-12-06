@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { UserHttpService } from './user-http.service';
 import { io, Socket } from "socket.io-client"
 import { Observable, observable } from 'rxjs';
+import { NULL_EXPR } from '@angular/compiler/src/output/output_ast';
 
 @Injectable({
   providedIn: 'root'
@@ -89,7 +90,10 @@ export class SocketioService {
       });
     })
   }
-
+  
+  isNull(){
+    return this.socket == null
+  }
   disconnect(): void{
     this.socket.close()
   }

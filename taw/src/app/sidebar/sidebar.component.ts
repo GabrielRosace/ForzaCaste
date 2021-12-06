@@ -6,7 +6,7 @@ import { Socket } from 'socket.io-client';
 import { SocketioService } from '../socketio.service';
 import { AppComponent } from '../app.component';
 import { ToastService } from '../_services/toast.service';
-import {MatBadgeModule} from '@angular/material/badge';
+import { MatBadgeModule } from '@angular/material/badge';
 
 
 @Component({
@@ -20,7 +20,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public avatarImgURL: string = ""
   private tok: string = ""
   private subscriptionName: Subscription
-  private subscriptionReq: Subscription
+  private subscriptionReq!: Subscription;
+  private subscriptionNot!: Subscription
   //private subsctiptionNot: Subscription
   public role: string = ""
   public type: string = ""
@@ -28,7 +29,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public notification: any[] = []
   public msg: string = ""
 
-  constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService,private router:Router) {
+  constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router) {
     this.subscriptionName = this.us.get_update().subscribe((msg) => {
       // Update username and icon of logged user
       msg = msg.text
@@ -39,31 +40,26 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.avatarImgURL = ''
       } else if (msg == "User logged in") {
         this.tok = this.us.get_token()
+        console.log("Sono in ascolto")
+        this.notifyFriendReq()
         this.username = this.us.get_username()
       } else if (msg == "Update user") {
         this.avatarImgURL = this.us.get_avatarImgURL()
+        console.log("Sono in ascolto")
+        this.notifyFriendReq()
       }
     })
-
-    this.subscriptionReq = this.sio.request().subscribe(msg => {
-      this.msg =JSON.parse(JSON.stringify(msg)).message
-      console.log('got a msg: ' + msg);
-      if(msg){
-        this.toastN(msg)
-        console.log('got a msg: ' + msg);
-      }
-    });
-/*
-    this.us.get_friendlist().subscribe((u) => {
-      this.friendlist = []
-      console.log()
-      u.friendlist.forEach((element: { [x: string]: any; }) => {
-        console.log(1)
-        this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
-        console.log(this.friendlist);
-      });
-      console.log(this.friendlist);
-    })*/
+    /*
+        this.us.get_friendlist().subscribe((u) => {
+          this.friendlist = []
+          console.log()
+          u.friendlist.forEach((element: { [x: string]: any; }) => {
+            console.log(1)
+            this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
+            console.log(this.friendlist);
+          });
+          console.log(this.friendlist);
+        })*/
 
     /*
     this.subsctiptionNot =  this.us.get_notification().subscribe((u) => {
@@ -93,16 +89,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscriptionName.unsubscribe()
     this.subscriptionReq.unsubscribe()
+    this.subscriptionNot.unsubscribe()
   }
 
-  has_moderator_role(): boolean{
+  has_moderator_role(): boolean {
     if (this.tok) {
       return this.us.has_moderator_role()
     }
     return false
   }
 
-  has_nonregmod_role(): boolean{
+  has_nonregmod_role(): boolean {
     if (this.tok) {
       return this.us.has_nonregmod_role()
     }
@@ -117,18 +114,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
     });
   }
 
-  request(){
-    console.log()
-    this.sio.request().subscribe()
-  }
-
-  getNotification(){
-    this.us.get_notification().subscribe((u) => {
+  getNotification() {
+    this.subscriptionNot = this.us.get_notification().subscribe((u) => {
       this.notification = []
       console.log()
       u.notification.forEach((element: { [x: string]: any; }) => {
         console.log(1)
-        if(!(element['type'] == 'randomMatchmaking')){
+        if (!(element['type'] == 'randomMatchmaking')) {
           this.notification.push({ id: element['_id'], sender: element['sender'], type: element['type'] })
           console.log(this.notification);
         }
@@ -136,14 +128,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
       console.log(this.notification);
     })
   }
-  isFriendReq(type: string): boolean{
-    if(type=='friendRequest'){
+  isFriendReq(type: string): boolean {
+    if (type == 'friendRequest') {
       return true
-    }else{
+    } else {
       return false
     }
   }
-  getFriendlist(){
+  getFriendlist() {
     this.us.get_friendlist().subscribe((u) => {
       this.friendlist = []
       console.log()
@@ -157,17 +149,31 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   //Used to send a new friendRequest
-  addFriend(receiver: string, type: string){
+  addFriend(receiver: string, type: string) {
     console.log("receiver: ", receiver)
     this.us.add_friendRequest(receiver).subscribe((data) => {
       this.toastN("Request Forwarded")
     })
   }
-  
+
+  notifyFriendReq() {
+    if (!this.sio.isNull()){
+      this.subscriptionReq = this.sio.request().subscribe(msg => {
+        this.msg = JSON.parse(JSON.stringify(msg)).type
+        let user = JSON.parse(JSON.stringify(msg)).receiver
+        console.log(JSON.parse(JSON.stringify(msg)).type)
+        //console.log('got a msg: ' + msg);
+        if (msg) {
+          this.toastN("New "+this.msg+" by "+user)
+          //console.log('got a msg: ' + msg);
+        }
+      });
+    }
+  }
   //Is used to add a new friend in the friendlist, when the friendRequest is accepted 
-  addFriendToFriendlist(sender: string, accepted: boolean){
+  addFriendToFriendlist(sender: string, accepted: boolean) {
     console.log("sender: ", sender)
-    this.us.add_friend(sender,accepted).subscribe((data) => {
+    this.us.add_friend(sender, accepted).subscribe((data) => {
       this.toastN("Request Accepted")
     })
   }

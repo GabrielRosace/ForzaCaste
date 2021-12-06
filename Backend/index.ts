@@ -829,6 +829,7 @@ app.post('/notification', auth, (req, res, next) => {
       if (req.body.type === "friendRequest") {
         user.getModel().findOne({username : req.body.receiver}).then((receiver : User) => {
           if(receiver.isFriend(u.username.toString())){
+            console.log("sfaccim")
             return res.status(400).json({error : true, errormessage : "You are already friend"})
           }
           else{
@@ -844,6 +845,7 @@ app.post('/notification', auth, (req, res, next) => {
                   if(socketIOclients[receiver.username.toString()]){
                     console.log("eccomi:", receiver.username.toString())
                     let receiverMessage = JSON.stringify({sender : u.username.toString(), type : "friendRequest"})
+                    //console.log("Messaggio inviato:"+)
                     socketIOclients[receiver.username.toString()].emit('newNotification', JSON.parse(receiverMessage))
                   }
                   return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver })
