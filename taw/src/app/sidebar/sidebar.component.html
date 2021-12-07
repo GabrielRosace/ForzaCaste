@@ -152,7 +152,7 @@
       <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lfriend of friendlist'>
         {{lfriend.username}}
         <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal">Chat</button>
-        <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal">Block</button>
+        <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal" (click)="blockUnblock(lfriend.username,lfriend.isBlocked)">{{lfriend.isBlocked}}</button>
       </li>
     </div>
     <button type="button" class="btn btn-primary" id="reqButton" data-bs-toggle="modal" data-bs-target="#modalReq">

@@ -264,7 +264,18 @@ export class UserHttpService {
 
   }
 
-  block_unblock_friend(username: string){}
+  block_unblock_friend(username: string, block: boolean){
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      username: username,
+      isBlocked: block,
+    }
+    return this.http.put(`${this.url}/friend`,body,options)
+  }
 
   has_moderator_role():boolean {
     // return this.userRole === 'MODERATOR'

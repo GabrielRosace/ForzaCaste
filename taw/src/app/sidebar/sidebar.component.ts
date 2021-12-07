@@ -28,6 +28,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public friendlist: any[] = []
   public notification: any[] = []
   public msg: string = ""
+  public btnVal: any[] = []
 
   constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router) {
     this.subscriptionName = this.us.get_update().subscribe((msg) => {
@@ -111,7 +112,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   toastN(msg: string) {
     this.toast.show(msg, {
       classname: 'bg-info text-light',
-      delay: 7000,
+      delay: 3000,
       autohide: true
     });
   }
@@ -145,7 +146,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
       console.log()
       u.friendlist.forEach((element: { [x: string]: any; }) => {
         console.log(1)
-        this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
+        if(element['isBlocked']){
+          this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: "UnBlock" })
+        }else{
+          this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: "Block" })
+        }
         console.log(this.friendlist);
       });
       console.log(this.friendlist);
@@ -172,6 +177,25 @@ export class SidebarComponent implements OnInit, OnDestroy {
           //console.log('got a msg: ' + msg);
         }
       });
+    }
+  }
+
+  blockUnblock( username: string, block: string){
+    let index = this.friendlist.findIndex((obj => obj.username == username))
+    console.log(this.friendlist[index])
+    if(block == "UnBlock"){
+      this.us.block_unblock_friend(username, false).subscribe((data) => {
+        //this.btnVal = "Block"
+        this.friendlist[index].isBlocked = "Block"
+        this.toastN("FRIEND UNBLOCKED")
+      })
+    }else if(block == "Block"){
+      console.log("DIO CANE")
+      this.us.block_unblock_friend(username, true).subscribe((data) => {
+        //his.btnVal = "UnBlocked"
+        this.friendlist[index].isBlocked = "UnBlock"
+        this.toastN("FRIEND BLOCKED")
+      })
     }
   }
 

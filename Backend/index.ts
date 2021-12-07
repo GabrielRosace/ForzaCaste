@@ -1179,6 +1179,7 @@ app.delete('/friend', auth, (req, res, next) => {
 })
 
 app.put('/friend', auth, (req, res, next) => {
+  console.log("CI SONO ARRIVATO SPERO")
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       user.getModel().findOne({username : req.body.username}).then((friend : User) => {
