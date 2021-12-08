@@ -25,8 +25,8 @@ export interface User extends mongoose.Document {
   setPassword: (pwd: string) => void,
   validatePassword: (pwd: string) => boolean,
   // Role management
-  hasAdminRole: () => boolean, //! Serve?
-  setAdmin: () => void, //! Serve?
+  // hasAdminRole: () => boolean, //! Serve?
+  // setAdmin: () => void, //! Serve?
   hasModeratorRole: () => boolean,
   setModerator: () => void,
   hasNonRegisteredModRole: () => boolean,
@@ -136,15 +136,15 @@ userSchema.methods.validatePassword = function (pwd: string): boolean {
   return (this.digest === digest);
 }
 
-userSchema.methods.hasAdminRole = function (): boolean {
-  // for (var roleidx in this.roles) {
-  //   if (this.roles[roleidx] === 'ADMIN')
-  //     return true;
-  // }
-  // return false;
-  // return this.roles.includes("ADMIN")
-  return this.roles === "ADMIN"
-}
+// userSchema.methods.hasAdminRole = function (): boolean {
+//   // for (var roleidx in this.roles) {
+//   //   if (this.roles[roleidx] === 'ADMIN')
+//   //     return true;
+//   // }
+//   // return false;
+//   // return this.roles.includes("ADMIN")
+//   return this.roles === "ADMIN"
+// }
 
 
 userSchema.methods.hasModeratorRole = function (): boolean {
@@ -164,13 +164,13 @@ userSchema.methods.hasUserRole = function (): boolean {
   return this.roles === "USER"
 }
 
-userSchema.methods.setAdmin = function () {
-  if (!this.hasAdminRole()) {
-    // this.roles = []
-    // this.roles.push("ADMIN");
-    this.roles = "ADMIN"
-  }
-}
+// userSchema.methods.setAdmin = function () {
+//   if (!this.hasAdminRole()) {
+//     // this.roles = []
+//     // this.roles.push("ADMIN");
+//     this.roles = "ADMIN"
+//   }
+// }
 
 userSchema.methods.setModerator = function () {
   if (!this.hasModeratorRole()) {

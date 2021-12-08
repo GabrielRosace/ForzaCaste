@@ -371,3 +371,10 @@ Quando all'utente viene notificato che ci sono dei messaggi ricevuti non ancora 
 
 ```
 
+### Notifica di un'utente online
+Registrarsi all'evento `online` e possono arrivare due informazioni:
+- {username: username, isConnected: true} <- L'utente username si è appena connesso
+- {username: username, isConnected: false} <- L'utente username si è appena disconnesso
+
+### Utenti online
+Facendo una richiesta HTTP in GET a `/users/online` si ottengono gli utenti che sono online in questo momento.
