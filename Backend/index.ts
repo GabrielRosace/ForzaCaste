@@ -1200,7 +1200,8 @@ app.get('/friend', auth, (req, res, next) => {
 })
 
 app.delete('/friend/:username', auth, (req, res, next) => {
-  let friend = req.param.username
+  let friend = req.params.username
+  console.log("Friend: "+friend)
   if(!friend){
     res.status(400).json({error: true, errormessage: "you should pass a friend username"})
   }

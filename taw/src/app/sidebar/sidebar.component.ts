@@ -165,6 +165,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
     })
   }
 
+  deleteFriend(friend: string) {
+    console.log("friend: ", friend)
+    this.us.delete_friend(friend).subscribe((data) => {
+      this.toastN("Friend deleted")
+    })
+  }
+
+
   notifyFriendReq() {
     if (!this.sio.isNull()){
       this.subscriptionReq = this.sio.request().subscribe(msg => {

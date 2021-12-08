@@ -91,15 +91,15 @@ userSchema.methods.validatePassword = function (pwd) {
     var digest = hmac.digest('hex');
     return (this.digest === digest);
 };
-userSchema.methods.hasAdminRole = function () {
-    // for (var roleidx in this.roles) {
-    //   if (this.roles[roleidx] === 'ADMIN')
-    //     return true;
-    // }
-    // return false;
-    // return this.roles.includes("ADMIN")
-    return this.roles === "ADMIN";
-};
+// userSchema.methods.hasAdminRole = function (): boolean {
+//   // for (var roleidx in this.roles) {
+//   //   if (this.roles[roleidx] === 'ADMIN')
+//   //     return true;
+//   // }
+//   // return false;
+//   // return this.roles.includes("ADMIN")
+//   return this.roles === "ADMIN"
+// }
 userSchema.methods.hasModeratorRole = function () {
     // for (var roleidx in this.roles) {
     //   if (this.roles[roleidx] === 'MODERATOR')
@@ -114,13 +114,13 @@ userSchema.methods.hasNonRegisteredModRole = function () {
 userSchema.methods.hasUserRole = function () {
     return this.roles === "USER";
 };
-userSchema.methods.setAdmin = function () {
-    if (!this.hasAdminRole()) {
-        // this.roles = []
-        // this.roles.push("ADMIN");
-        this.roles = "ADMIN";
-    }
-};
+// userSchema.methods.setAdmin = function () {
+//   if (!this.hasAdminRole()) {
+//     // this.roles = []
+//     // this.roles.push("ADMIN");
+//     this.roles = "ADMIN"
+//   }
+// }
 userSchema.methods.setModerator = function () {
     if (!this.hasModeratorRole()) {
         //   this.roles = []
