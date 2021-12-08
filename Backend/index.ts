@@ -1199,17 +1199,21 @@ app.get('/friend', auth, (req, res, next) => {
   })
 })
 
-app.delete('/friend', auth, (req, res, next) => {
+app.delete('/friend/:username', auth, (req, res, next) => {
+  let friend = req.param.username
+  if(!friend){
+    res.status(400).json({error: true, errormessage: "you should pass a friend username"})
+  }
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
-      user.getModel().findOne({username : req.body.username}).then((friend : User) => {
+      user.getModel().findOne({username : friend}).then((friend : User) => {
         if(u.isFriend(friend.username.toString())){
           u.deleteFriend(friend.username.toString())
           u.save().then((data) => {
               friend.deleteFriend(u.username.toString());
               friend.save().then((data) => {
                 console.log("Friend deleted.".blue)
-                return res.status(200).json({ error: false, errormessage: "", message: "Friend " + req.body.username + " removed from the friendlist." })
+                return res.status(200).json({ error: false, errormessage: "", message: "Friend " + friend + " removed from the friendlist." })
               }).catch((reason) => {
                 return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
               })
