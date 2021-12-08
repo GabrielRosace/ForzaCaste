@@ -30,7 +30,7 @@ export class GameComponent implements OnInit {
   public calledcol:number=0;
   public urturn:boolean=false;
   private move: Subscription;
-  private lobby: Subscription;
+  private gameReady: Subscription;
   private result: Subscription;
   private gameChat: Subscription;
   public win:string="";
@@ -86,7 +86,7 @@ export class GameComponent implements OnInit {
       document.getElementById("openstats")!.click();
 
     });
-    this.lobby=this.sio.lobby().subscribe(msg => {
+    this.gameReady=this.sio.gameReady().subscribe(msg => {
       console.log('got a msg lobby: ' + msg);
     });
     this.move=this.sio.move().subscribe(msg => {
@@ -126,7 +126,7 @@ export class GameComponent implements OnInit {
   ngOnDestroy(): void {
     this.move.unsubscribe();
     this.result.unsubscribe();
-    this.lobby.unsubscribe();
+    this.gameReady.unsubscribe();
     this.gameChat.unsubscribe();
   }
   /* Create random number - USELESS */

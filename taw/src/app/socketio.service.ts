@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { UserHttpService } from './user-http.service';
 import { io, Socket } from "socket.io-client"
 import { Observable, observable } from 'rxjs';
+import { NULL_EXPR } from '@angular/compiler/src/output/output_ast';
 
 @Injectable({
   providedIn: 'root'
@@ -62,10 +63,10 @@ export class SocketioService {
     console.log(this.us.get_username())
     this.socket.emit('move',{username:this.us.get_username(),move:col})
   }*/
-  lobby(){
-    console.log("Created lobby")
+  gameReady(){
+    console.log("Created gameReady")
     return new Observable(observer => {
-      this.socket.on('lobby', msg => {
+      this.socket.on('gameReady', msg => {
         observer.next(msg);
       });
     });
@@ -89,7 +90,18 @@ export class SocketioService {
       });
     })
   }
+  
+  gameRequest(){
+    return new Observable<string>(observer =>{
+      this.socket.on('gameRequest', msg => {
+        observer.next(msg);
+      });
+    })
+  }
 
+  isNull(){
+    return this.socket == null
+  }
   disconnect(): void{
     this.socket.close()
   }

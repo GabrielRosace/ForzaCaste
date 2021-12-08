@@ -569,7 +569,7 @@ app.post('/game', auth, (req, res, next) => {
   } 
   else if (req.body.type == 'friendlyMatchmaking') {
     user.getModel().findOne({ username: req.user.username }).then((us: User) => {
-      notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: us.username, deleted: false }).then((n) => {
+      notification.getModel().findOne({ type: "friendlyMatchmaking", sender : us.username, deleted: false }).then((n) => {
         // if (notification.isNotification(n)) {
         //   if (n != null && n.sender != us.username) {
         //     const randomMatch = createNewRandomMatch(n.sender, n.receiver)
@@ -637,6 +637,9 @@ app.post('/game', auth, (req, res, next) => {
 							return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
 						})
 					})
+        }
+        else{
+
         }
       })
     })
@@ -863,6 +866,7 @@ app.post('/notification', auth, (req, res, next) => {
       if (req.body.type === "friendRequest") {
         user.getModel().findOne({username : req.body.receiver}).then((receiver : User) => {
           if(receiver.isFriend(u.username.toString())){
+            console.log("sfaccim")
             return res.status(400).json({error : true, errormessage : "You are already friend"})
           }
           else{
@@ -878,6 +882,7 @@ app.post('/notification', auth, (req, res, next) => {
                   if(socketIOclients[receiver.username.toString()]){
                     console.log("eccomi:", receiver.username.toString())
                     let receiverMessage = JSON.stringify({sender : u.username.toString(), type : "friendRequest"})
+                    //console.log("Messaggio inviato:"+)
                     socketIOclients[receiver.username.toString()].emit('newNotification', JSON.parse(receiverMessage))
                   }
                   return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver })
@@ -1220,6 +1225,7 @@ app.delete('/friend', auth, (req, res, next) => {
 })
 
 app.put('/friend', auth, (req, res, next) => {
+  console.log("CI SONO ARRIVATO SPERO")
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       user.getModel().findOne({username : req.body.username}).then((friend : User) => {
@@ -1377,7 +1383,7 @@ app.post("/move", auth, (req, res, next) => {
             if (m.nTurns % 2 == 1 && m.player1 == username) {
               return makeMove(index, m, client, 'X', m.player2, res,username)
             } else if (m.nTurns % 2 == 0 && m.player2 == username) { //  player2's turns
-              return makeMove(index, m, client, '/', m.player1, res,username)
+              return makeMove(index, m, client, 'O', m.player1, res,username)
             } else { // trying to post move out of right turn
               let errorMessage = JSON.stringify({ "error": true, "codeError": 3, "errorMessage": "Wrong turn" })
               client.emit('move', JSON.parse(errorMessage))
@@ -1774,15 +1780,17 @@ function checkWinner(playground, player) {
   // ascendingDiagonalCheck
   for (let i = 3; i < 6; i++) {
     for (let j = 0; j < 4; j++) {
-      if (playground[i][j] == player && playground[i - 1][j + 1] == player && playground[i - 2][j + 2] == player && playground[i - 3][j + 3] == player)
+      if (playground[i][j] == player && playground[i - 1][j + 1] == player && playground[i - 2][j + 2] == player && playground[i - 3][j + 3] == player){
         winCheck = true
+      }
     }
   }
   // descendingDiagonalCheck
   for (let i = 3; i < 6; i++) {
     for (let j = 3; j < 7; j++) {
-      if (playground[i][j] == player && playground[i - 1][j - 1] == player && playground[i - 2][j - 2] == player && playground[i - 3][j - 3] == player)
+      if (playground[i][j] == player && playground[i - 1][j - 1] == player && playground[i - 2][j - 2] == player && playground[i - 3][j - 3] == player){
         winCheck = true
+      }
     }
   }
   return winCheck
