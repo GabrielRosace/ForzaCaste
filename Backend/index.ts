@@ -965,18 +965,21 @@ app.get('/notification', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       let inpending: boolean = req.query.inpending // if filter is present, i've to modify query introducing that filter
+      let makeNotificationRead: boolean = req.query.makeNotificationRead
       let query = notification.getModel().find({ receiver: u.username.toString() , deleted: false, inpending: inpending })
       if(inpending == undefined){
         query = notification.getModel().find({ receiver: u.username.toString() , deleted: false })
       }
       query.then((n) => {
-        notification.getModel().updateMany({receiver: u.username.toString() , deleted: false },{inpending: false},{}, (err,result)=>{
-          if(err){
-            console.log(`Error updating inpending notification: ${err}`.red)
-          } else {
-            console.log(`Mark notification as read`.green)
-          }
-        })
+        if (makeNotificationRead) {
+          notification.getModel().updateMany({receiver: u.username.toString() , deleted: false },{inpending: false},{}, (err,result)=>{
+            if(err){
+              console.log(`Error updating inpending notification: ${err}`.red)
+            } else {
+              console.log(`Mark notification as read`.green)
+            }
+          })
+        }
         return res.status(200).json({ error: false, errormessage: "", notification: n });
       }).catch((reason) => {
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
