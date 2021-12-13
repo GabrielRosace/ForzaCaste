@@ -326,6 +326,17 @@ export class UserHttpService {
     return this.http.put(`${this.url}/notification`,body,options)
   }
 
+  delete_friend(username: string) {
+    console.log("Friend 2: "+username)
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    return this.http.delete(`${this.url}/friend/${username}`,options)
+    
+  }
+
   get_userlist() {
     const options = {
       headers: new HttpHeaders({
