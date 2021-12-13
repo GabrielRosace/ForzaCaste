@@ -1109,6 +1109,7 @@ app.put('/notification', auth, (req, res, next) => {
               if(req.body.accepted){
                 u.addFriend(sender.username.toString(), false)
                 u.save().then((data) => {
+                  ios.emit('friend', {user: [req.user.username, req.body.sender], deleted: false})
                   console.log("New friend saved".green)
                 }).catch((reason) => {
                   return next({statusCode : 404, error : true, errormessage : "DB error: " + reason.errmsg})
@@ -1200,7 +1201,7 @@ app.get('/friend', auth, (req, res, next) => {
 })
 
 app.delete('/friend/:username', auth, (req, res, next) => {
-  let friend = req.param.username
+  let friend = req.param.username //! Sicuri che non sia params?
   if(!friend){
     res.status(400).json({error: true, errormessage: "you should pass a friend username"})
   }
@@ -1213,6 +1214,7 @@ app.delete('/friend/:username', auth, (req, res, next) => {
               friend.deleteFriend(u.username.toString());
               friend.save().then((data) => {
                 console.log("Friend deleted.".blue)
+                ios.emit('friend', {user: [req.user.username, friend], deleted: true})
                 return res.status(200).json({ error: false, errormessage: "", message: "Friend " + friend + " removed from the friendlist." })
               }).catch((reason) => {
                 return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })

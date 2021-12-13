@@ -378,3 +378,8 @@ Registrarsi all'evento `online` e possono arrivare due informazioni:
 
 ### Utenti online
 Facendo una richiesta HTTP in GET a `/users/online` si ottengono gli utenti che sono online in questo momento.
+
+### Notifica riguardante l'informazione di amicizia tra due utenti
+Quando viene stretta amicizia tra due utenti allora verrà notificato in broadcast sull'evento `friend` un oggetto così composto:
+- Nel caso di amicizia avvenuta: `{user: [user1, user2], deleted: false}`
+- Nel caso di amicizia cancellata: `{user: [user1, user2, deleted:true]}`
