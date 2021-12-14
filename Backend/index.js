@@ -849,19 +849,28 @@ app.get('/notification', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((u) => {
         if (u.hasModeratorRole() || u.hasUserRole()) {
             let inpending = req.query.inpending; // if filter is present, i've to modify query introducing that filter
+            console.log("Inpending: " + inpending);
+            let makeNotificationRead = req.query.makeNotificationRead;
+            //console.log("makeNotificationRead: "+makeNotificationRead)
             let query = notification.getModel().find({ receiver: u.username.toString(), deleted: false, inpending: inpending });
             if (inpending == undefined) {
                 query = notification.getModel().find({ receiver: u.username.toString(), deleted: false });
             }
             query.then((n) => {
-                notification.getModel().updateMany({ receiver: u.username.toString(), deleted: false }, { inpending: false }, {}, (err, result) => {
-                    if (err) {
-                        console.log(`Error updating inpending notification: ${err}`.red);
-                    }
-                    else {
-                        console.log(`Mark notification as read`.green);
-                    }
-                });
+                //console.log("makeNotificationRead: "+makeNotificationRead)
+                //let second = Boolean().valueOf()
+                console.log(typeof (makeNotificationRead));
+                if (makeNotificationRead == "true") {
+                    console.log("Sono entrato nell'if");
+                    notification.getModel().updateMany({ receiver: u.username.toString(), deleted: false }, { inpending: false }, {}, (err, result) => {
+                        if (err) {
+                            console.log(`Error updating inpending notification: ${err}`.red);
+                        }
+                        else {
+                            console.log(`Mark notification as read`.green);
+                        }
+                    });
+                }
                 return res.status(200).json({ error: false, errormessage: "", notification: n });
             }).catch((reason) => {
                 return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
@@ -981,15 +990,17 @@ app.put('/notification', auth, (req, res, next) => {
         if (u.hasModeratorRole() || u.hasUserRole()) {
             user.getModel().findOne({ username: req.body.sender }).then((sender) => {
                 if (sender.hasModeratorRole() || sender.hasUserRole()) {
-                    notification.getModel().findOne({ type: "friendRequest", sender: sender.username, deleted: false, inpending: true }).then((n) => {
+                    notification.getModel().findOne({ type: "friendRequest", sender: sender.username, deleted: false }).then((n) => {
                         if (n === null) {
                             return res.status(404).json({ error: true, errormessage: "Notification not found." });
                         }
                         else {
                             n.inpending = false;
+                            n.deleted = true;
                             if (req.body.accepted) {
                                 u.addFriend(sender.username.toString(), false);
                                 u.save().then((data) => {
+                                    ios.emit('friend', { user: [req.user.username, req.body.sender], deleted: false });
                                     console.log("New friend saved".green);
                                 }).catch((reason) => {
                                     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
@@ -1088,6 +1099,7 @@ app.delete('/friend/:username', auth, (req, res, next) => {
                         friend.deleteFriend(u.username.toString());
                         friend.save().then((data) => {
                             console.log("Friend deleted.".blue);
+                            ios.emit('friend', { user: [req.user.username, friend], deleted: true });
                             return res.status(200).json({ error: false, errormessage: "", message: "Friend " + friend + " removed from the friendlist." });
                         }).catch((reason) => {
                             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });

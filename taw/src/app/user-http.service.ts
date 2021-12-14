@@ -215,13 +215,21 @@ export class UserHttpService {
     return this.http.get(`${this.url}/friend`,options)
   }
 
-  get_notification():Observable<any> {
+  get_notification(makeNotificationRead: boolean, inpending?: boolean):Observable<any> {
     const options = {
       headers: new HttpHeaders({
         'authorization': `Bearer ${this.get_token()}`,
-      })
+      }),
+    }/*
+    const query = {
+      inpending: inpending,
+      makeNotificationRea: makeNotificationRea,
+    }*/
+    if(inpending != undefined){
+      return this.http.get(`${this.url}/notification?inpending=${inpending}&makeNotificationRead=${makeNotificationRead}`,options)
+    }else{
+      return this.http.get(`${this.url}/notification?makeNotificationRead=${makeNotificationRead}`,options)
     }
-    return this.http.get(`${this.url}/notification`,options)
   }
 
   add_friendRequest(receiver: string){

@@ -22,6 +22,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private subscriptionName: Subscription
   private subscriptionReq!: Subscription;
   private subscriptionNot!: Subscription
+  public badgeContent : number = 0;
+  public hideMatBadge : boolean = false;
   //private subsctiptionNot: Subscription
   public role: string = ""
   public type: string = ""
@@ -34,22 +36,21 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.subscriptionName = this.us.get_update().subscribe((msg) => {
       // Update username and icon of logged user
       msg = msg.text
-
       if (msg == "User logged out") {
         this.tok = ''
         this.username = ''
         this.avatarImgURL = ''
       } else if (msg == "User logged in") {
         this.tok = this.us.get_token()
-        console.log("Sono in ascolto")
         this.notifyFriendReq()
         this.notifyGameReq()
+        this.getNotification(false, true)
         this.username = this.us.get_username()
       } else if (msg == "Update user") {
         this.avatarImgURL = this.us.get_avatarImgURL()
-        console.log("Sono in ascolto")
         this.notifyGameReq()
         this.notifyFriendReq()
+        //this.getNotification(false, true)
       }
     })
     /*
@@ -83,6 +84,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.username = this.us.get_username()
       this.avatarImgURL = this.us.get_avatarImgURL()
       this.role = this.us.get_role()
+      //this.getNotification(false, true)
     } else {
       this.username = ''
       this.avatarImgURL = ''
@@ -117,18 +119,29 @@ export class SidebarComponent implements OnInit, OnDestroy {
     });
   }
 
-  getNotification() {
-    this.subscriptionNot = this.us.get_notification().subscribe((u) => {
+  getNotification(makeNotificationRead: boolean, inpending?: boolean) {
+    this.subscriptionNot = this.us.get_notification(makeNotificationRead, inpending).subscribe((u) => {
       this.notification = []
-      console.log()
+      console.log("inpending: "+inpending)
       u.notification.forEach((element: { [x: string]: any; }) => {
-        console.log(1)
+        //console.log(1)
         if (!(element['type'] == 'randomMatchmaking')) {
           this.notification.push({ id: element['_id'], sender: element['sender'], type: element['type'] })
-          console.log(this.notification);
+          //console.log(this.notification);
+          if(inpending == true){
+            this.badgeContent++
+          }else{
+            this.badgeContent = 0
+          }
         }
       });
+      if(this.badgeContent != 0){
+        this.hideMatBadge = false
+      }else{
+        this.hideMatBadge = true
+      }
       console.log(this.notification);
+      console.log("badgeContent: "+this.badgeContent)
     })
   }
 
@@ -177,13 +190,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (!this.sio.isNull()){
       this.subscriptionReq = this.sio.request().subscribe(msg => {
         this.msg = JSON.parse(JSON.stringify(msg)).type
-        let user = JSON.parse(JSON.stringify(msg)).receiver
+        let user = JSON.parse(JSON.stringify(msg)).sender
         console.log(JSON.parse(JSON.stringify(msg)).type)
         //console.log('got a msg: ' + msg);
         if (msg) {
           this.toastN("New "+this.msg+" by "+user)
           //console.log('got a msg: ' + msg);
         }
+        this.badgeContent = 0
+        this.getNotification(false, true)
       });
     }
   }
@@ -198,7 +213,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.toastN("FRIEND UNBLOCKED")
       })
     }else if(block == "Block"){
-      console.log("DIO CANE")
       this.us.block_unblock_friend(username, true).subscribe((data) => {
         //his.btnVal = "UnBlocked"
         this.friendlist[index].isBlocked = "UnBlock"
@@ -211,13 +225,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (!this.sio.isNull()){
       this.subscriptionReq = this.sio.gameRequest().subscribe(msg => {
         this.msg = JSON.parse(JSON.stringify(msg)).type
-        let user = JSON.parse(JSON.stringify(msg)).receiver
+        let user = JSON.parse(JSON.stringify(msg)).player
         console.log(JSON.parse(JSON.stringify(msg)).type)
         //console.log('got a msg: ' + msg);
         if (msg) {
           this.toastN("New "+this.msg+" by "+user)
           //console.log('got a msg: ' + msg);
         }
+        this.badgeContent = 0
+        this.getNotification(false, true)
       });
     }
   }

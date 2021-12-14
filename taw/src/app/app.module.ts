@@ -1,5 +1,8 @@
 import { NgModule, OnDestroy, OnInit } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import {MatBadgeModule} from '@angular/material/badge';
+import {MatIconModule} from '@angular/material/icon';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -18,9 +21,7 @@ import { NewModeratorComponent } from './new-moderator/new-moderator.component';
 import { SocketioService } from './socketio.service';
 import { UserDeletionComponent } from './user-deletion/user-deletion.component';
 import { GameComponent } from './game/game.component';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { ToastComponent } from './toast/toast.component';
-import {MatBadgeModule} from '@angular/material/badge';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { WatchComponent } from './watch/watch.component';
 
@@ -46,6 +47,7 @@ import { WatchComponent } from './watch/watch.component';
     FontAwesomeModule,
     NgbModule,
     MatBadgeModule,
+    MatIconModule,
     BrowserAnimationsModule
   ],
   providers: [

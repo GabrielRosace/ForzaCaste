@@ -49,3 +49,8 @@
   z-index: 100;
 }
 
+.mat-icon{
+  vertical-align: bottom;
+  font-size: 20px;
+}
+
