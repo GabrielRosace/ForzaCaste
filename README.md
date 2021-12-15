@@ -383,3 +383,40 @@ Facendo una richiesta HTTP in GET a `/users/online` si ottengono gli utenti che 
 Quando viene stretta amicizia tra due utenti allora verrà notificato in broadcast sull'evento `friend` un oggetto così composto:
 - Nel caso di amicizia avvenuta: `{user: [user1, user2], deleted: false}`
 - Nel caso di amicizia cancellata: `{user: [user1, user2, deleted:true]}`
+
+---
+## Nuova modalità (vs CPU)
+Per poter giocare contro l'AI bisogna prima di tutto creare il gioco, per farlo, fare la richiesta HTTP in POST `/game/cpu`, essa non necessità che le venga inviato nulla. Successivamente effettuare le mosse mediante la richiesta in POST `/move/cpu` mandando il seguente oggetto JSON
+```json
+{
+    "move": 1,
+    "difficulty": 3
+}
+```
+In cui `move` è la colonna in cui si vuole inserire il pezzo e `difficulty` è la difficoltà di gioco(Essa può essere compresa tra 2 e 7, dove 2 è quella più semplice. Si consiglia di usare sempre la stessa difficoltà per non compromettere le future giocate)
+
+Nella risposta si otterranno le seguenti informazioni:
+```json
+{
+    "error": false,
+    "errormessage": "Correctly added move",
+    "cpu": 2,
+    "winner": "Cpu wins"
+}
+```
+In cui `cpu` determina la mossa che è effettuato l'AI, mentre `winner`, se esiste, indica il vincitore
+
+## Richiesta di aiuto durante la partita
+Durante una partita in corso, si potrà chiedere l'aiuto dell'AI che risponderà con la mossa migliore che si può giocare in quel momento.
+Per far ciò basta effettuare la chiamata HTTP in GET `/move` essa ritornerà
+```json
+{
+    "error": false,
+    "errormessage": "",
+    "move": {
+        "0": 4,
+        "1": 9
+    }
+}
+```
+Dove nell'oggetto `move` è contenuta la mossa da fare, nello specifico in posizione `0` è indicata la colonna in cui l'AI inserirebbe il pezzo, e in `1` la possibilità di vincità. (Quest'ultimo valore si può ignorare)
