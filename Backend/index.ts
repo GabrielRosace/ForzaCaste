@@ -1123,15 +1123,21 @@ app.get('/notification', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       let inpending: boolean = req.query.inpending // if filter is present, i've to modify query introducing that filter
-      let makeNotificationRead: boolean = req.query.makeNotificationRead
-      let query = notification.getModel().find({ receiver: u.username.toString(), deleted: false, inpending: inpending })
-      if (inpending == undefined) {
-        query = notification.getModel().find({ receiver: u.username.toString(), deleted: false })
+      console.log("Inpending: "+inpending)
+      let makeNotificationRead = req.query.makeNotificationRead
+      //console.log("makeNotificationRead: "+makeNotificationRead)
+      let query = notification.getModel().find({ receiver: u.username.toString() , deleted: false, inpending: inpending })
+      if(inpending == undefined){
+        query = notification.getModel().find({ receiver: u.username.toString() , deleted: false })
       }
       query.then((n) => {
-        if (makeNotificationRead) {
-          notification.getModel().updateMany({ receiver: u.username.toString(), deleted: false }, { inpending: false }, {}, (err, result) => {
-            if (err) {
+        //console.log("makeNotificationRead: "+makeNotificationRead)
+        //let second = Boolean().valueOf()
+        console.log(typeof(makeNotificationRead))
+        if (makeNotificationRead == "true") {
+          console.log("Sono entrato nell'if")
+          notification.getModel().updateMany({receiver: u.username.toString() , deleted: false },{inpending: false},{}, (err,result)=>{
+            if(err){
               console.log(`Error updating inpending notification: ${err}`.red)
             } else {
               console.log(`Mark notification as read`.green)
@@ -1260,14 +1266,15 @@ app.put('/notification', auth, (req, res, next) => {
   //The user accept or decline a friendRequest
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
-      user.getModel().findOne({ username: req.body.sender }).then((sender) => {
-        if (sender.hasModeratorRole() || sender.hasUserRole()) {
-          notification.getModel().findOne({ type: "friendRequest", sender: sender.username, deleted: false, inpending: true }).then((n) => {
+      user.getModel().findOne({username : req.body.sender}).then((sender) => {
+        if(sender.hasModeratorRole() || sender.hasUserRole()){
+          notification.getModel().findOne({ type: "friendRequest", sender: sender.username, deleted: false}).then((n) => {
             if (n === null) {
               return res.status(404).json({ error: true, errormessage: "Notification not found." });
             } else {
               n.inpending = false
-              if (req.body.accepted) {
+              n.deleted = true
+              if(req.body.accepted){
                 u.addFriend(sender.username.toString(), false)
                 u.save().then((data) => {
                   ios.emit('friend', { user: [req.user.username, req.body.sender], deleted: false })
