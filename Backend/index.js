@@ -1012,6 +1012,7 @@ app.put('/notification', auth, (req, res, next) => {
                                     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
                                 });
                                 if (socketIOclients[sender.username.toString()]) {
+                                    //console.log("Sono riuscito a fare l'emit.")
                                     let senderMessage = JSON.stringify({ newFriend: u.username.toString() });
                                     socketIOclients[sender.username.toString()].emit('acceptedRequest', JSON.parse(senderMessage));
                                 }
@@ -1100,6 +1101,11 @@ app.delete('/friend/:username', auth, (req, res, next) => {
                         friend.save().then((data) => {
                             console.log("Friend deleted.".blue);
                             ios.emit('friend', { user: [req.user.username, friend], deleted: true });
+                            if (socketIOclients[friend.username.toString()]) {
+                                //console.log("Sono riuscito a fare l'emit.")
+                                let senderMessage = JSON.stringify({ deletedFriend: u.username.toString() });
+                                socketIOclients[friend.username.toString()].emit('friendDeleted', JSON.parse(senderMessage));
+                            }
                             return res.status(200).json({ error: false, errormessage: "", message: "Friend " + friend + " removed from the friendlist." });
                         }).catch((reason) => {
                             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });

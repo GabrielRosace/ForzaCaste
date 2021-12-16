@@ -109,6 +109,15 @@ export class UserHttpService {
     return this.http.get(`${this.url}/rankingstory`,options)
   }
 
+  getFriendRankingHistory(friend: string){
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    return this.http.get(`${this.url}/rankingstory/${friend}`,options)
+  }
+
   signin(username: string, password: string, name: string, surname: string, mail: string, avatarImgURL: string) {
     console.log(`Creation of user ${username}`);
 
@@ -204,6 +213,17 @@ export class UserHttpService {
       })
     }
     return this.http.get<User>(`${this.url}/users/${this.get_username()}`, options)
+  }
+
+  get_friend(friend: string): Observable<User> {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`,
+        'cache-control': 'no-cache',
+        'Content-Type': 'application/json',
+      })
+    }
+    return this.http.get<User>(`${this.url}/users/${friend}`, options)
   }
 
   get_friendlist():Observable<any> {

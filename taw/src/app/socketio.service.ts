@@ -99,6 +99,22 @@ export class SocketioService {
     })
   }
 
+  friendReqAccepted(){
+    return new Observable<string>(observer =>{
+      this.socket.on('acceptedRequest', msg => {
+        observer.next(msg);
+      });
+    })
+  }
+
+  friendDeleted(){
+    return new Observable<string>(observer =>{
+      this.socket.on('friendDeleted', msg => {
+        observer.next(msg);
+      });
+    })
+  }
+
   isNull(){
     return this.socket == null
   }

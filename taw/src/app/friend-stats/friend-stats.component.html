@@ -1,0 +1,33 @@
+<div class="container d-flex justify-content-center align-items-center direction vh-100" style="overflow-x: auto;">
+
+    <div class="card p-4 border border-1">
+        <p class="text-center fs-2 fw-bold">That's your friend profile</p>
+        <div class=" image d-flex flex-column justify-content-center align-items-center">
+            <button class="btn-card btn btn-secondary">
+                <img src="{{avatarImg}}" height="100" width="100" *ngIf='avatarImg' />
+            </button>
+            <span class="name" *ngIf='name'>{{name}} {{surname}}</span>
+            <span>Username: <span class="idd">{{username}}</span> </span>
+            <div class="d-flex flex-row justify-content-center align-items-center gap-2 m-1" *ngIf='mail'>
+                <span>mail: <span class="idd1">{{mail}}</span></span>
+            </div>
+            <span class="follow">you are a <span>{{role}}</span></span>
+        </div>
+    </div>
+
+    <div class="card p-4 border border-1 ms-1 statistics" *ngIf='mail'>
+        <p class="text-center fs-2 fw-bold">Your stats</p>
+        <div class="d-flex flex-wrap flex-row justify-content-between font">
+            <div class="d-flex flex-column align-items-center w-25" style="margin-top: 1vh;"
+                *ngFor='let stat of gameStats'>
+                <i class="bi {{stat.icon}}"></i>
+                <small class="text-muted">{{stat.name}}</small>
+                <h6>{{stat.value}}</h6>
+            </div>
+            <div class='d-flex flex-fill align-items-center'>
+                <canvas id="rankingchart" style="margin-top:5vh" #rankingchart></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>

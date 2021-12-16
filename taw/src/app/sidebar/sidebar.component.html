@@ -24,9 +24,11 @@
 
         <li class="nav-item" *ngIf="username">
           <!--Open the modal(modalNot)  <span mat-raised-button >Notification</span>-->
-          <button class="nav-link text-white w-100 text-start" (click)="getNotification(true, undefined)" id="notification"
-            data-bs-toggle="modal" data-bs-target="#modalNot">
-            <span mat-raised-button >Notification</span><mat-icon color="primary" matBadgeColor="accent" [matBadge]="badgeContent" matBadgePosition="above after" matBadgeOverlap="false" [matBadgeHidden]="hideMatBadge" >notifications</mat-icon>
+          <button class="nav-link text-white w-100 text-start" (click)="getNotification(true, undefined)"
+            id="notification" data-bs-toggle="modal" data-bs-target="#modalNot">
+            <span mat-raised-button>Notification</span>
+            <mat-icon color="primary" matBadgeColor="accent" [matBadge]="badgeContent" matBadgePosition="above after"
+              matBadgeOverlap="true" [matBadgeHidden]="hideMatBadge">notifications</mat-icon>
           </button>
         </li>
 
@@ -160,6 +162,8 @@
         {{lfriend.username}}
         <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal"
           (click)="deleteFriend(lfriend.username)">Delete</button>
+        <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal">Chat</button>
+        <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal" (click)="navigate('friend-stats/'+lfriend.username+'')">Stats</button>
         <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal"
           (click)="blockUnblock(lfriend.username,lfriend.isBlocked)">{{lfriend.isBlocked}}</button>
       </li>

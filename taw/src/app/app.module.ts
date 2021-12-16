@@ -24,6 +24,7 @@ import { GameComponent } from './game/game.component';
 import { ToastComponent } from './toast/toast.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { WatchComponent } from './watch/watch.component';
+import { FriendStatsComponent } from './friend-stats/friend-stats.component';
 
 @NgModule({
   declarations: [
@@ -38,7 +39,8 @@ import { WatchComponent } from './watch/watch.component';
     UserDeletionComponent,
     GameComponent,
     ToastComponent,
-    WatchComponent
+    WatchComponent,
+    FriendStatsComponent
   ],
   imports: [
     BrowserModule,

@@ -1289,8 +1289,9 @@ app.put('/notification', auth, (req, res, next) => {
                 }).catch((reason) => {
                   return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
                 })
-                if (socketIOclients[sender.username.toString()]) {
-                  let senderMessage = JSON.stringify({ newFriend: u.username.toString() })
+                if(socketIOclients[sender.username.toString()]){
+                  //console.log("Sono riuscito a fare l'emit.")
+                  let senderMessage = JSON.stringify({newFriend : u.username.toString()})
                   socketIOclients[sender.username.toString()].emit('acceptedRequest', JSON.parse(senderMessage))
                 }
               }
@@ -1380,14 +1381,19 @@ app.delete('/friend/:username', auth, (req, res, next) => {
         if (u.isFriend(friend.username.toString())) {
           u.deleteFriend(friend.username.toString())
           u.save().then((data) => {
-            friend.deleteFriend(u.username.toString());
-            friend.save().then((data) => {
-              console.log("Friend deleted.".blue)
-              ios.emit('friend', { user: [req.user.username, friend], deleted: true })
-              return res.status(200).json({ error: false, errormessage: "", message: "Friend " + friend + " removed from the friendlist." })
-            }).catch((reason) => {
-              return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-            })
+              friend.deleteFriend(u.username.toString());
+              friend.save().then((data) => {
+                console.log("Friend deleted.".blue)
+                ios.emit('friend', {user: [req.user.username, friend], deleted: true})
+                if(socketIOclients[friend.username.toString()]){
+                  //console.log("Sono riuscito a fare l'emit.")
+                  let senderMessage = JSON.stringify({deletedFriend : u.username.toString()})
+                  socketIOclients[friend.username.toString()].emit('friendDeleted', JSON.parse(senderMessage))
+                }
+                return res.status(200).json({ error: false, errormessage: "", message: "Friend " + friend + " removed from the friendlist." })
+              }).catch((reason) => {
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+              })
           }).catch((reason) => {
             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
           })

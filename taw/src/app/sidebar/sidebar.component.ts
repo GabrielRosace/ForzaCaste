@@ -44,12 +44,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.tok = this.us.get_token()
         this.notifyFriendReq()
         this.notifyGameReq()
+        this.notifyFriendReqAccepted()
+        this.notifyFriendDeleted()
         this.getNotification(false, true)
         this.username = this.us.get_username()
       } else if (msg == "Update user") {
         this.avatarImgURL = this.us.get_avatarImgURL()
         this.notifyGameReq()
         this.notifyFriendReq()
+        this.notifyFriendDeleted()
+        this.notifyFriendReqAccepted()
         //this.getNotification(false, true)
       }
     })
@@ -122,7 +126,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   getNotification(makeNotificationRead: boolean, inpending?: boolean) {
     this.subscriptionNot = this.us.get_notification(makeNotificationRead, inpending).subscribe((u) => {
       this.notification = []
-      console.log("inpending: "+inpending)
+      //console.log("inpending: "+inpending)
       u.notification.forEach((element: { [x: string]: any; }) => {
         //console.log(1)
         if (!(element['type'] == 'randomMatchmaking')) {
@@ -130,17 +134,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
           //console.log(this.notification);
           if(inpending == true){
             this.badgeContent++
-          }else{
-            this.badgeContent = 0
           }
         }
       });
+
+      if(makeNotificationRead){
+        this.badgeContent = 0
+      }
+
       if(this.badgeContent != 0){
         this.hideMatBadge = false
       }else{
         this.hideMatBadge = true
       }
-      console.log(this.notification);
+      //console.log(this.notification);
       console.log("badgeContent: "+this.badgeContent)
     })
   }
@@ -182,6 +189,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     console.log("friend: ", friend)
     this.us.delete_friend(friend).subscribe((data) => {
       this.toastN("Friend deleted")
+      this.getFriendlist()
     })
   }
 
@@ -199,6 +207,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         }
         this.badgeContent = 0
         this.getNotification(false, true)
+        this.getNotification(false)
       });
     }
   }
@@ -234,14 +243,49 @@ export class SidebarComponent implements OnInit, OnDestroy {
         }
         this.badgeContent = 0
         this.getNotification(false, true)
+        this.getNotification(false)
       });
     }
   }
+
+  notifyFriendReqAccepted(){
+    if (!this.sio.isNull()){
+      this.subscriptionReq = this.sio.friendReqAccepted().subscribe(msg => {
+        //this.msg = JSON.parse(JSON.stringify(msg)).type
+        let user = JSON.parse(JSON.stringify(msg)).newFriend
+        //console.log(JSON.parse(JSON.stringify(msg)).type)
+        console.log('user: ' + user);
+        if (msg) {
+          this.toastN("You are now friend with "+user)
+          //console.log('got a msg: ' + msg);
+        }
+        this.getFriendlist()
+      });
+    }
+  }
+
+  notifyFriendDeleted(){
+    if (!this.sio.isNull()){
+      this.subscriptionReq = this.sio.friendDeleted().subscribe(msg => {
+        this.msg = JSON.parse(JSON.stringify(msg)).deletedFriend
+        //let user = JSON.parse(JSON.stringify(msg)).newFriend
+        //console.log(JSON.parse(JSON.stringify(msg)).type)
+        console.log('msg Deleted Friend: ' + this.msg[0]);
+        if (msg) {
+          this.toastN("The friend "+this.msg+" has removed you from the friendlist.")
+          //console.log('got a msg: ' + msg);
+        }
+        this.getFriendlist()
+      });
+    }
+  }
+
   //Is used to add a new friend in the friendlist, when the friendRequest is accepted 
   addFriendToFriendlist(sender: string, accepted: boolean) {
     console.log("sender: ", sender)
     this.us.add_friend(sender, accepted).subscribe((data) => {
       this.toastN("Request Accepted")
+      this.getFriendlist()
     })
   }
 
