@@ -248,6 +248,10 @@ app.post('/users', (req, res, next) => {
     return next({ statusCode: 404, error: true, errormessage: "Some field missing, signin cannot be possibile" })
   }
 
+  if (req.body.username == 'cpu') {
+    return next({statusCode: 400, error: true, errormessage: "You cannot register yourself as cpu"})
+  }
+
   const doc = createNewUser(basicStats, req.body)
 
   doc.setUser()
