@@ -25,6 +25,7 @@ import { ToastComponent } from './toast/toast.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { WatchComponent } from './watch/watch.component';
 import { FriendStatsComponent } from './friend-stats/friend-stats.component';
+import { NgChartsModule } from 'ng2-charts';
 
 @NgModule({
   declarations: [
@@ -50,7 +51,8 @@ import { FriendStatsComponent } from './friend-stats/friend-stats.component';
     NgbModule,
     MatBadgeModule,
     MatIconModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    NgChartsModule
   ],
   providers: [
     { provide: UserHttpService, useClass: UserHttpService }

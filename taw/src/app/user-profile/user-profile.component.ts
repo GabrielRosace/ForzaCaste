@@ -1,9 +1,15 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { registerables, Chart, ChartType } from 'chart.js';
+import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
+// import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
+// import { registerables, Chart, ChartType } from 'chart.js';
 // import { Chart, ChartConfiguration, LineController, LineElement, PointElement, LinearScale, Title} from 'chart.js' 
 // import { Chart } from 'chart.js/auto';
 import { UserHttpService } from '../user-http.service';
+
+
+// import { ChartDataSets, ChartOptions } from 'chart.js';
+// import { Color, Label } from 'ng2-charts';
 
 @Component({
   selector: 'app-user-profile',
@@ -25,13 +31,25 @@ export class UserProfileComponent implements OnInit {
   public role: string = ''
   private statistics: any[] = []
 
+  public lineChartData: any[] = [];
+  public lineChartLabels: any[] = [];
+  public lineChartOptions = {
+    responsive: true,
+  };
+  public lineChartLegend = true;
+  public lineChartType:ChartType = 'line';
+  public lineChartPlugins = [];
+
+  
+
+
   public gameStats: any[] = []
   public totalGames: any
 
   public ranking: any[] = []
 
   constructor(private us: UserHttpService, private router: Router) {
-    Chart.register(...registerables)
+    // Chart.register(...registerables)
   }
 
   ngOnInit(): void {
@@ -43,7 +61,7 @@ export class UserProfileComponent implements OnInit {
       this.avatarImg = this.us.get_avatarImgURL()
       this.mail = this.us.get_mail()
       this.role = this.us.get_role()
-      
+
       if (!this.us.has_nonregmod_role()) {
         // getting ranking history to create graph
         this.us.getRankingstory().subscribe((r: any) => {
@@ -55,26 +73,8 @@ export class UserProfileComponent implements OnInit {
             arr.push(this.ranking[i].ranking)
           }
 
-
-          const data = {
-            labels: new Array(arr.length).fill(''), // I don't want to see labels, so i create an array of empty string
-            datasets: [{
-              label: 'Ranking history',
-              backgroundColor: 'rgb(255, 99, 132)',
-              borderColor: 'rgb(255, 99, 132)',
-              data: arr,
-            }]
-          };
-          const line: ChartType = 'line'
-          const config = {
-            type: line,
-            data: data,
-            option: {
-              responsive: true
-            }
-          }
-
-          const myChart = new Chart(this.chart.nativeElement.getContext('2d'), config)
+          this.lineChartLabels = new Array(arr.length).fill('')
+          this.lineChartData = [{ data: arr, label: "Ranking" }]
         })
 
         // getting user information to show statistics

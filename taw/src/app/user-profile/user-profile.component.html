@@ -26,8 +26,18 @@
         <small class="text-muted">{{stat.name}}</small>
         <h6>{{stat.value}}</h6>
       </div>
-      <div class='d-flex flex-fill align-items-center'>
-        <canvas id="rankingchart" style="margin-top:5vh" #rankingchart></canvas>
+      <div class='d-flex flex-item flex-fill align-items-center'>
+        <div style="display: block; width: 95%;">
+          <canvas baseChart width="350" height="180"
+            [datasets]="lineChartData"
+            [labels]="lineChartLabels"
+            [options]="lineChartOptions"
+            [type]="lineChartType"
+            [plugins]="lineChartPlugins"
+            style="margin-top: 5vh;"
+            >
+          </canvas>
+        </div>
       </div>
     </div>
   </div>
