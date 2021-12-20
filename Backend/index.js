@@ -76,6 +76,7 @@ const statistics = require("./Statistics");
 const notification = require("./Notification");
 const match = require("./Match");
 const message = require("./Message");
+const CPU = require("./cpu");
 //var ios = undefined;
 var app = express();
 // This dictionary contains the client that are conncted with the Socket.io server
@@ -172,6 +173,9 @@ app.post('/users', (req, res, next) => {
     if (!req.body.password || !req.body.username || !req.body.name || !req.body.surname || !req.body.mail || !req.body.avatarImgURL) {
         return next({ statusCode: 404, error: true, errormessage: "Some field missing, signin cannot be possibile" });
     }
+    if (req.body.username == 'cpu') {
+        return next({ statusCode: 400, error: true, errormessage: "You cannot register yourself as cpu" });
+    }
     const doc = createNewUser(basicStats, req.body);
     doc.setUser();
     doc.save().then((data) => {
@@ -206,7 +210,7 @@ app.get('/users/:username', auth, (req, res, next) => {
 });
 app.get('/users', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username, deleted: false }).then((u) => {
-        if (u.hasModeratorRole()) {
+        if (u.hasModeratorRole() || u.hasUserRole()) {
             user.getModel().find({ deleted: false }, "username name surname roles").then((list) => {
                 return res.status(200).json({ error: false, errormessage: "", userlist: list });
             }).catch((reason) => {
@@ -448,11 +452,11 @@ app.post('/game', auth, (req, res, next) => {
                         let watchersMessage = JSON.stringify({ playerTurn: randomMatch.player1.toString() });
                         ios.to(randomMatch.player1.toString() + 'Watchers').emit('gameStatus', JSON.parse(watchersMessage));
                         console.log("Match creation and game request update done".green);
-                        return res.status(200).json({ error: false, message: "Match have been created correctely" });
+                        return res.status(200).json({ error: false, errormessage: "Match have been created correctely" });
                     }
                     else {
                         console.log("Match request already exists".red);
-                        return res.status(200).json({ error: false, essage: "Match request already exists" });
+                        return res.status(200).json({ error: false, errormessage: "Match request already exists" });
                     }
                 }
                 else {
@@ -582,6 +586,139 @@ app.post('/game', auth, (req, res, next) => {
         console.log("ERROR: invalid request");
         return res.status(400).json({ error: true, errormessage: "Invalid request" });
     }
+});
+// Create game against AI
+app.post('/game/cpu', auth, (req, res, next) => {
+    let player = req.user.username;
+    user.getModel().findOne({ username: player }).then((u) => {
+        if (!(u.hasModeratorRole() || u.hasUserRole())) {
+            return res.status(403).json({ error: true, errormessage: "You cannot do it" });
+        }
+        const model = match.getModel();
+        const doc = new model({
+            inProgress: true,
+            player1: player,
+            player2: "cpu",
+            winner: null,
+            playground: createPlayground(),
+            chat: new Array(),
+            nTurns: 1
+        });
+        doc.save().then((m) => {
+            console.log(`Single player match has been created`.green);
+            return res.status(200).json({ error: false, errormessage: "Single player match has been created" });
+        });
+    });
+});
+// Ask AI which move is the best one
+app.get('/move', auth, (req, res, next) => {
+    let username = req.user.username;
+    user.getModel().findOne({ username: username }).then((u) => {
+        if (!(u.hasModeratorRole() || u.hasUserRole()))
+            return res.status(403).json({ error: true, errormessage: "You cannot do it" });
+        match.getModel().findOne({ inProgress: true, $or: [{ player1: username }, { player2: username }] }).then((m) => {
+            if (match.isMatch(m)) {
+                if (m.player1.toString() == username) {
+                    return res.status(200).json({ error: false, errormessage: "", move: CPU.minmax(m.playground, 5, -Infinity, Infinity, false, 'O', 'X') });
+                }
+                else {
+                    return res.status(200).json({ error: false, errormessage: "", move: CPU.minmax(m.playground, 5, -Infinity, Infinity, false, 'X', 'O') });
+                }
+            }
+            else {
+                return res.status(404).json({ error: true, errormessage: `Match not found` });
+            }
+        });
+    }).catch((err) => {
+        return res.status(401).json({ error: true, errormessage: `DB error: ${err}` });
+    });
+});
+// Playing against AI
+app.post('/move/cpu', auth, (req, res, next) => {
+    let move = req.body.move;
+    user.getModel().findOne({ username: req.user.username }).then((u) => {
+        if (!(u.hasModeratorRole() || u.hasUserRole()))
+            return res.status(403).json({ error: true, errormessage: "You cannot do it" });
+        if (move == undefined)
+            return res.status(401).json({ error: true, errormessage: "Incorrectly formed request" });
+        match.getModel().findOne({ player1: req.user.username, player2: "cpu", inProgress: true }).then((m) => {
+            if (match.isMatch(m)) {
+                let client = socketIOclients[req.user.username];
+                let index = parseInt(move);
+                if (index >= 0 && index <= 6) {
+                    if (m.playground[5][index] == '/') {
+                        m.playground = insertMove(m.playground, index, 'X');
+                        m.nTurns += 2;
+                        let winner = undefined;
+                        m.save().then((data) => {
+                            console.log(`Playground updated`.green);
+                            if (checkWinner(m.playground, 'X')) {
+                                winnerControl(client, m, m.player1, m.player2);
+                                winner = m.player1;
+                            }
+                            let fullCheck = false;
+                            for (let i = 0; i < 6; i++) {
+                                for (let j = 0; j < 7; j++) {
+                                    if (m.playground[i][j] == '/') {
+                                        fullCheck = true;
+                                    }
+                                }
+                            }
+                            if (!fullCheck) {
+                                let drawnMessage = JSON.stringify({ "winner": null });
+                                client.broadcast.to(m.player1).emit('result', JSON.parse(drawnMessage));
+                                client.emit('result', JSON.parse(drawnMessage));
+                                return res.status(200).json({ error: false, errormessage: "The match ends in a draw" });
+                            }
+                            // Minmax AI, with depth adjustable from 2 to 7
+                            let depth = req.body.difficulty;
+                            if (depth == undefined) {
+                                depth = 4; // Default difficulty
+                            }
+                            let cpuInfo = CPU.minmax(data.playground, depth, -Infinity, Infinity, true, 'X', 'O');
+                            data.playground = insertMove(data.playground, cpuInfo[0], 'O');
+                            if (checkWinner(data.playground, 'O')) {
+                                winnerControl(client, m, m.player1, m.player2);
+                                winner = "Cpu";
+                            }
+                            fullCheck = false;
+                            for (let i = 0; i < 6; i++) {
+                                for (let j = 0; j < 7; j++) {
+                                    if (data.playground[i][j] == '/') {
+                                        fullCheck = true;
+                                    }
+                                }
+                            }
+                            if (!fullCheck) {
+                                let drawnMessage = JSON.stringify({ "winner": null });
+                                client.broadcast.to(m.player1).emit('result', JSON.parse(drawnMessage));
+                                client.emit('result', JSON.parse(drawnMessage));
+                                return res.status(200).json({ error: false, errormessage: "The match ends in a draw" });
+                            }
+                            let returnObj = { error: false, errormessage: "Correctly added move", cpu: cpuInfo[0] };
+                            if (winner != undefined) {
+                                returnObj.winner = `${winner} wins`;
+                            }
+                            data.save().then((mm) => {
+                                return res.status(200).json(returnObj);
+                            });
+                        });
+                    }
+                    else {
+                        return res.status(400).json({ error: true, errormessage: "You cannot insert in a full column" });
+                    }
+                }
+                else {
+                    return res.status(400).json({ error: true, errormessage: "You cannot insert out of the playground" });
+                }
+            }
+            else {
+                return res.status(404).json({ error: true, errormessage: "Match cannot found, please start a new one" });
+            }
+        }).catch((err) => {
+            return res.status(401).json({ error: true, errormessage: `DB error: ${err}` });
+        });
+    });
 });
 app.delete('/game', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((user) => {
@@ -1350,8 +1487,10 @@ function winnerControl(client, m, loser, winner) {
     loserClient.emit('result', JSON.parse(loserMessage));
     let watchersMessage = JSON.stringify({ winner: m.player1 });
     client.broadcast.to(`${m.player1}Watchers`).emit('result', JSON.parse(watchersMessage));
-    updateStats(winner, m.nTurns, true);
-    updateStats(loser, m.nTurns, false);
+    if (!(loser == "cpu" || winner == "cpu")) {
+        updateStats(winner, m.nTurns, true);
+        updateStats(loser, m.nTurns, false);
+    }
     m.updateOne({ inProgress: false, winner: winner }).then((d) => {
         console.log("Winner updated".green);
     }).catch((reason) => {

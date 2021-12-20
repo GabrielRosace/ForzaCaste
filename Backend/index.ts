@@ -290,7 +290,7 @@ app.get('/users/:username', auth, (req, res, next) => {
 
 app.get('/users', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username, deleted: false }).then((u: User) => {
-    if (u.hasModeratorRole()) {
+    if (u.hasModeratorRole() || u.hasUserRole()) {
       user.getModel().find({ deleted: false }, "username name surname roles").then((list: User[]) => {
         return res.status(200).json({ error: false, errormessage: "", userlist: list })
       }).catch((reason) => {
