@@ -20,10 +20,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public avatarImgURL: string = ""
   private tok: string = ""
   private subscriptionName: Subscription
-  private subscriptionReq!: Subscription;
+  private subscriptionReq!: Subscription
   private subscriptionNot!: Subscription
-  public badgeContent : number = 0;
-  public hideMatBadge : boolean = false;
+  public badgeContent : number = 0
+  public hideMatBadge : boolean = false
+  public friendUsername: string = ""
+  public list?: any
   //private subsctiptionNot: Subscription
   public role: string = ""
   public type: string = ""
@@ -99,6 +101,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.subscriptionName.unsubscribe()
     this.subscriptionReq.unsubscribe()
     this.subscriptionNot.unsubscribe()
+  }
+
+  setName(username: string){
+    this.friendUsername = username
+  }
+
+  get_userlist() {
+    this.us.get_userlist().subscribe((elem:any) => {
+      this.list = elem.userlist
+    })
   }
 
   has_moderator_role(): boolean {
