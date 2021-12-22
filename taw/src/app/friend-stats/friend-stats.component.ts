@@ -24,6 +24,15 @@ export class FriendStatsComponent implements OnInit {
   public role: string = ''
   private statistics: any[] = []
 
+  public lineChartData: any[] = [];
+  public lineChartLabels: any[] = [];
+  public lineChartOptions = {
+    responsive: true,
+  };
+  public lineChartLegend = true;
+  public lineChartType:ChartType = 'line';
+  public lineChartPlugins = [];
+
   public gameStats: any[] = []
   public totalGames: any
 
@@ -57,25 +66,8 @@ export class FriendStatsComponent implements OnInit {
             }
 
 
-            const data = {
-              labels: new Array(arr.length).fill(''), // I don't want to see labels, so i create an array of empty string
-              datasets: [{
-                label: 'Ranking history',
-                backgroundColor: 'rgb(255, 99, 132)',
-                borderColor: 'rgb(255, 99, 132)',
-                data: arr,
-              }]
-            };
-            const line: ChartType = 'line'
-            const config = {
-              type: line,
-              data: data,
-              option: {
-                responsive: true
-              }
-            }
-
-            const myChart = new Chart(this.chart.nativeElement.getContext('2d'), config)
+            this.lineChartLabels = new Array(arr.length).fill('')
+          this.lineChartData = [{ data: arr, label: "Ranking" }]
           })
 
           // getting user information to show statistics

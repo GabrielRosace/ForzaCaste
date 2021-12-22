@@ -26,6 +26,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { WatchComponent } from './watch/watch.component';
 import { FriendStatsComponent } from './friend-stats/friend-stats.component';
 import { NgChartsModule } from 'ng2-charts';
+import { FriendChatComponent } from './friend-chat/friend-chat.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { NgChartsModule } from 'ng2-charts';
     GameComponent,
     ToastComponent,
     WatchComponent,
-    FriendStatsComponent
+    FriendStatsComponent,
+    FriendChatComponent
   ],
   imports: [
     BrowserModule,

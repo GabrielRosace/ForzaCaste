@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { UserHttpService } from '../user-http.service';
@@ -7,6 +7,7 @@ import { SocketioService } from '../socketio.service';
 import { AppComponent } from '../app.component';
 import { ToastService } from '../_services/toast.service';
 import { MatBadgeModule } from '@angular/material/badge';
+
 
 
 @Component({
@@ -26,6 +27,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public hideMatBadge : boolean = false
   public friendUsername: string = ""
   public list?: any
+  public messagelist?: any
+  public messageInpending?: any
   //private subsctiptionNot: Subscription
   public role: string = ""
   public type: string = ""
@@ -49,6 +52,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.notifyFriendReqAccepted()
         this.notifyFriendDeleted()
         this.getNotification(false, true)
+        this.getAllMessage()
         this.username = this.us.get_username()
       } else if (msg == "Update user") {
         this.avatarImgURL = this.us.get_avatarImgURL()
@@ -90,6 +94,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.username = this.us.get_username()
       this.avatarImgURL = this.us.get_avatarImgURL()
       this.role = this.us.get_role()
+      this.getAllMessage()
       //this.getNotification(false, true)
     } else {
       this.username = ''
@@ -109,7 +114,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   get_userlist() {
     this.us.get_userlist().subscribe((elem:any) => {
-      this.list = elem.userlist
+      console.log(elem)
+      this.list = elem.userlist.filter((u: any) => { return u.username!=this.us.get_username()})
     })
   }
 
@@ -141,8 +147,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
       //console.log("inpending: "+inpending)
       u.notification.forEach((element: { [x: string]: any; }) => {
         //console.log(1)
-        if (!(element['type'] == 'randomMatchmaking')) {
-          this.notification.push({ id: element['_id'], sender: element['sender'], type: element['type'] })
+        if (!(element['type'] == 'randomMatchmaking') && !(element['type'] == 'friendMessage')) {
+          var msg
+          if(element['type'] == 'friendlyMatchmaking'){
+            msg = "New Friendly Matchmaking from "+element['sender']
+          }else if(element['type'] == 'friendRequest'){
+            msg = "New Friend Request from "+element['sender']
+          }
+          this.notification.push({ id: element['_id'], sender: element['sender'], type: element['type'], msg: msg })
           //console.log(this.notification);
           if(inpending == true){
             this.badgeContent++
@@ -179,11 +191,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
       u.friendlist.forEach((element: { [x: string]: any; }) => {
         console.log(1)
         if(element['isBlocked']){
-          this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: "UnBlock" })
+          this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: "bi bi-person-check-fill" })
         }else{
-          this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: "Block" })
+          this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: "bi bi-person-x-fill" })
         }
-        console.log(this.friendlist);
       });
       console.log(this.friendlist);
     })
@@ -227,16 +238,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
   blockUnblock( username: string, block: string){
     let index = this.friendlist.findIndex((obj => obj.username == username))
     console.log(this.friendlist[index])
-    if(block == "UnBlock"){
+    if(block == "bi bi-person-check-fill"){
       this.us.block_unblock_friend(username, false).subscribe((data) => {
         //this.btnVal = "Block"
-        this.friendlist[index].isBlocked = "Block"
+        this.friendlist[index].isBlocked = "bi bi-person-x-fill"
         this.toastN("FRIEND UNBLOCKED")
       })
-    }else if(block == "Block"){
+    }else if(block == "bi bi-person-x-fill"){
       this.us.block_unblock_friend(username, true).subscribe((data) => {
         //his.btnVal = "UnBlocked"
-        this.friendlist[index].isBlocked = "UnBlock"
+        this.friendlist[index].isBlocked = "bi bi-person-check-fill"
         this.toastN("FRIEND BLOCKED")
       })
     }
@@ -300,6 +311,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.getFriendlist()
     })
   }
+
+  getAllMessage(){
+    this.us.get_userMessage().subscribe((elem:any) => {
+      //this.data.
+      this.messagelist = elem.allMessages
+      this.messageInpending = elem.inPendingMessages
+    })
+  }
+
+  
 
   navigate(route: String) {
     this.router.navigate([route])

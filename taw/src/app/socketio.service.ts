@@ -107,6 +107,13 @@ export class SocketioService {
     })
   }
 
+  newMessage(){
+    return new Observable<string>(observer =>{
+      this.socket.on('message', msg => {
+        observer.next(msg);
+      });
+    })
+  }
   friendDeleted(){
     return new Observable<string>(observer =>{
       this.socket.on('friendDeleted', msg => {

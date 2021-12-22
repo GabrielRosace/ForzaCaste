@@ -1052,6 +1052,7 @@ app.post('/message', auth, (req, res, next) => {
                         m.save().then((data) => {
                             console.log("Message have been saved correctely: ".green + data);
                             if (socketIOclients[receiver.username.toString()]) {
+                                console.log("Sono riuscito a fare l'emit");
                                 socketIOclients[receiver.username.toString()].emit('message', data);
                             }
                             return res.status(200).json({ error: false, errormessage: "" });
@@ -1081,7 +1082,10 @@ app.post('/message', auth, (req, res, next) => {
 app.put('/message', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((user) => {
         if (user.hasUserRole() || user.hasModeratorRole()) {
+            console.log("Receiver" + req.body.username);
+            console.log("Sender" + req.body.sender);
             message.getModel().find({ receiver: req.body.username, sender: req.body.sender, inpending: true }).then((m) => {
+                console.log("Ho trovato messaggi");
                 if (m) {
                     m.forEach((message) => {
                         message.inpending = false;

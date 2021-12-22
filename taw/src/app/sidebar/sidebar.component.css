@@ -20,6 +20,17 @@
     backdrop-filter: static;
    }
 }
+@media screen and (max-width: 450px) {
+  .friendListBtn {
+    background: #212529 !important;
+  }
+  #btnDel{
+    background: #212529 !important;
+   }
+   #btnBlock{
+    background: #212529 !important;
+   }
+}
 ::-webkit-scrollbar{
   width: 1vw;
   max-width: 2vw;
@@ -37,20 +48,114 @@
   );
   border-radius: 3px;
 }
+
+.list-group-item-info {
+  color: #212529;
+  background-color: #ffff;
+}
+
 .list-group{
   overflow-y: scroll;
   height:  65vh;
   max-height: 75vh;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.75)!important;
+  border-radius: 6px;
+  border: 1px solid rgba(209, 213, 219, 0.3);
 }
+
+#userList{
+  overflow-y: scroll;
+  height:  45vh;
+  max-height: 55vh;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.75)!important;
+  border-radius: 6px;
+  border: 1px solid rgba(209, 213, 219, 0.3);
+}
+
 #friendList{
   position: fixed;
   bottom: 2%;
   right: 2%;
   z-index: 100;
 }
-
+.offcanvas{
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.75);
+  border-radius: 6px;
+  border: 1px solid rgba(209, 213, 219, 0.3);
+}
 .mat-icon{
   vertical-align: bottom;
   font-size: 20px;
 }
 
+.friendListBtn {
+  outline: none;
+  cursor: pointer;
+  border: none;
+  padding: 0.5vh 0.6vw;
+  margin: 0;
+  margin-left: 0.25rem;
+  font-family: inherit;
+  font-size: inherit;
+  position: relative;
+  display: inline-block;
+  letter-spacing: 0.05rem;
+  font-weight: 700;
+  font-size: 17px;
+  border-radius: 500px;
+  overflow: hidden;
+  background: #59C9A5;
+  color: ghostwhite;
+ }
+ 
+ #btnDel{
+  background: red;
+ }
+ #btnBlock{
+  background: #E59500;
+ }
+ #reqButton{
+   position: relative;
+   left: 34%;
+   right: 34%;
+   top: 3%;
+ }
+ .friendListBtn span {
+  position: relative;
+  z-index: 10;
+  transition: color 0.4s;
+ }
+ 
+ .friendListBtn:hover span {
+  color: white;
+ }
+ 
+ .friendListBtn::before,
+ .friendListBtn::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10vw;
+  height: 10vh;
+  z-index: 0;
+ }
+ 
+ .friendListBtn::before {
+  content: "";
+  background: #212529;
+  width: 12vw;
+  left: -10%;
+  transform: skew(30deg);
+  transition: transform 0.4s cubic-bezier(0.3, 1, 0.8, 1);
+ }
+ 
+ .friendListBtn:hover::before {
+  transform: translate3d(100%, 0, 0);
+ }
+ 

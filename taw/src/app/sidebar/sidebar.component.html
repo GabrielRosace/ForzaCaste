@@ -28,7 +28,8 @@
             id="notification" data-bs-toggle="modal" data-bs-target="#modalNot">
             <span mat-raised-button>Notification</span>
             <mat-icon color="primary" matBadgeColor="accent" [matBadge]="badgeContent" matBadgePosition="above after"
-              matBadgeOverlap="true" [matBadgeHidden]="hideMatBadge">notifications</mat-icon>
+              matBadgeOverlap="true" [matBadgeHidden]="hideMatBadge" [ngStyle]="{'color':'white'}">notifications
+            </mat-icon>
           </button>
         </li>
 
@@ -106,15 +107,17 @@
               <div class="list-group">
                 <li class="list-group-item d-flex justify-content-between align-items-center"
                   *ngFor='let lnotification of notification'>
-                  <p class="align-items-center">{{lnotification.type}} from {{lnotification.sender}} </p>
-                  <button *ngIf="lnotification.type == 'friendRequest'" type="button" class=" btn btn-warning mybtn"
-                    data-bs-dismiss="modal" (click)="addFriendToFriendlist(lnotification.sender,true)">Accept</button>
-                  <button *ngIf="lnotification.type == 'friendRequest'" type="button" class=" btn btn-warning mybtn"
-                    data-bs-dismiss="modal" (click)="addFriendToFriendlist(lnotification.sender,false)">Reject</button>
-                  <button *ngIf="lnotification.type == 'friendlyMatchmaking'" type="button"
-                    class=" btn btn-warning mybtn" data-bs-dismiss="modal">Accept</button>
-                  <button *ngIf="lnotification.type == 'friendlyMatchmaking'" type="button"
-                    class=" btn btn-warning mybtn" data-bs-dismiss="modal">Reject</button>
+                  {{lnotification.msg}}
+                  <span class="align-items-right">
+                  <button *ngIf="lnotification.type == 'friendRequest'" type="button" class="friendListBtn"
+                    data-bs-dismiss="modal" (click)="addFriendToFriendlist(lnotification.sender,true)" id="btnBlock"><span><mat-icon>done_outline</mat-icon></span></button>
+                  <button *ngIf="lnotification.type == 'friendRequest'" type="button" class="friendListBtn"
+                    data-bs-dismiss="modal" (click)="addFriendToFriendlist(lnotification.sender,false)" id="btnDel"><span><mat-icon>not_interested</mat-icon></span></button>
+                    <button *ngIf="lnotification.type == 'friendlyMatchmaking'" type="button" class="friendListBtn"
+                    data-bs-dismiss="modal"  id="btnBlock"><span><mat-icon>done_outline</mat-icon></span></button>
+                  <button *ngIf="lnotification.type == 'friendlyMatchmaking'" type="button" class="friendListBtn"
+                    data-bs-dismiss="modal"  id="btnDel"><span><mat-icon>not_interested</mat-icon></span></button>
+                  </span>
                 </li>
               </div>
             </div>
@@ -160,49 +163,61 @@
     <div class="list-group">
       <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lfriend of friendlist'>
         {{lfriend.username}}
-        <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal"
-          (click)="deleteFriend(lfriend.username)">Delete</button>
-        <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal">Chat</button>
-        <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal"
-          (click)="navigate('friend-stats/'+lfriend.username+'')">Stats</button>
-        <button type="button" class=" btn btn-warning mybtn" data-bs-dismiss="modal"
-          (click)="blockUnblock(lfriend.username,lfriend.isBlocked)">{{lfriend.isBlocked}}</button>
+        <span class="align-items-right">
+          <button type="button" class="friendListBtn mr-1" data-bs-dismiss="modal"
+            (click)="deleteFriend(lfriend.username)" id="btnDel"><span>
+              <mat-icon>close</mat-icon>
+            </span></button>
+          <button type="button" class="friendListBtn mr-1" data-bs-dismiss="modal"
+            (click)="navigate('friend-chat/'+lfriend.username+'')"><span>
+              <mat-icon>chat</mat-icon>
+            </span></button>
+          <button type="button" class="friendListBtn mr-1" data-bs-dismiss="modal"
+            (click)="navigate('friend-stats/'+lfriend.username+'')"><span>
+              <mat-icon>equalizer</mat-icon>
+            </span></button>
+          <button type="button" class="friendListBtn" data-bs-dismiss="modal"
+            (click)="blockUnblock(lfriend.username,lfriend.isBlocked)"
+            id="btnBlock"><span><i class="{{lfriend.isBlocked}}"></i></span></button>
+        </span>
       </li>
     </div>
-    <button type="button" class="btn btn-primary" id="reqButton" data-bs-toggle="modal" (click)="get_userlist()" data-bs-target="#modalReq">
+    <button type="button" class="btn btn-primary mx-auto" id="reqButton" data-bs-toggle="modal" (click)="get_userlist()"
+      data-bs-target="#modalReq">
       ADD FRIEND
     </button>
 
-    <!-- Modal -->
-    <div class="modal fade" id="modalReq" data-bs-backdrop="false" data-bs-keyboard="false" tabindex="-1"
-      aria-labelledby="modalReqLabel" aria-hidden="false">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalReqLabel">ADD A NEW FRIEND</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="modalReq" data-bs-backdrop="false" data-bs-keyboard="false" tabindex="-1"
+  aria-labelledby="modalReqLabel" aria-hidden="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalReqLabel">ADD A NEW FRIEND</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-floating">
+          <input type="text" class="form-control" id="usernameFriend" placeholder="usernameAdd" #usernameAdd required
+            [value]="friendUsername">
+          <br>
+          <div class="list-group" id="userList">
+            <li
+              class="list-group-item list-group-item-action list-group-item-info d-flex justify-content-between align-items-center"
+              (click)="setName(user.username)" *ngFor='let user of list'>{{user.username}}</li>
           </div>
-          <div class="modal-body">
-            <div class="form-floating">
-              <input type="text" class="form-control" id="usernameFriend" placeholder="usernameAdd" #usernameAdd
-                required [value]="friendUsername">
-              <br>
-              <div class="list-group">
-                <li
-                  class="list-group-item list-group-item-action list-group-item-info d-flex justify-content-between align-items-center"
-                  (click)="setName(user.username)" *ngFor='let user of list'>{{user.username}}</li>
-              </div>
-              <label for="usernameFriend">Username</label>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" (click)="addFriend(usernameAdd.value, 'friendRequest')"
-              (click)="usernameAdd.value = ''" class="btn btn-primary">Send
-              the request</button>
-          </div>
+          <label for="usernameFriend">Username</label>
         </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" (click)="addFriend(usernameAdd.value, 'friendRequest')" (click)="usernameAdd.value = ''"
+          class="btn btn-primary" data-bs-dismiss="modal">Send
+          the request</button>
       </div>
     </div>
   </div>
 </div>
+<!--Modal-->

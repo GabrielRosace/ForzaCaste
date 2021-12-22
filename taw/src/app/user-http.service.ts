@@ -385,6 +385,7 @@ export class UserHttpService {
     }
     return this.http.post(`${this.url}/move`,body,options)
   }
+
   sendMessage(text: string) {
     const options = {
       headers: new HttpHeaders({
@@ -397,6 +398,42 @@ export class UserHttpService {
     }
     return this.http.post(`${this.url}/gameMessage`,body,options)
   }
+
+  get_userMessage(){
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    return this.http.get(`${this.url}/message`,options)
+  }
+  
+  send_chatMsg(receiver: string, message: string){
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      receiver: receiver,
+      message: message
+    }
+    return this.http.post(`${this.url}/message`,body,options)
+  }
+
+  readMessage(receiver: string, sender: string){
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      username: receiver,
+      sender: sender
+    }
+    return this.http.put(`${this.url}/message`,body,options)
+  }
+
   get_Otheruser(username:string): Observable<User> {
     const options = {
       headers: new HttpHeaders({

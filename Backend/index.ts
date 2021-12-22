@@ -1127,7 +1127,6 @@ app.get('/notification', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       let inpending: boolean = req.query.inpending // if filter is present, i've to modify query introducing that filter
-      console.log("Inpending: "+inpending)
       let makeNotificationRead = req.query.makeNotificationRead
       //console.log("makeNotificationRead: "+makeNotificationRead)
       let query = notification.getModel().find({ receiver: u.username.toString() , deleted: false, inpending: inpending })
@@ -1139,7 +1138,6 @@ app.get('/notification', auth, (req, res, next) => {
         //let second = Boolean().valueOf()
         console.log(typeof(makeNotificationRead))
         if (makeNotificationRead == "true") {
-          console.log("Sono entrato nell'if")
           notification.getModel().updateMany({receiver: u.username.toString() , deleted: false },{inpending: false},{}, (err,result)=>{
             if(err){
               console.log(`Error updating inpending notification: ${err}`.red)
