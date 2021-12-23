@@ -1416,9 +1416,19 @@ app.put('/friend', auth, (req, res, next) => {
         u.save().then((data) => {
           if (req.body.isBlocked) {
             console.log("Friend blocked.".blue)
+            if(socketIOclients[friend.username.toString()]){
+              //console.log("Sono riuscito a fare l'emit.")
+              let isBeingBlocked = JSON.stringify({blocked: true})
+              socketIOclients[friend.username.toString()].emit('friendBlocked', JSON.parse(isBeingBlocked))
+            }
             return res.status(200).json({ error: false, errormessage: "", message: "You blocked " + req.body.username + "." })
           } else {
             console.log("Friend unblocked.".blue)
+            if(socketIOclients[friend.username.toString()]){
+              //console.log("Sono riuscito a fare l'emit.")
+              let isBeingBlocked = JSON.stringify({blocked: false})
+              socketIOclients[friend.username.toString()].emit('friendBlocked', JSON.parse(isBeingBlocked))
+            }
             return res.status(200).json({ error: false, errormessage: "", message: "You can now send a message to " + req.body.username + "." })
           }
         }).catch((reason) => {

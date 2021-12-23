@@ -29,8 +29,12 @@ export class FriendChatComponent implements OnInit {
   public username: string = "" //TODO tipo user
   public avatarImgURL: string = ""
   private tok: string = ""
+  public imBlock!: boolean
   private subscriptionName!: Subscription
   public subscriptionMsg!: Subscription
+  public subscriptionBlck!: Subscription
+  public badgeContentMsg: number = 0
+  public hideMatBadgeMsg: boolean = false
   public role: string = ""
   public type: string = ""
 
@@ -66,8 +70,11 @@ export class FriendChatComponent implements OnInit {
       this.username = this.us.get_username()
       this.avatarImgURL = this.us.get_avatarImgURL()
       this.role = this.us.get_role()
+      this.imBlocked()
+      this.readMessage(this.us.get_username(), this.activeRoute.snapshot.params['friend'])
       this.openChat(this.activeRoute.snapshot.params['friend'])
       this.notifyNewMsg()
+      this.notifyBlocked()
       //this.getNotification(false, true)
     } else {
       this.username = ''
@@ -80,10 +87,25 @@ export class FriendChatComponent implements OnInit {
     this.subscriptionMsg.unsubscribe()
   }
 
-  sendMessage(message: string){
+  sendMessage(message: string) {
     this.us.send_chatMsg(this.activeRoute.snapshot.params['friend'], message).subscribe((data) => {
       var time = new Date();
       this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: message, time: time.toLocaleTimeString() });
+    })
+  }
+
+  imBlocked() {
+    this.us.get_friend(this.activeRoute.snapshot.params['friend']).subscribe((friend) => {
+      var fr: any
+      friend.friendList.filter((u: any) => {
+        if (u.username == this.us.get_username()) {
+          fr = u.isBlocked
+        }
+      })
+      console.log("Blocked: ")
+      //this.imBlock = fr.isBlocked
+      console.log(fr)
+      this.imBlock = fr
     })
   }
 
@@ -96,30 +118,69 @@ export class FriendChatComponent implements OnInit {
           var date = new Date(element.timestamp);
           if (element.sender == username) {
             //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
-            this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString()});
-          } else if (element.receiver == username) {
-            this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time:  date.toUTCString()});
-          }
-        })
-          /*
-          var date = new Date(element.timestamp);
-          if (element.sender == username) {
-            this.us.readMessage(this.us.get_username(), username)
             this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
           } else if (element.receiver == username) {
-            this.us.readMessage(username, this.us.get_username())
-            this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString()});
-          }*/
+            this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString() });
+          }
+        })
+        /*
+        var date = new Date(element.timestamp);
+        if (element.sender == username) {
+          this.us.readMessage(this.us.get_username(), username)
+          this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
+        } else if (element.receiver == username) {
+          this.us.readMessage(username, this.us.get_username())
+          this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString()});
+        }*/
       })
+      this.badgeContentMsg = 0
+      console.log("MsgList: ")
+      console.log(this.messageInpending)
+      this.messageInpending.forEach((element: any) => {
+        if (element.receiver == this.us.get_username()) {
+          this.badgeContentMsg++;
+        }
+      });
+      console.log("badgeContent")
+      console.log(this.badgeContentMsg)
+      if (this.badgeContentMsg == 0) {
+        this.hideMatBadgeMsg = true
+      }
     })
-    this.us.readMessage(this.us.get_username(), username).subscribe()
   }
 
-  notifyNewMsg(){
-    if (!this.sio.isNull()){
+  readMessage(myus: string, username: string){
+    this.us.readMessage(myus, username).subscribe()
+  }
+
+  getInpendinMsg(username: string) {
+    this.subscriptionName = this.us.get_userMessage().subscribe((elem: any) => {
+      this.messageInpending = elem.inPendingMessages
+      this.us.get_friend(username).subscribe((friend) => {
+        this.messageInpending.forEach((element: any) => {
+          var date = new Date(element.timestamp);
+          if (element.sender == username) {
+            //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
+            this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
+          }
+        })
+        this.us.readMessage(this.us.get_username(), username).subscribe()
+      })
+    })
+  }
+
+  notifyBlocked() {
+    if (!this.sio.isNull()) {
+      this.sio.beingBlocked().subscribe((msg) => {
+        this.imBlock = JSON.parse(JSON.stringify(msg)).blocked
+      })
+    }
+  }
+
+  notifyNewMsg() {
+    if (!this.sio.isNull()) {
       this.subscriptionMsg = this.sio.newMessage().subscribe((msg) => {
-        this.singleChat = []
-        this.openChat(this.activeRoute.snapshot.params['friend'])
+        this.getInpendinMsg(this.activeRoute.snapshot.params['friend'])
       })
     }
   }

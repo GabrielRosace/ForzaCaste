@@ -986,7 +986,6 @@ app.get('/notification', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((u) => {
         if (u.hasModeratorRole() || u.hasUserRole()) {
             let inpending = req.query.inpending; // if filter is present, i've to modify query introducing that filter
-            console.log("Inpending: " + inpending);
             let makeNotificationRead = req.query.makeNotificationRead;
             //console.log("makeNotificationRead: "+makeNotificationRead)
             let query = notification.getModel().find({ receiver: u.username.toString(), deleted: false, inpending: inpending });
@@ -998,7 +997,6 @@ app.get('/notification', auth, (req, res, next) => {
                 //let second = Boolean().valueOf()
                 console.log(typeof (makeNotificationRead));
                 if (makeNotificationRead == "true") {
-                    console.log("Sono entrato nell'if");
                     notification.getModel().updateMany({ receiver: u.username.toString(), deleted: false }, { inpending: false }, {}, (err, result) => {
                         if (err) {
                             console.log(`Error updating inpending notification: ${err}`.red);
@@ -1052,7 +1050,6 @@ app.post('/message', auth, (req, res, next) => {
                         m.save().then((data) => {
                             console.log("Message have been saved correctely: ".green + data);
                             if (socketIOclients[receiver.username.toString()]) {
-                                console.log("Sono riuscito a fare l'emit");
                                 socketIOclients[receiver.username.toString()].emit('message', data);
                             }
                             return res.status(200).json({ error: false, errormessage: "" });
@@ -1082,10 +1079,7 @@ app.post('/message', auth, (req, res, next) => {
 app.put('/message', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((user) => {
         if (user.hasUserRole() || user.hasModeratorRole()) {
-            console.log("Receiver" + req.body.username);
-            console.log("Sender" + req.body.sender);
             message.getModel().find({ receiver: req.body.username, sender: req.body.sender, inpending: true }).then((m) => {
-                console.log("Ho trovato messaggi");
                 if (m) {
                     m.forEach((message) => {
                         message.inpending = false;
@@ -1270,10 +1264,20 @@ app.put('/friend', auth, (req, res, next) => {
                 u.save().then((data) => {
                     if (req.body.isBlocked) {
                         console.log("Friend blocked.".blue);
+                        if (socketIOclients[friend.username.toString()]) {
+                            //console.log("Sono riuscito a fare l'emit.")
+                            let isBeingBlocked = JSON.stringify({ blocked: true });
+                            socketIOclients[friend.username.toString()].emit('friendBlocked', JSON.parse(isBeingBlocked));
+                        }
                         return res.status(200).json({ error: false, errormessage: "", message: "You blocked " + req.body.username + "." });
                     }
                     else {
                         console.log("Friend unblocked.".blue);
+                        if (socketIOclients[friend.username.toString()]) {
+                            //console.log("Sono riuscito a fare l'emit.")
+                            let isBeingBlocked = JSON.stringify({ blocked: false });
+                            socketIOclients[friend.username.toString()].emit('friendBlocked', JSON.parse(isBeingBlocked));
+                        }
                         return res.status(200).json({ error: false, errormessage: "", message: "You can now send a message to " + req.body.username + "." });
                     }
                 }).catch((reason) => {

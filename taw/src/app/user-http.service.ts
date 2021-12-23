@@ -433,7 +433,16 @@ export class UserHttpService {
     }
     return this.http.put(`${this.url}/message`,body,options)
   }
-
+  get_usersOnline(){
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`,
+        'cache-control': 'no-cache',
+        'Content-Type': 'application/json',
+      })
+    }
+    return this.http.get(`${this.url}/users/online`, options)
+  }
   get_Otheruser(username:string): Observable<User> {
     const options = {
       headers: new HttpHeaders({

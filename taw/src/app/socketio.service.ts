@@ -122,6 +122,21 @@ export class SocketioService {
     })
   }
 
+  isOnline(){
+    return new Observable<string>(observer =>{
+      this.socket.on('online', msg => {
+        observer.next(msg);
+      });
+    })
+  }
+
+  beingBlocked(){
+    return new Observable<string>(observer =>{
+      this.socket.on('friendBlocked', msg => {
+        observer.next(msg);
+      });
+    })
+  }
   isNull(){
     return this.socket == null
   }

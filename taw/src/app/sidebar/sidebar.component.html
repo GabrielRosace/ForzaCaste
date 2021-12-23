@@ -109,14 +109,24 @@
                   *ngFor='let lnotification of notification'>
                   {{lnotification.msg}}
                   <span class="align-items-right">
-                  <button *ngIf="lnotification.type == 'friendRequest'" type="button" class="friendListBtn"
-                    data-bs-dismiss="modal" (click)="addFriendToFriendlist(lnotification.sender,true)" id="btnBlock"><span><mat-icon>done_outline</mat-icon></span></button>
-                  <button *ngIf="lnotification.type == 'friendRequest'" type="button" class="friendListBtn"
-                    data-bs-dismiss="modal" (click)="addFriendToFriendlist(lnotification.sender,false)" id="btnDel"><span><mat-icon>not_interested</mat-icon></span></button>
+                    <button *ngIf="lnotification.type == 'friendRequest'" type="button" class="friendListBtn"
+                      data-bs-dismiss="modal" (click)="addFriendToFriendlist(lnotification.sender,true)"
+                      id="btnBlock"><span>
+                        <mat-icon>done_outline</mat-icon>
+                      </span></button>
+                    <button *ngIf="lnotification.type == 'friendRequest'" type="button" class="friendListBtn"
+                      data-bs-dismiss="modal" (click)="addFriendToFriendlist(lnotification.sender,false)"
+                      id="btnDel"><span>
+                        <mat-icon>not_interested</mat-icon>
+                      </span></button>
                     <button *ngIf="lnotification.type == 'friendlyMatchmaking'" type="button" class="friendListBtn"
-                    data-bs-dismiss="modal"  id="btnBlock"><span><mat-icon>done_outline</mat-icon></span></button>
-                  <button *ngIf="lnotification.type == 'friendlyMatchmaking'" type="button" class="friendListBtn"
-                    data-bs-dismiss="modal"  id="btnDel"><span><mat-icon>not_interested</mat-icon></span></button>
+                      data-bs-dismiss="modal" id="btnBlock"><span>
+                        <mat-icon>done_outline</mat-icon>
+                      </span></button>
+                    <button *ngIf="lnotification.type == 'friendlyMatchmaking'" type="button" class="friendListBtn"
+                      data-bs-dismiss="modal" id="btnDel"><span>
+                        <mat-icon>not_interested</mat-icon>
+                      </span></button>
                   </span>
                 </li>
               </div>
@@ -150,8 +160,11 @@
 
 <!-- OFFCANVAS -->
 <button *ngIf="username" class="btn btn-primary" (click)="getFriendlist()" id="friendList" type="button"
-  data-bs-toggle="offcanvas" data-bs-target="#friendListCanvas" aria-controls="friendListCanvas" width="32"
-  height="32">FriendList</button>
+  data-bs-toggle="offcanvas" data-bs-target="#friendListCanvas" aria-controls="friendListCanvas" width="32" height="32">
+  <mat-icon color="primary" matBadgeColor="accent" [matBadge]="badgeContentMsg" matBadgePosition="above after"
+    matBadgeOverlap="true" [matBadgeHidden]="hideMatBadgeMsg" [ngStyle]="{'color':'white'}">notifications
+  </mat-icon>FriendList
+</button>
 
 <div class="offcanvas offcanvas-end text-black" data-bs-backdrop="true" data-bs-scroll="true" id="friendListCanvas"
   aria-labelledby="offcanvasRightLabel">
@@ -163,22 +176,35 @@
     <div class="list-group">
       <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lfriend of friendlist'>
         {{lfriend.username}}
+        <!--
+        <span class="align-items-bottom">
+        <span class="dot bg-dark" ></span>
+      </span>-->
         <span class="align-items-right">
-          <button type="button" class="friendListBtn mr-1" data-bs-dismiss="modal"
+          <button type="button" class="friendListBtn mr-2" data-bs-dismiss="modal"
             (click)="deleteFriend(lfriend.username)" id="btnDel"><span>
               <mat-icon>close</mat-icon>
             </span></button>
-          <button type="button" class="friendListBtn mr-1" data-bs-dismiss="modal"
-            (click)="navigate('friend-chat/'+lfriend.username+'')"><span>
-              <mat-icon>chat</mat-icon>
-            </span></button>
-          <button type="button" class="friendListBtn mr-1" data-bs-dismiss="modal"
+          <button type="button" class="friendListBtn mr-6" data-bs-dismiss="modal" id="btnChat"
+            (click)="navigate('friend-chat/'+lfriend.username+'')">
+            <span>
+              <!--matBadgeColor="accent"-->
+              <mat-icon   [matBadge]="lfriend.badgeNum"
+              matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"
+              [matBadgeHidden]="lfriend.badgeHidden" [ngStyle]="{'color':'white'} ">chat</mat-icon>
+            </span>
+          </button>
+          <button type="button" class="friendListBtn mr-2" data-bs-dismiss="modal"
             (click)="navigate('friend-stats/'+lfriend.username+'')"><span>
               <mat-icon>equalizer</mat-icon>
             </span></button>
           <button type="button" class="friendListBtn" data-bs-dismiss="modal"
-            (click)="blockUnblock(lfriend.username,lfriend.isBlocked)"
-            id="btnBlock"><span><i class="{{lfriend.isBlocked}}"></i></span></button>
+            (click)="blockUnblock(lfriend.username,lfriend.isBlocked)" id="btnBlock"><span><i
+                class="{{lfriend.isBlocked}}"></i></span></button>
+        </span>
+        <span class="on-off position-absolute translate-middle border border-light rounded-circle"
+          [ngStyle]="{'background-color': lfriend.color}">
+          <span class="visually-hidden">New alerts</span>
         </span>
       </li>
     </div>
