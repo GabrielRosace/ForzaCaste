@@ -179,18 +179,18 @@
         <!--
         <span class="align-items-bottom">
         <span class="dot bg-dark" ></span>
-      </span>-->
+      </span> (click)="readMessage(username,lfriend.username);navigate('friend-chat/'+lfriend.username+'')" routerLink="/friend-chat/{{lfriend.username}}" routerLinkActive="active-link"-->
         <span class="align-items-right">
           <button type="button" class="friendListBtn mr-2" data-bs-dismiss="modal"
             (click)="deleteFriend(lfriend.username)" id="btnDel"><span>
               <mat-icon>close</mat-icon>
             </span></button>
-          <button type="button" class="friendListBtn mr-6" data-bs-dismiss="modal" id="btnChat"
-            (click)="navigate('friend-chat/'+lfriend.username+'')">
+          <button type="button" class="friendListBtn mr-6" data-bs-dismiss="modal" 
+          (click)="readMessage(username,lfriend.username);getInpendinMsg();navigate('friend-chat/'+lfriend.username+'')">
             <span>
-              <!--matBadgeColor="accent"-->
+              <!--matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"-->
               <mat-icon   [matBadge]="lfriend.badgeNum"
-              matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"
+              matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"
               [matBadgeHidden]="lfriend.badgeHidden" [ngStyle]="{'color':'white'} ">chat</mat-icon>
             </span>
           </button>
@@ -208,6 +208,7 @@
         </span>
       </li>
     </div>
+
     <button type="button" class="btn btn-primary mx-auto" id="reqButton" data-bs-toggle="modal" (click)="get_userlist()"
       data-bs-target="#modalReq">
       ADD FRIEND

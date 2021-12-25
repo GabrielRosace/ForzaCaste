@@ -17,3 +17,7 @@
   height: 100vh!important;
   background-color: #f5f5f5!important;
 }
+
+.friendListBtn .mat-badge-content{
+  transform: translate(-4px, 16px)
+}
