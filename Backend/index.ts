@@ -948,6 +948,21 @@ app.put('/game', auth, (req, res, next) => {
         client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 })
         client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 })
 
+
+        if (randomMatch.player1.toString() == player1.toString()) {
+          console.log("starts player1")
+          let pl1Turn = JSON.stringify({ yourTurn: true })
+          client1.emit('move', JSON.parse(pl1Turn))
+          let pl2Turn = JSON.stringify({ yourTurn: false })
+          client2.emit('move', JSON.parse(pl2Turn))
+        } else {
+          console.log("starts player2")
+          let pl2Turn = JSON.stringify({ yourTurn: true })
+          client2.emit('move', JSON.parse(pl2Turn))
+          let pl1Turn = JSON.stringify({ yourTurn: false })
+          client1.emit('move', JSON.parse(pl1Turn))
+        }
+
         console.log("Match creation and game request update done".green)
         return res.status(200).json({ error: false, message: "Match have been created correctely" })
       }
