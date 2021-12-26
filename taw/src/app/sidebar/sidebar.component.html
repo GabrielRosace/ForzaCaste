@@ -120,11 +120,13 @@
                         <mat-icon>not_interested</mat-icon>
                       </span></button>
                     <button *ngIf="lnotification.type == 'friendlyMatchmaking'" type="button" class="friendListBtn"
-                      data-bs-dismiss="modal" id="btnBlock"><span>
+                      data-bs-dismiss="modal" (click)="acceptGamerequest(lnotification.sender,true)"
+                      id="btnBlock"><span>
                         <mat-icon>done_outline</mat-icon>
                       </span></button>
                     <button *ngIf="lnotification.type == 'friendlyMatchmaking'" type="button" class="friendListBtn"
-                      data-bs-dismiss="modal" id="btnDel"><span>
+                      data-bs-dismiss="modal" (click)="acceptGamerequest(lnotification.sender,true)"
+                      id="btnDel"><span>
                         <mat-icon>not_interested</mat-icon>
                       </span></button>
                   </span>

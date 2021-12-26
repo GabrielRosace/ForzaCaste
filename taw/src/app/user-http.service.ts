@@ -454,5 +454,38 @@ export class UserHttpService {
     }
     return this.http.get<User>(`${this.url}/users/${username}`, options)
   }
+  // send friend game request
+gamefriend(friend: string) {
+  const options = {
+    headers: new HttpHeaders({
+      'authorization': `Bearer ${this.get_token()}`
+    })
+  }
+  const body = {
+    type: "friendlyMatchmaking",
+    oppositePlayer : friend
+
+  }
+  return this.http.post(`${this.url}/game`,body,options)
+}
+
+//accept friend game
+acceptFriendgame(){
+  const options = {
+    headers: new HttpHeaders({
+      'authorization': `Bearer ${this.get_token()}`
+    })
+  }
+  return this.http.put(`${this.url}/game`,options)
+}
+delete_match() {
+  const options = {
+    headers: new HttpHeaders({
+      'authorization': `Bearer ${this.get_token()}`
+    })
+  }
+  return this.http.delete(`${this.url}/game`,options)
+}
+
 }
 

@@ -433,8 +433,10 @@ app.post('/game', auth, (req, res, next) => {
                         client2.join(player1);
                         delete matchRooms[player2];
                         // When the clients receive this message they will redirect by himself to the match route
-                        client1.emit('gameReady', 'true');
-                        client2.emit('gameReady', 'true');
+                        // client1.emit('gameReady', 'true')
+                        // client2.emit('gameReady', 'true')
+                        client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 });
+                        client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 });
                         if (randomMatch.player1.toString() == player1.toString()) {
                             console.log("starts player1");
                             let pl1Turn = JSON.stringify({ yourTurn: true });
@@ -800,8 +802,10 @@ app.put('/game', auth, (req, res, next) => {
                 matchRooms[player1][player2] = client2;
                 client2.join(player1);
                 // When the clients receive this message they will redirect by himself to the match route
-                client1.emit('gameReady', 'true');
-                client2.emit('gameReady', 'true');
+                // client1.emit('gameReady', 'true')
+                // client2.emit('gameReady', 'true')
+                client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 });
+                client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 });
                 console.log("Match creation and game request update done".green);
                 return res.status(200).json({ error: false, message: "Match have been created correctely" });
             }
@@ -1620,9 +1624,10 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
             }
             // Quando un client si disconette lo elimino dalla lista dei client connessi
             for (const [k, v] of Object.entries(socketIOclients)) {
-                if (v == client)
+                if (v == client) {
                     ios.emit('online', { username: k, isConnected: false }); // Inform that username now is disconnected
-                delete socketIOclients[k];
+                    delete socketIOclients[k];
+                }
             }
             console.log("Socket.io client disconnected".red);
         });

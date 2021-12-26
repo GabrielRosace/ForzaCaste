@@ -34,8 +34,9 @@ export class GameComponent implements OnInit {
   private result: Subscription;
   private gameChat: Subscription;
   public win:string="";
-  public rank:number=0;
+  public rank!:number;
   public inputtext:string="";
+  public opponent:string="Unknown"
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
 
     this.gameChat=this.sio.gameChat().subscribe(msg => {
@@ -74,12 +75,16 @@ export class GameComponent implements OnInit {
         console.log("Hai vinto")
         this.win="Nice! You Win!";
       }
+      if(msg.winner==null){
+        console.log("Pareggio")
+        this.win="oh, it's a draw!";
+      }
       if(msg.winner!=undefined && !msg.winner){
         console.log("Hai perso")
         this.win="oh you looose :(";
       }
 
-      this.rank=response.rank
+      this.rank=(response.rank!=undefined)?response.rank:0
       this.visibility="none";
       this.opacity=0.5;
 
@@ -141,6 +146,7 @@ export class GameComponent implements OnInit {
           this.game[i][j] = 0;
       }
     }
+    this.opponent=this.sio.getOpponent()
   }
 
   /* remove alert from the alters list, then from the view */
@@ -199,6 +205,26 @@ export class GameComponent implements OnInit {
         }
       });
     }
+
+  }
+  closeMatch(){
+    if(this.rank==undefined){
+      this.us.delete_match().subscribe((data) => {
+        console.log(data)
+        this.router.navigate(['/home'])
+      })
+    }else{
+      this.router.navigate(['/home'])
+    }
+    
+
+  }
+  addFriend(){
+    this.us.add_friendRequest(this.opponent).subscribe((data) => {
+      // miss toast service
+      // CASTE FIX THIS
+      //this.toastN("Request Forwarded")
+    })
 
   }
   /* Check if there is some players's move */

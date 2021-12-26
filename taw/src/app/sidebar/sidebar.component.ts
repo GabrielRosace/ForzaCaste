@@ -24,6 +24,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public username: string = "" //TODO tipo user
   public avatarImgURL: string = ""
   private tok: string = ""
+  public gameReady!:Subscription
   private subscriptionName: Subscription
   private subscriptionReq!: Subscription
   private subscriptionNot!: Subscription
@@ -46,7 +47,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public msg: string = ""
   public btnVal: any[] = []
 
-  constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router, private activeRoute: ActivatedRoute) {
+  constructor(private app: AppComponent,private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router, private activeRoute: ActivatedRoute) {
     this.subscriptionName = this.us.get_update().subscribe((msg) => {
       // Update username and icon of logged user
       msg = msg.text
@@ -63,6 +64,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.notifyNewMsg()
         this.getNotification(false, true)
         this.getInpendinMsg()
+        this.getFriendlist()
         this.getUsOnline()
         this.notifyOnline()
         this.username = this.us.get_username()
@@ -146,14 +148,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
     return false
   }
-
+/*
   toastN(msg: string) {
     this.toast.show(msg, {
       classname: 'bg-info text-light',
       delay: 3000,
       autohide: true
     });
-  }
+  }*/
 
   getNotification(makeNotificationRead: boolean, inpending?: boolean) {
     this.subscriptionNot = this.us.get_notification(makeNotificationRead, inpending).subscribe((u) => {
@@ -261,14 +263,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
   addFriend(receiver: string, type: string) {
     console.log("receiver: ", receiver)
     this.us.add_friendRequest(receiver).subscribe((data) => {
-      this.toastN("Request Forwarded")
+      this.app.toastCust("Request Forwarded")
+      //this.toastN("Request Forwarded")
     })
   }
 
   deleteFriend(friend: string) {
     console.log("friend: ", friend)
     this.us.delete_friend(friend).subscribe((data) => {
-      this.toastN("Friend deleted")
+      this.app.toastCust("Friend deleted")
+      //this.toastN("Friend deleted")
       this.getFriendlist()
     })
   }
@@ -282,7 +286,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
         console.log(JSON.parse(JSON.stringify(msg)).type)
         //console.log('got a msg: ' + msg);
         if (msg) {
-          this.toastN("New " + this.msg + " by " + user)
+          this.app.toastCust("New " + this.msg + " by " + user)
+          //this.toastN("New " + this.msg + " by " + user)
           //console.log('got a msg: ' + msg);
         }
         this.badgeContent = 0
@@ -299,13 +304,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.us.block_unblock_friend(username, false).subscribe((data) => {
         //this.btnVal = "Block"
         this.friendlist[index].isBlocked = "bi bi-person-x-fill"
-        this.toastN("FRIEND UNBLOCKED")
+        this.app.toastCust("FRIEND UNBLOCKED")
+        //this.toastN("FRIEND UNBLOCKED")
       })
     } else if (block == "bi bi-person-x-fill") {
       this.us.block_unblock_friend(username, true).subscribe((data) => {
         //his.btnVal = "UnBlocked"
         this.friendlist[index].isBlocked = "bi bi-person-check-fill"
-        this.toastN("FRIEND BLOCKED")
+        this.app.toastCust("FRIEND BLOCKED")
+        //this.toastN("FRIEND BLOCKED")
       })
     }
   }
@@ -318,7 +325,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
         console.log(JSON.parse(JSON.stringify(msg)).type)
         //console.log('got a msg: ' + msg);
         if (msg) {
-          this.toastN("New " + this.msg + " by " + user)
+          this.app.toastCust("New " + this.msg + " by " + user)
+          //this.toastN("New " + this.msg + " by " + user)
           //console.log('got a msg: ' + msg);
         }
         this.badgeContent = 0
@@ -336,7 +344,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
         //console.log(JSON.parse(JSON.stringify(msg)).type)
         console.log('user: ' + user);
         if (msg) {
-          this.toastN("You are now friend with " + user)
+          this.app.toastCust("You are now friend with " + user)
+          //this.toastN("You are now friend with " + user)
           //console.log('got a msg: ' + msg);
         }
         this.getFriendlist()
@@ -352,7 +361,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
         //console.log(JSON.parse(JSON.stringify(msg)).type)
         console.log('msg Deleted Friend: ' + this.msg[0]);
         if (msg) {
-          this.toastN("The friend " + this.msg + " has removed you from the friendlist.")
+          this.app.toastCust("The friend " + this.msg + " has removed you from the friendlist.")
+          //this.toastN("The friend " + this.msg + " has removed you from the friendlist.")
           //console.log('got a msg: ' + msg);
         }
         this.getFriendlist()
@@ -364,9 +374,29 @@ export class SidebarComponent implements OnInit, OnDestroy {
   addFriendToFriendlist(sender: string, accepted: boolean) {
     console.log("sender: ", sender)
     this.us.add_friend(sender, accepted).subscribe((data) => {
-      this.toastN("Request Accepted")
+      this.app.toastCust("Request Accepted")
+      //this.toastN("Request Accepted")
       this.getFriendlist()
     })
+  }
+  //Is used to add a new friend in the friendlist, when the friendRequest is accepted 
+  acceptGamerequest(sender: string, accepted: boolean) {
+    console.log("sender: ", sender)
+    if (!this.sio.isNull()) {
+      this.us.acceptFriendgame().subscribe((msg)=>{
+        this.gameReady=this.sio.gameReady().subscribe(msg => {
+          console.log('got a msg lobby: ' + msg);
+          if(msg.gameReady){
+            //rimuove il backdrop dei modal (bug di bootstrap)
+            this.sio.setOpponent(msg.opponentPlayer)
+            this.router.navigate(['game']);
+          }
+          
+        });
+      })
+      
+    
+  }
   }
 
   getInpendinMsg() {
@@ -546,15 +576,21 @@ export class SidebarComponent implements OnInit, OnDestroy {
         
         var usern = JSON.parse(JSON.stringify(msg)).username
         var conn = JSON.parse(JSON.stringify(msg)).isConnected
-        console.log("NotifyOnline")
-        console.log(this.onlineUser)
+        //console.log("NotifyOnline")
+        //console.log(this.onlineUser)
         this.friendlist.forEach((element: { [x: string]: any; }) => {
           //console.log(element['username'])
           //console.log(usern)
           if (element['username'] == usern) {
             if (conn) {
+              console.log("ONLINE")
+              this.app.toastCust(usern+" è online.")
+              //this.toastN(usern+" è online.")
               element['color'] = "yellow"
             } else {
+              console.log("OFFFLINE")
+              this.app.toastCust(usern+" è offline.")
+              //this.toastN(usern+" è offline.")
               element['color'] = "red"
             }
           }
