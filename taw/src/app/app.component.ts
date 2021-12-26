@@ -59,7 +59,7 @@ export class AppComponent{
     });
   }
 
-  showCustomToast(customTpl: string) {
+  toastCust(customTpl: string) {
     this.toastService.show(customTpl, {
       classname: 'bg-info text-light',
       delay: 3000,
