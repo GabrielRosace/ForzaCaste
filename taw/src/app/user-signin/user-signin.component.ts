@@ -8,9 +8,13 @@ import { UserHttpService } from '../user-http.service';
   styleUrls: ['./user-signin.component.css']
 })
 export class UserSigninComponent implements OnInit {
-
+  
+  public showPassword:boolean = false
   public errmessage: string = ''
   @ViewChild("img") img!: ElementRef
+  @ViewChild('password') psw!: ElementRef
+  @ViewChild('checkpassword') checkpsw!: ElementRef
+  @ViewChild('btnConfirm') btnConfirm!: ElementRef
 
   constructor(private us: UserHttpService, private router: Router) { }
 
@@ -33,6 +37,18 @@ export class UserSigninComponent implements OnInit {
     let sprite = "bottts"
     let random = Math.random()
     this.img.nativeElement.value = `https://avatars.dicebear.com/api/${sprite}/${username}${random}.svg`
+  }
+
+  showPsw() {
+    this.showPassword = !this.showPassword
+  }
+
+  checkPassword() {
+    if (this.checkpsw.nativeElement.value == this.psw.nativeElement.value) {
+      this.btnConfirm.nativeElement.disabled = false
+    } else {
+      this.btnConfirm.nativeElement.disabled = true
+    }
   }
 
 }

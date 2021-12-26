@@ -1,15 +1,10 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
-// import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
-// import { registerables, Chart, ChartType } from 'chart.js';
-// import { Chart, ChartConfiguration, LineController, LineElement, PointElement, LinearScale, Title} from 'chart.js' 
-// import { Chart } from 'chart.js/auto';
+import { ToastService } from '../_services/toast.service';
+
 import { UserHttpService } from '../user-http.service';
 
-
-// import { ChartDataSets, ChartOptions } from 'chart.js';
-// import { Color, Label } from 'ng2-charts';
 
 @Component({
   selector: 'app-user-profile',
@@ -21,7 +16,6 @@ export class UserProfileComponent implements OnInit {
   @ViewChild("changedimg") img!: ElementRef
   @ViewChild('rankingchart') chart!: ElementRef
 
-  // public lineChartType: ChartType = 'line'
 
   public name: string = ''
   public username: string = ''
@@ -40,7 +34,7 @@ export class UserProfileComponent implements OnInit {
   public lineChartType:ChartType = 'line';
   public lineChartPlugins = [];
 
-  
+  public showPassword:boolean = false
 
 
   public gameStats: any[] = []
@@ -48,8 +42,8 @@ export class UserProfileComponent implements OnInit {
 
   public ranking: any[] = []
 
-  constructor(private us: UserHttpService, private router: Router) {
-    // Chart.register(...registerables)
+  constructor(private us: UserHttpService, private router: Router, private toast: ToastService) {
+    
   }
 
   ngOnInit(): void {
@@ -104,11 +98,22 @@ export class UserProfileComponent implements OnInit {
 
   }
 
-  updateUserInfo(name: string, surname: string, mail: string, img: string, password: string) {
-    this.us.updateUser(name, surname, mail, img, password).subscribe(() => {
+  updateUserInfo(name: string, surname: string, mail: string, img: string, password: string, oldpassword:string) {
+    this.us.updateUser(name, surname, mail, img, password, oldpassword).subscribe(() => {
       this.us.logout()
+      this.toast.show("Please, login again", {
+        classname: 'bg-info text-light',
+        delay: 3000,
+        autohide: true
+      })
       this.closeModalComponent.nativeElement.click()
       this.router.navigate(['/'])
+    }, e => {
+      this.toast.show("Wrong password, retry", {
+        classname: 'bg-info text-light',
+        delay: 3000,
+        autohide: true
+      })
     })
     return false
   }
@@ -117,6 +122,10 @@ export class UserProfileComponent implements OnInit {
     let sprite = "bottts"
     let random = Math.random()
     this.img.nativeElement.value = `https://avatars.dicebear.com/api/${sprite}/${username}${random}.svg`
+  }
+
+  showPsw() {
+    this.showPassword = !this.showPassword
   }
 
 }

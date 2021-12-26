@@ -140,7 +140,7 @@ export class UserHttpService {
 
   }
 
-  updateUser(name:string, surname: string, mail: string, img: string, password: string):Observable<any>{
+  updateUser(name:string, surname: string, mail: string, img: string, password: string, oldpassword: string):Observable<any>{
     const options = {
       headers: new HttpHeaders({
         'authorization': `Bearer ${this.get_token()}`
@@ -153,7 +153,8 @@ export class UserHttpService {
       surname: surname,
       mail: mail,
       avatarImgURL: img,
-      password: password
+      password: password,
+      oldpassword: oldpassword
     }
 
     return this.http.put(`${this.url}/users`,body,options)

@@ -1,5 +1,5 @@
 .myContainer{
-  height: 100%;
+  height: 100vh;
   display: flex;
   align-items: center;
   /* padding-top: 40px;
@@ -20,6 +20,11 @@
 
 .form-signin .form-floating:focus-within {
   z-index: 2;
+}
+
+.imgInsideInput{
+  top: 18px;
+  left: 265px;
 }
 
 /* .form-signin input[type="email"] {

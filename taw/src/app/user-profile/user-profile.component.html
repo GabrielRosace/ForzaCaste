@@ -58,7 +58,7 @@
       </div>
 
       <form
-        (submit)="updateUserInfo(changedname.value,changedsurname.value,changedmail.value,changedimg.value,changedpassword.value)" onsubmit="alert('Please, login again')">
+        (submit)="updateUserInfo(changedname.value,changedsurname.value,changedmail.value,changedimg.value,changedpassword.value, oldpassword.value)">
         <div class="modal-body">
           <div class="form-floating mt-1">
             <input type="text" class="form-control" id="floatingName" placeholder="Name" value={{name}} #changedname
@@ -86,9 +86,16 @@
             <button class="btn btn-outline-dark" type="button" (click)="randomImage()"><i class="bi bi-arrow-repeat"></i></button>
           </div>
 
+
           <div class="form-floating mt-1">
-            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" #changedpassword>
+            <input type="{{!showPassword? 'password':'text'}}" class="form-control imgInsideInput" id="floatingOldPassword" placeholder="Old password" #oldpassword>
+            <label for="floatingOldPassword">Old Password</label>
+            <i class="bi bi-{{!showPassword?'eye':'eye-slash'}}-fill position-absolute imgInsideInput" (click)="showPsw()"></i>
+          </div>
+          <div class="form-floating mt-1">
+            <input type="{{!showPassword? 'password':'text'}}" class="form-control imgInsideInput" id="floatingPassword" placeholder="Password" #changedpassword>
             <label for="floatingPassword">New Password</label>
+            <i class="bi bi-{{!showPassword?'eye':'eye-slash'}}-fill position-absolute imgInsideInput" (click)="showPsw()"></i>
           </div>
         </div>
         <div class="modal-footer">
