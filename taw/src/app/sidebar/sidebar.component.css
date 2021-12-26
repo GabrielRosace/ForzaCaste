@@ -73,13 +73,6 @@
   padding: 0.4rem;
 }
 
-/*
-.princ{
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: auto;
-}*/
 
 #userList{
   overflow-y: scroll;
@@ -98,16 +91,13 @@
   right: 2%;
   z-index: 100;
 }
+
 .offcanvas{
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   background-color: rgba(255, 255, 255, 0.75);
   border-radius: 6px;
   border: 1px solid rgba(209, 213, 219, 0.3);
-}
-.mat-icon{
-  vertical-align: bottom;
-  font-size: 20px;
 }
 
 .friendListBtn {
@@ -130,7 +120,7 @@
   color: ghostwhite;
  }
 
- .friendListBtn  span  mat-icon  .mat-badge-content{
+ .friendListBtn .mat-icon .mat-badge-content{
    transform:translate(-4px, 16px)!important;
  }
  
@@ -146,6 +136,7 @@
    right: 34%;
    top: 3%;
  }
+
  .friendListBtn span {
   position: relative;
   z-index: 10;

@@ -38,7 +38,7 @@ export class FriendChatComponent implements OnInit {
   public role: string = ""
   public type: string = ""
 
-  constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private activeRoute: ActivatedRoute) {
+  constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router, private activeRoute: ActivatedRoute) {
     /*
     this.subscriptionName = this.us.get_update().subscribe((msg) => {
       // Update username and icon of logged user
@@ -62,6 +62,47 @@ export class FriendChatComponent implements OnInit {
         //this.getNotification(false, true)
       }
     })*/
+    this.subscriptionName = this.us.get_userMessage().subscribe((elem: any) => {
+      console.log("OpenChat")
+      var username = this.activeRoute.snapshot.params['friend']
+      this.messagelist = elem.allMessages
+      this.messageInpending = elem.inPendingMessages
+      this.us.get_friend(username).subscribe((friend) => {
+        this.messagelist.forEach((element: any) => {
+          var date = new Date(element.timestamp);
+          if (element.sender == username) {
+            //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
+            this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
+          } else if (element.receiver == username) {
+            this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString() });
+          }
+        })
+        /*
+        var date = new Date(element.timestamp);
+        if (element.sender == username) {
+          this.us.readMessage(this.us.get_username(), username)
+          this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
+        } else if (element.receiver == username) {
+          this.us.readMessage(username, this.us.get_username())
+          this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString()});
+        }*/
+      })
+
+      this.badgeContentMsg = 0
+      //console.log("MsgList: ")
+      //console.log(this.messageInpending)
+      this.messageInpending.forEach((element: any) => {
+        if (element.receiver == this.us.get_username()) {
+          this.badgeContentMsg++;
+        }
+      });
+
+      //console.log("badgeContent")
+      //console.log(this.badgeContentMsg)
+      if (this.badgeContentMsg == 0) {
+        this.hideMatBadgeMsg = true
+      }
+    })
   }
 
   ngOnInit(): void {
@@ -75,6 +116,7 @@ export class FriendChatComponent implements OnInit {
       this.openChat(this.activeRoute.snapshot.params['friend'])
       this.notifyNewMsg()
       this.notifyBlocked()
+      console.log(this.router.parseUrl(this.router.url).root.children.primary.segments[0].path)
       //this.getNotification(false, true)
     } else {
       this.username = ''
@@ -111,6 +153,7 @@ export class FriendChatComponent implements OnInit {
 
   openChat(username: string) {
     this.subscriptionName = this.us.get_userMessage().subscribe((elem: any) => {
+      console.log("OpenChat")
       this.messagelist = elem.allMessages
       this.messageInpending = elem.inPendingMessages
       this.us.get_friend(username).subscribe((friend) => {
@@ -133,29 +176,32 @@ export class FriendChatComponent implements OnInit {
           this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString()});
         }*/
       })
+
       this.badgeContentMsg = 0
-      console.log("MsgList: ")
-      console.log(this.messageInpending)
+      //console.log("MsgList: ")
+      //console.log(this.messageInpending)
       this.messageInpending.forEach((element: any) => {
         if (element.receiver == this.us.get_username()) {
           this.badgeContentMsg++;
         }
       });
-      console.log("badgeContent")
-      console.log(this.badgeContentMsg)
+
+      //console.log("badgeContent")
+      //console.log(this.badgeContentMsg)
       if (this.badgeContentMsg == 0) {
         this.hideMatBadgeMsg = true
       }
     })
   }
 
-  readMessage(myus: string, username: string){
+  readMessage(myus: string, username: string) {
     this.us.readMessage(myus, username).subscribe()
   }
 
   getInpendinMsg(username: string) {
     this.subscriptionName = this.us.get_userMessage().subscribe((elem: any) => {
       this.messageInpending = elem.inPendingMessages
+      this.badgeContentMsg = 0
       this.us.get_friend(username).subscribe((friend) => {
         this.messageInpending.forEach((element: any) => {
           var date = new Date(element.timestamp);
