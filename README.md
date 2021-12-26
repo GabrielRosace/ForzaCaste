@@ -52,12 +52,7 @@ password: admin
 EL = Event Listener 
 
 Entrambi gli utenti:
-1) Fare il login. Quando viene fatto il login il client deve inviare un messaggio all'EL 'saveClient' dove il contenuto del messagio è :
-```
-```json
-{
-  "username" : "my_username"
-}
+1) Fare il login. Connettersi al socket inviando il proprio jwt come parametro della connessione.
 ```
 
 ```
@@ -69,7 +64,14 @@ Entrambi gli utenti:
   }
 ```
 ```
-Il player1 (primo player che fa la richiesta), rimane in attesa finchè non fa la richiesta il secondo player e quindi joina la richiesta di gioco (player1 in attesa deve essere mostrato un messaggio di attesa). Quando anche il secondo player accede al game, il server notifica ad entrambi i player che la fase di matchmaking è terminata e quindi il gioco può iniziare. Questo avviene con il server che invia un messaggio all'EL del client 'gameReady'. Invia il valore 'true', quindi i player devono essere portati alla view dove avviene il gioco.
+Il player1 (primo player che fa la richiesta), rimane in attesa finchè non fa la richiesta il secondo player e quindi joina la richiesta di gioco (player1 in attesa deve essere mostrato un messaggio di attesa). Quando anche il secondo player accede al game, il server notifica ad entrambi i player che la fase di matchmaking è terminata e quindi il gioco può iniziare. Questo avviene con il server che invia un messaggio all'EL del client 'gameReady'. 
+Il contenuto di questo messaggio è, successivamento i player possono essere trasportati al campo da gioco:
+```
+```json
+{ 
+  "gameReady": true, 
+  "opponentPlayer": "opponent"
+}
 
 3) Quando il gioco ha inizio il server invia un messaggio ad entrambi i client all'EL 'move'. Questo messaggio specifica ai due player chi sarà a fare la prima mossa, dal momento che è scelto casualmente. Il messaggio assume 2 formati diversi:
 Assumiamo che sia il player1 a cominciare con la prima mossa, riceverà:
@@ -192,7 +194,13 @@ A questo punto l'amico riceverà un messaggio SocketIO dal server all'EL 'gameRe
 ```
 ```
 Allora l'utente per accettare la richiesta deve inviare una richiesta http in PUT a 'localhost/game' per accettare la richiesta. Il body di questa richiesta è vuoto ({}) perchè basterà il suo username per andare a prendere la richiesta di gioco. 
-Quando la richiesta di gioco viene quindi accettata entrambi i player ricevono un messaggio SocketIO che li informa che il matchmaking è terminato e possono procedere a giocare. Questo messaggio viene ricevuto all'EL 'gameReady' e viene ricevuto 'true' che indica che si può procedere.
+Quando la richiesta di gioco viene quindi accettata entrambi i player ricevono un messaggio SocketIO che li informa che il matchmaking è terminato e possono procedere a giocare. Questo messaggio viene ricevuto all'EL 'gameReady' che indica che si può procedere, con il conseguente contenuto:
+```
+```json
+{
+  "gameReady": true, 
+  "opponentPlayer": "opponent"
+}
 ```
 
 # Osservatori di una partita

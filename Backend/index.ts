@@ -249,7 +249,7 @@ app.post('/users', (req, res, next) => {
   }
 
   if (req.body.username == 'cpu') {
-    return next({statusCode: 400, error: true, errormessage: "You cannot register yourself as cpu"})
+    return next({ statusCode: 400, error: true, errormessage: "You cannot register yourself as cpu" })
   }
 
   const doc = createNewUser(basicStats, req.body)
@@ -532,8 +532,11 @@ app.post('/game', auth, (req, res, next) => {
             delete matchRooms[player2]
 
             // When the clients receive this message they will redirect by himself to the match route
-            client1.emit('gameReady', 'true')
-            client2.emit('gameReady', 'true')
+            // client1.emit('gameReady', 'true')
+            // client2.emit('gameReady', 'true')
+
+            client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 })
+            client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 })
 
 
             if (randomMatch.player1.toString() == player1.toString()) {
@@ -728,12 +731,12 @@ app.get('/move', auth, (req, res, next) => {
     match.getModel().findOne({ inProgress: true, $or: [{ player1: username }, { player2: username }] }).then((m) => {
       if (match.isMatch(m)) {
         if (m.player1.toString() == username) {
-          return res.status(200).json({error: false, errormessage: "", move: CPU.minmax(m.playground,5,-Infinity,Infinity,false,'O','X')})
+          return res.status(200).json({ error: false, errormessage: "", move: CPU.minmax(m.playground, 5, -Infinity, Infinity, false, 'O', 'X') })
         } else {
-          return res.status(200).json({error: false, errormessage: "", move: CPU.minmax(m.playground,5,-Infinity,Infinity,false,'X','O')})
+          return res.status(200).json({ error: false, errormessage: "", move: CPU.minmax(m.playground, 5, -Infinity, Infinity, false, 'X', 'O') })
         }
       } else {
-        return res.status(404).json({error: true, errormessage: `Match not found`})
+        return res.status(404).json({ error: true, errormessage: `Match not found` })
       }
     })
   }).catch((err) => {
@@ -764,7 +767,7 @@ app.post('/move/cpu', auth, (req, res, next) => {
 
             m.nTurns += 2
 
-            let winner:string = undefined
+            let winner: string = undefined
 
             m.save().then((data) => {
               console.log(`Playground updated`.green)
@@ -794,7 +797,7 @@ app.post('/move/cpu', auth, (req, res, next) => {
               if (depth == undefined) {
                 depth = 4 // Default difficulty
               }
-              let cpuInfo = CPU.minmax(data.playground, depth, -Infinity, Infinity, true,'X','O')
+              let cpuInfo = CPU.minmax(data.playground, depth, -Infinity, Infinity, true, 'X', 'O')
 
               data.playground = insertMove(data.playground, cpuInfo[0], 'O')
 
@@ -819,7 +822,7 @@ app.post('/move/cpu', auth, (req, res, next) => {
               }
 
               let returnObj: any = { error: false, errormessage: "Correctly added move", cpu: cpuInfo[0] }
-              
+
               if (winner != undefined) {
                 returnObj.winner = `${winner} wins`
               }
@@ -830,13 +833,13 @@ app.post('/move/cpu', auth, (req, res, next) => {
               })
             })
           } else {
-            return res.status(400).json({error: true, errormessage: "You cannot insert in a full column"})
+            return res.status(400).json({ error: true, errormessage: "You cannot insert in a full column" })
           }
         } else {
-          return res.status(400).json({error: true, errormessage: "You cannot insert out of the playground"})
+          return res.status(400).json({ error: true, errormessage: "You cannot insert out of the playground" })
         }
       } else {
-        return res.status(404).json({error: true, errormessage: "Match cannot found, please start a new one"})
+        return res.status(404).json({ error: true, errormessage: "Match cannot found, please start a new one" })
       }
     }).catch((err) => {
       return res.status(401).json({ error: true, errormessage: `DB error: ${err}` })
@@ -931,8 +934,10 @@ app.put('/game', auth, (req, res, next) => {
         client2.join(player1)
 
         // When the clients receive this message they will redirect by himself to the match route
-        client1.emit('gameReady', 'true')
-        client2.emit('gameReady', 'true')
+        // client1.emit('gameReady', 'true')
+        // client2.emit('gameReady', 'true')
+        client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 })
+        client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 })
 
         console.log("Match creation and game request update done".green)
         return res.status(200).json({ error: false, message: "Match have been created correctely" })
@@ -1129,17 +1134,17 @@ app.get('/notification', auth, (req, res, next) => {
       let inpending: boolean = req.query.inpending // if filter is present, i've to modify query introducing that filter
       let makeNotificationRead = req.query.makeNotificationRead
       //console.log("makeNotificationRead: "+makeNotificationRead)
-      let query = notification.getModel().find({ receiver: u.username.toString() , deleted: false, inpending: inpending })
-      if(inpending == undefined){
-        query = notification.getModel().find({ receiver: u.username.toString() , deleted: false })
+      let query = notification.getModel().find({ receiver: u.username.toString(), deleted: false, inpending: inpending })
+      if (inpending == undefined) {
+        query = notification.getModel().find({ receiver: u.username.toString(), deleted: false })
       }
       query.then((n) => {
         //console.log("makeNotificationRead: "+makeNotificationRead)
         //let second = Boolean().valueOf()
-        console.log(typeof(makeNotificationRead))
+        console.log(typeof (makeNotificationRead))
         if (makeNotificationRead == "true") {
-          notification.getModel().updateMany({receiver: u.username.toString() , deleted: false },{inpending: false},{}, (err,result)=>{
-            if(err){
+          notification.getModel().updateMany({ receiver: u.username.toString(), deleted: false }, { inpending: false }, {}, (err, result) => {
+            if (err) {
               console.log(`Error updating inpending notification: ${err}`.red)
             } else {
               console.log(`Mark notification as read`.green)
@@ -1268,15 +1273,15 @@ app.put('/notification', auth, (req, res, next) => {
   //The user accept or decline a friendRequest
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
-      user.getModel().findOne({username : req.body.sender}).then((sender) => {
-        if(sender.hasModeratorRole() || sender.hasUserRole()){
-          notification.getModel().findOne({ type: "friendRequest", sender: sender.username, deleted: false}).then((n) => {
+      user.getModel().findOne({ username: req.body.sender }).then((sender) => {
+        if (sender.hasModeratorRole() || sender.hasUserRole()) {
+          notification.getModel().findOne({ type: "friendRequest", sender: sender.username, deleted: false }).then((n) => {
             if (n === null) {
               return res.status(404).json({ error: true, errormessage: "Notification not found." });
             } else {
               n.inpending = false
               n.deleted = true
-              if(req.body.accepted){
+              if (req.body.accepted) {
                 u.addFriend(sender.username.toString(), false)
                 u.save().then((data) => {
                   ios.emit('friend', { user: [req.user.username, req.body.sender], deleted: false })
@@ -1291,9 +1296,9 @@ app.put('/notification', auth, (req, res, next) => {
                 }).catch((reason) => {
                   return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
                 })
-                if(socketIOclients[sender.username.toString()]){
+                if (socketIOclients[sender.username.toString()]) {
                   //console.log("Sono riuscito a fare l'emit.")
-                  let senderMessage = JSON.stringify({newFriend : u.username.toString()})
+                  let senderMessage = JSON.stringify({ newFriend: u.username.toString() })
                   socketIOclients[sender.username.toString()].emit('acceptedRequest', JSON.parse(senderMessage))
                 }
               }
@@ -1383,19 +1388,19 @@ app.delete('/friend/:username', auth, (req, res, next) => {
         if (u.isFriend(friend.username.toString())) {
           u.deleteFriend(friend.username.toString())
           u.save().then((data) => {
-              friend.deleteFriend(u.username.toString());
-              friend.save().then((data) => {
-                console.log("Friend deleted.".blue)
-                ios.emit('friend', {user: [req.user.username, friend], deleted: true})
-                if(socketIOclients[friend.username.toString()]){
-                  //console.log("Sono riuscito a fare l'emit.")
-                  let senderMessage = JSON.stringify({deletedFriend : u.username.toString()})
-                  socketIOclients[friend.username.toString()].emit('friendDeleted', JSON.parse(senderMessage))
-                }
-                return res.status(200).json({ error: false, errormessage: "", message: "Friend " + friend + " removed from the friendlist." })
-              }).catch((reason) => {
-                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-              })
+            friend.deleteFriend(u.username.toString());
+            friend.save().then((data) => {
+              console.log("Friend deleted.".blue)
+              ios.emit('friend', { user: [req.user.username, friend], deleted: true })
+              if (socketIOclients[friend.username.toString()]) {
+                //console.log("Sono riuscito a fare l'emit.")
+                let senderMessage = JSON.stringify({ deletedFriend: u.username.toString() })
+                socketIOclients[friend.username.toString()].emit('friendDeleted', JSON.parse(senderMessage))
+              }
+              return res.status(200).json({ error: false, errormessage: "", message: "Friend " + friend + " removed from the friendlist." })
+            }).catch((reason) => {
+              return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+            })
           }).catch((reason) => {
             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
           })
@@ -1416,17 +1421,17 @@ app.put('/friend', auth, (req, res, next) => {
         u.save().then((data) => {
           if (req.body.isBlocked) {
             console.log("Friend blocked.".blue)
-            if(socketIOclients[friend.username.toString()]){
+            if (socketIOclients[friend.username.toString()]) {
               //console.log("Sono riuscito a fare l'emit.")
-              let isBeingBlocked = JSON.stringify({blocked: true})
+              let isBeingBlocked = JSON.stringify({ blocked: true })
               socketIOclients[friend.username.toString()].emit('friendBlocked', JSON.parse(isBeingBlocked))
             }
             return res.status(200).json({ error: false, errormessage: "", message: "You blocked " + req.body.username + "." })
           } else {
             console.log("Friend unblocked.".blue)
-            if(socketIOclients[friend.username.toString()]){
+            if (socketIOclients[friend.username.toString()]) {
               //console.log("Sono riuscito a fare l'emit.")
-              let isBeingBlocked = JSON.stringify({blocked: false})
+              let isBeingBlocked = JSON.stringify({ blocked: false })
               socketIOclients[friend.username.toString()].emit('friendBlocked', JSON.parse(isBeingBlocked))
             }
             return res.status(200).json({ error: false, errormessage: "", message: "You can now send a message to " + req.body.username + "." })
@@ -1574,7 +1579,7 @@ app.post("/move", auth, (req, res, next) => {
             let index = parseInt(move)
             // post move logic
             if (m.nTurns % 2 == 1 && m.player1 == username) {
-              
+
               return makeMove(index, m, client, 'X', m.player2, res, username)
             } else if (m.nTurns % 2 == 0 && m.player2 == username) { //  player2's turns
 
@@ -1817,9 +1822,10 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 
         // Quando un client si disconette lo elimino dalla lista dei client connessi
         for (const [k, v] of Object.entries(socketIOclients)) {
-          if (v == client)
+          if (v == client) {
             ios.emit('online', { username: k, isConnected: false }) // Inform that username now is disconnected
-          delete socketIOclients[k]
+            delete socketIOclients[k]
+          }
         }
         console.log("Socket.io client disconnected".red)
 
