@@ -5,7 +5,17 @@
       {{alert.message }}
       <button type="button" class="btn-close btn-close-black" aria-label="Close" (click)="close(alert)"></button>
     </div>
+    <button type="button" class="btn btn-danger btn-sm exit" (click)="closeMatch()">EXIT</button>
+    <ul class="list-group pt-2">
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+ 
+          You are playing VS {{opponent}}
+          <button type="button" class=" btn btn-primary mybtn"(click)="addFriend()">Add friend</button>
+        
+      </li>
+    </ul>
     <div class="title">
+      
       <h1 class="h3 mb-3 fw-normal">{{txtturno}}</h1>
     </div>
   
@@ -56,8 +66,12 @@
             </div>
       </div>
     </div>
-  </div>
+    <div style="height: 10vh;">
 
+    </div>
+  </div>
+  <div style="height: 135vh;"></div>
+</div>
 <div class="modal fade" id="w-stats" tabindex="-1" data-backdrop="false">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -65,8 +79,8 @@
         <h5 class="modal-title" id="editModalLabel1" >{{win}}</h5>
       </div>
       <p class="text-center fs-2">Now you get this ranking</p>
-      <p class="text-center fs-2" *ngIf="rank<=0" style="color: lightcoral;">{{rank}} points</p>
-      <p class="text-center fs-2" *ngIf="rank>0" style="color: lightgreen;">+{{rank}} points</p>
+      <p class="text-center fs-2" *ngIf="rank<0" style="color: lightcoral;">{{rank}} points</p>
+      <p class="text-center fs-2" *ngIf="rank>=0" style="color: lightgreen;">+{{rank}} points</p>
       <div class="dot-flashing" style="align-self: center;"></div>
       <div class="modal-footer">
         <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal">Close</button>
@@ -75,5 +89,6 @@
     
   </div>
 </div>
+
 
 

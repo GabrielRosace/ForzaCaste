@@ -10,6 +10,7 @@ import { NULL_EXPR } from '@angular/compiler/src/output/output_ast';
 export class SocketioService {
 
   private socket!: Socket;
+  private opponent!:string;
 
   constructor(private us: UserHttpService) {
   }
@@ -21,6 +22,12 @@ export class SocketioService {
         "enableCORS": "true"
       }
     })
+  }
+  getOpponent(){
+    return this.opponent;
+  }
+  setOpponent(opponent:string){
+    this.opponent=opponent;
   }
   gameChat():Observable<any>{
 
@@ -63,7 +70,7 @@ export class SocketioService {
     console.log(this.us.get_username())
     this.socket.emit('move',{username:this.us.get_username(),move:col})
   }*/
-  gameReady(){
+  gameReady():Observable<any>{
     console.log("Created gameReady")
     return new Observable(observer => {
       this.socket.on('gameReady', msg => {

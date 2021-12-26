@@ -24,6 +24,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public username: string = "" //TODO tipo user
   public avatarImgURL: string = ""
   private tok: string = ""
+  public gameReady!:Subscription
   private subscriptionName: Subscription
   private subscriptionReq!: Subscription
   private subscriptionNot!: Subscription
@@ -367,6 +368,25 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.toastN("Request Accepted")
       this.getFriendlist()
     })
+  }
+  //Is used to add a new friend in the friendlist, when the friendRequest is accepted 
+  acceptGamerequest(sender: string, accepted: boolean) {
+    console.log("sender: ", sender)
+    if (!this.sio.isNull()) {
+      this.us.acceptFriendgame().subscribe((msg)=>{
+        this.gameReady=this.sio.gameReady().subscribe(msg => {
+          console.log('got a msg lobby: ' + msg);
+          if(msg.gameReady){
+            //rimuove il backdrop dei modal (bug di bootstrap)
+            this.sio.setOpponent(msg.opponentPlayer)
+            this.router.navigate(['game']);
+          }
+          
+        });
+      })
+      
+    
+  }
   }
 
   getInpendinMsg() {

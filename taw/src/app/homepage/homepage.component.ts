@@ -20,8 +20,9 @@ export class HomepageComponent implements OnInit {
     /* Subscribe to a socket's listener, the lobby, for knwo if i find a match */
     this.gameReady=this.sio.gameReady().subscribe(msg => {
       console.log('got a msg lobby: ' + msg);
-      if(msg=='true'){
+      if(msg.gameReady){
         //rimuove il backdrop dei modal (bug di bootstrap)
+        this.sio.setOpponent(msg.opponentPlayer)
         Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
           item.parentElement?.removeChild(item);
           });
