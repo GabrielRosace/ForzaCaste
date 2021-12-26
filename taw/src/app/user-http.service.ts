@@ -476,7 +476,8 @@ acceptFriendgame(){
       'authorization': `Bearer ${this.get_token()}`
     })
   }
-  return this.http.put(`${this.url}/game`,options)
+  const body={}
+  return this.http.put(`${this.url}/game`,body,options)
 }
 delete_match() {
   const options = {

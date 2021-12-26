@@ -327,7 +327,17 @@ app.put("/users", auth, (req, res, next) => {
         u.mail = req.body.mail ? req.body.mail : u.mail;
         u.avatarImgURL = req.body.avatarImgURL ? req.body.avatarImgURL : u.avatarImgURL;
         if (req.body.password) {
-            u.setPassword(req.body.password);
+            if (req.body.oldpassword) {
+                if (u.validatePassword(req.body.oldpassword)) {
+                    u.setPassword(req.body.password);
+                }
+                else {
+                    return res.status(401).json({ error: true, errormessage: 'Wrong password, you aren\'t allowed to do it' });
+                }
+            }
+            else {
+                return res.status(400).json({ error: true, errormessage: "Old password is missing" });
+            }
         }
         if (u.hasNonRegisteredModRole() && !(req.body.name && req.body.surname && req.body.mail && req.body.avatarImgURL && req.body.password)) {
             return res.status(400).json({ error: true, errormessage: "Some field are missing" });
@@ -806,6 +816,20 @@ app.put('/game', auth, (req, res, next) => {
                 // client2.emit('gameReady', 'true')
                 client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 });
                 client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 });
+                if (randomMatch.player1.toString() == player1.toString()) {
+                    console.log("starts player1");
+                    let pl1Turn = JSON.stringify({ yourTurn: true });
+                    client1.emit('move', JSON.parse(pl1Turn));
+                    let pl2Turn = JSON.stringify({ yourTurn: false });
+                    client2.emit('move', JSON.parse(pl2Turn));
+                }
+                else {
+                    console.log("starts player2");
+                    let pl2Turn = JSON.stringify({ yourTurn: true });
+                    client2.emit('move', JSON.parse(pl2Turn));
+                    let pl1Turn = JSON.stringify({ yourTurn: false });
+                    client1.emit('move', JSON.parse(pl1Turn));
+                }
                 console.log("Match creation and game request update done".green);
                 return res.status(200).json({ error: false, message: "Match have been created correctely" });
             }
