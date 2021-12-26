@@ -11,6 +11,7 @@ export class NewModeratorComponent implements OnInit {
 
   public errmessage: string = ''
   public typeErr: string = ''
+  public showPassword:boolean = false
 
   constructor(private us:UserHttpService,private router:Router) { }
 
@@ -21,6 +22,9 @@ export class NewModeratorComponent implements OnInit {
     }
   }
 
+  showPsw() {
+    this.showPassword = !this.showPassword
+  }
 
   createMod(username: string, password: string) {
     this.us.create_new_mod(username, password).subscribe((data) => {

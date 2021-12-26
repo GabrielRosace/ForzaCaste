@@ -8,10 +8,20 @@
         <input type="text" class="form-control" id="floatingInput" placeholder="username" #username required>
         <label for="floatingInput">Username</label>
       </div>
-       <div class="form-floating mt-1">
-        <input type="password" class="form-control" id="floatingPassword" placeholder="Password" #password required>
+      <div class="form-floating mt-1">
+        <input type="{{!showPassword? 'password':'text'}}" class="form-control" id="floatingPassword"
+          placeholder="Password" #password required>
         <label for="floatingPassword">Password</label>
+        <i class="bi bi-{{!showPassword?'eye':'eye-slash'}}-fill position-absolute imgInsideInput" (click)="showPsw()"></i>
       </div>
+
+      <div class="form-floating mt-1">
+        <input type="{{!showPassword? 'password':'text'}}" class="form-control" id="floatingCheckPassword"
+          placeholder="Password" #checkpassword required (keyup)="checkPassword()">
+        <label for="floatingPassword">Conferma password</label>
+        <i class="bi bi-{{!showPassword?'eye':'eye-slash'}}-fill position-absolute imgInsideInput" (click)="showPsw()"></i>
+      </div>
+
       <div class="form-floating mt-1">
         <input type="text" class="form-control" id="floatingName" placeholder="Name" #name required>
         <label for="floatingName">Name</label>
@@ -24,20 +34,17 @@
         <input type="mail" class="form-control" id="floatingMail" placeholder="Mail" #mail required>
         <label for="floatingMail">Mail</label>
       </div>
-      <div class="d-flex flex-row  mt-1 mb-3">
-        <div class="form-floating flex-fill">
+      <div class="form-floating  mt-1 mb-3">
           <input type="text" class="form-control" id="floatingImg" placeholder="ImgURL" #img required>
           <label for="floatingImg">Img URL</label>
-        </div>
-        <button class="btn btn-outline-dark flex-fill" type="button" (click)="randomImage(username.value)"><i class="bi bi-arrow-repeat"></i></button>
+          <i class="bi bi-arrow-repeat position-absolute imgInsideInput" (click)="randomImage(username.value)"></i>
       </div>
-      
 
-      <button type="submit" class="w-100 btn btn-lg btn-primary">Create</button>
+
+      <button type="submit" class="w-100 btn btn-lg btn-primary" #btnConfirm disabled>Create</button>
       <div *ngIf="errmessage" class="alert alert-danger" role="alert">
         Login error: {{errmessage}}
       </div>
-
       <p class="mt-5 mb-3 text-muted">Mark Otto, Jacob Thornton, and Bootstrap contributors &copy; 2017–2021</p>
     </form>
   </main>

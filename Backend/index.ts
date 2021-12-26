@@ -417,7 +417,16 @@ app.put("/users", auth, (req, res, next) => {
     u.mail = req.body.mail ? req.body.mail : u.mail
     u.avatarImgURL = req.body.avatarImgURL ? req.body.avatarImgURL : u.avatarImgURL
     if (req.body.password) {
-      u.setPassword(req.body.password)
+      if (req.body.oldpassword) {
+        
+        if (u.validatePassword(req.body.oldpassword)) {
+          u.setPassword(req.body.password)
+        } else {
+          return res.status(401).json({error: true, errormessage:'Wrong password, you aren\'t allowed to do it'})
+        }
+      } else {
+        return res.status(400).json({error: true, errormessage: "Old password is missing"})
+      }
     }
 
     if (u.hasNonRegisteredModRole() && !(req.body.name && req.body.surname && req.body.mail && req.body.avatarImgURL && req.body.password)) {

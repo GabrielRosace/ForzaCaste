@@ -13,6 +13,7 @@ export class UserLoginComponent implements OnInit {
 
 
   public errmessage: string = ''
+  public showPassword:boolean = false
   // private connection: Socket
 
   constructor(private sio: SocketioService, private us: UserHttpService, private router: Router) {
@@ -40,6 +41,10 @@ export class UserLoginComponent implements OnInit {
         this.router.navigate(["/login"])
       }
     }
+  }
+
+  showPsw() {
+    this.showPassword = !this.showPassword
   }
 
   login(username: string, password: string, remember: boolean) {
