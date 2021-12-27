@@ -23,7 +23,7 @@ const routes: Routes = [
   { path: 'user-deletion', component: UserDeletionComponent },
   { path: 'game', component: GameComponent },
   { path: 'watch', component: WatchComponent },
-  { path: 'friend-stats/:friend',  component: FriendStatsComponent },
+  { path: 'user-stats/:friend',  component: FriendStatsComponent },
   { path: 'friend-chat/:friend',  component: FriendChatComponent }
 
 ];

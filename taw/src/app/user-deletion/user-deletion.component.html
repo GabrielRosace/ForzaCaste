@@ -6,9 +6,26 @@
     
     <div class="scrollable" tabindex="0">
       <ul class="list-group">
-        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let user of list'>
+        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let user of userList'>
           {{user.username}}
-          <button type="button" class=" btn btn-warning mybtn" [disabled]="user.roles=='MODERATOR' || user.username==myUsername" (click)="delete(user.username)">Delete</button>
+          <span class="align-items-right">
+          <button type="button" class="friendListBtn mr-6" [disabled]="user.roles=='MODERATOR' || user.username==myUsername" (click)="delete(user.username)" id="btnDel"><span>
+            <mat-icon>close</mat-icon>
+          </span></button>
+          <button type="button" class="friendListBtn mr-6" 
+          (click)="readMessage(myUsername,user.username);getInpendinMsg();navigate('friend-chat/'+user.username+'')">
+            <span>
+              <!--matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"-->
+              <mat-icon   [matBadge]="user.badgeNum"
+              matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"
+              [matBadgeHidden]="user.badgeHidden" [ngStyle]="{'color':'white'} ">chat</mat-icon>
+            </span>
+          </button>
+          <button type="button" class="friendListBtn mr-2"
+            (click)="navigate('user-stats/'+user.username+'')"><span>
+              <mat-icon>equalizer</mat-icon>
+            </span></button>
+          </span>
         </li>
       </ul>
     </div>

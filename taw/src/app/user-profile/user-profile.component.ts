@@ -4,7 +4,8 @@ import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
 import { ToastService } from '../_services/toast.service';
 
 import { UserHttpService } from '../user-http.service';
-
+import { AppModule } from '../app.module';
+import { AppComponent } from '../app.component';
 
 @Component({
   selector: 'app-user-profile',
@@ -42,7 +43,7 @@ export class UserProfileComponent implements OnInit {
 
   public ranking: any[] = []
 
-  constructor(private us: UserHttpService, private router: Router, private toast: ToastService) {
+  constructor(private app: AppComponent,private us: UserHttpService, private router: Router, private toast: ToastService) {
     
   }
 
@@ -101,19 +102,23 @@ export class UserProfileComponent implements OnInit {
   updateUserInfo(name: string, surname: string, mail: string, img: string, password: string, oldpassword:string) {
     this.us.updateUser(name, surname, mail, img, password, oldpassword).subscribe(() => {
       this.us.logout()
+      this.app.toastCust("Please, login again")
+      /*
       this.toast.show("Please, login again", {
         classname: 'bg-info text-light',
         delay: 3000,
         autohide: true
-      })
+      })*/
       this.closeModalComponent.nativeElement.click()
       this.router.navigate(['/'])
     }, e => {
+      this.app.toastCust("Wrong password, retry")
+      /*
       this.toast.show("Wrong password, retry", {
         classname: 'bg-info text-light',
         delay: 3000,
         autohide: true
-      })
+      })*/
     })
     return false
   }

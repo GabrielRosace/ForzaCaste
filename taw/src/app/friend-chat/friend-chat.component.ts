@@ -1,5 +1,5 @@
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { UserHttpService } from '../user-http.service';
@@ -38,30 +38,9 @@ export class FriendChatComponent implements OnInit {
   public role: string = ""
   public type: string = ""
 
-  constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router, private activeRoute: ActivatedRoute) {
-    /*
-    this.subscriptionName = this.us.get_update().subscribe((msg) => {
-      // Update username and icon of logged user
-      msg = msg.text
-      if (msg == "User logged out") {
-        this.tok = ''
-        this.username = ''
-        this.avatarImgURL = ''
-        console.log("Primo if")
-      } else if (msg == "User logged in") {
-        this.tok = this.us.get_token()
-        this.username = this.us.get_username()
-        this.openChat(this.activeRoute.snapshot.params['friend'])
-        console.log("SECONDO if")
-        this.notifyNewMsg()
-      } else if (msg == "Update user") {
-        this.avatarImgURL = this.us.get_avatarImgURL()
-        this.openChat(this.activeRoute.snapshot.params['friend'])
-        console.log("Terzo if")
-        this.notifyNewMsg()
-        //this.getNotification(false, true)
-      }
-    })*/
+  constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router, private activeRoute: ActivatedRoute, private cdRef: ChangeDetectorRef) {
+
+   /*
     this.subscriptionName = this.us.get_userMessage().subscribe((elem: any) => {
       console.log("OpenChat")
       var username = this.activeRoute.snapshot.params['friend']
@@ -85,7 +64,7 @@ export class FriendChatComponent implements OnInit {
         } else if (element.receiver == username) {
           this.us.readMessage(username, this.us.get_username())
           this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString()});
-        }*/
+        }
       })
 
       this.badgeContentMsg = 0
@@ -102,12 +81,16 @@ export class FriendChatComponent implements OnInit {
       if (this.badgeContentMsg == 0) {
         this.hideMatBadgeMsg = true
       }
-    })
+    })*/
   }
 
   ngOnInit(): void {
     this.tok = this.us.get_token()
-    if (this.tok) {
+    console.log("Sono ngInit Friend")
+    if (!this.tok) {
+      // TODO aggiungi un messaggio, magari con una funzione nel servizio per non replicare codice
+      this.router.navigate(['/']) 
+    }else{
       this.username = this.us.get_username()
       this.avatarImgURL = this.us.get_avatarImgURL()
       this.role = this.us.get_role()
@@ -118,15 +101,18 @@ export class FriendChatComponent implements OnInit {
       this.notifyBlocked()
       console.log(this.router.parseUrl(this.router.url).root.children.primary.segments[0].path)
       //this.getNotification(false, true)
-    } else {
-      this.username = ''
-      this.avatarImgURL = ''
     }
   }
 
   ngOnDestroy(): void {
-    this.subscriptionName.unsubscribe()
-    this.subscriptionMsg.unsubscribe()
+    if(this.tok){
+      this.subscriptionName.unsubscribe()
+      this.subscriptionMsg.unsubscribe()
+    }
+  }
+  
+  ngAfterViewChecked(){
+    this.cdRef.detectChanges()
   }
 
   sendMessage(message: string) {

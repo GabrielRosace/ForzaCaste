@@ -37,3 +37,88 @@
   height:  65vh;
   max-height: 75vh;
 }
+
+/*Button FriendList*/
+.mat-icon{
+  vertical-align: bottom;
+  font-size: 20px;
+}
+
+.friendListBtn {
+  outline: none;
+  cursor: pointer;
+  border: none;
+  padding: 0.5vh 0.6vw;
+  margin: 0;
+  margin-left: 0.40rem;
+  font-family: inherit;
+  font-size: inherit;
+  position: relative;
+  display: inline-block;
+  letter-spacing: 0.05rem;
+  font-weight: 700;
+  font-size: 17px;
+  border-radius: 300px;
+  overflow: hidden;
+  background: #59C9A5;
+  color: ghostwhite;
+ }
+
+ .friendListBtn .mat-icon .mat-badge-content{
+   transform:translate(-4px, 16px)!important;
+ }
+ 
+ #btnDel{
+  background: red;
+ }
+ #btnBlock{
+  background: #E59500;
+ }
+ #reqButton{
+   position: relative;
+   left: 34%;
+   right: 34%;
+   top: 3%;
+ }
+
+ .friendListBtn span {
+  position: relative;
+  z-index: 10;
+  transition: color 0.4s;
+ }
+ 
+ .friendListBtn:hover span {
+  color: white;
+ }
+ 
+ .friendListBtn::before,
+ .friendListBtn::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10vw;
+  height: 10vh;
+  z-index: 0;
+ }
+ 
+ .friendListBtn::before {
+  content: "";
+  background: #212529;
+  width: 12vw;
+  left: -10%;
+  transform: skew(30deg);
+  transition: transform 0.4s cubic-bezier(0.3, 1, 0.8, 1);
+ }
+ 
+ .friendListBtn:hover::before {
+  transform: translate3d(100%, 0, 0);
+ }
+ 
+ .dot {
+  height: 25px;
+  width: 25px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+}
+/*Button FriendList*/

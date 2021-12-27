@@ -14,6 +14,7 @@ import { ActivatedRoute } from '@angular/router';
 
 
 
+
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
@@ -164,7 +165,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       u.notification.forEach((element: { [x: string]: any; }) => {
         //console.log(1)
         if (!(element['type'] == 'randomMatchmaking') && !(element['type'] == 'friendMessage')) {
-          var msg
+          let msg
           if (element['type'] == 'friendlyMatchmaking') {
             msg = "New Friendly Matchmaking from " + element['sender']
           } else if (element['type'] == 'friendRequest') {
@@ -204,15 +205,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
     console.log("GetFriendlist")
     //this.messageInpending = this.getInpendinMsg()
     this.getInpendinMsg()
-    var g = this.router.url
+    let g = this.router.url
     console.log(g)
     //console.log(this.messageInpending)
     this.us.get_friendlist().subscribe((u) => {
       this.friendlist = []
       u.friendlist.forEach((element: { [x: string]: any; }) => {
-        var countMsg: number = 0
-        var msgHide: boolean = true
-        var col
+        let countMsg: number = 0
+        let msgHide: boolean = true
+        let col
         this.us.get_friend(element['username']).subscribe((friend) => {
           this.messageInpending.forEach((msg: any) => {
             if (msg.sender == element['username']) {
@@ -222,7 +223,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
             }
           })
           /*
-          var sos = this.onlineUser.filter((data: any) => {
+          let sos = this.onlineUser.filter((data: any) => {
             if (data.username == friend.username) {
               return true
             } else {
@@ -230,13 +231,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
             }
           })*/
           //console.log(this.onlineUser)
-          var sos = this.onlineUser.find((data: any) => { return data == element['username'] })
+          let sos = this.onlineUser.find((data: any) => { return data == element['username'] })
           //console.log("Sos")
           //console.log(sos)
           if (sos == element['username']) {
-            col = "yellow"
+            col = "#88D498"
           } else {
-            col = "red"
+            col = "#A4A5AE"
           }
           //console.log(countMsg)
           if (countMsg != 0) {
@@ -253,7 +254,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   getUsOnline() {
-    var online = this.us.get_usersOnline().subscribe((elem: any) => {
+    let online = this.us.get_usersOnline().subscribe((elem: any) => {
       console.log("Online")
       console.log(elem.onlineuser)
       this.onlineUser = elem.onlineuser
@@ -448,9 +449,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.us.get_friendlist().subscribe((u) => {
           this.friendlist = []
           u.friendlist.forEach((element: { [x: string]: any; }) => {
-            var countMsg: number = 0
-            var msgHide: boolean = true
-            var col
+            let countMsg: number = 0
+            let msgHide: boolean = true
+            let col
             this.us.get_friend(element['username']).subscribe((friend) => {
               this.messageInpending.forEach((msg: any) => {
                 if (msg.sender == element['username']) {
@@ -462,7 +463,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
               })
               //console.log(countMsg)
               //console.log(this.onlineUser)
-              var sos = this.onlineUser.find((data: any) => { return data == element['username'] })
+              let sos = this.onlineUser.find((data: any) => { return data == element['username'] })
               //console.log("Sos")
               //console.log(sos)
               if (sos == element['username']) {
@@ -490,15 +491,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }*/
   notifyNewMsg() {
     if (!this.sio.isNull()) {
-      //var g = this.router.parseUrl(this.router.url).root.children.primary.segments[0].path
+      //let g = this.router.parseUrl(this.router.url).root.children.primary.segments[0].path
       //if (g) {
       this.subscriptionMsg = this.sio.newMessage().subscribe((msg) => {
-        var g = this.router.parseUrl(this.router.url).root.children.primary.segments[0].path
-        var g1 = this.router.parseUrl(this.router.url).root.children.primary.segments[1].path
+        let g = this.router.parseUrl(this.router.url).root.children.primary.segments[0].path
+        let g1 = ""
+        if(this.router.parseUrl(this.router.url).root.children.primary.segments[1] != undefined){
+          g1 = this.router.parseUrl(this.router.url).root.children.primary.segments[1].path
+        }
+        //console.log("NotifyNewMsg")
         console.log(g1)
-        var rec = JSON.parse(JSON.stringify(msg)).receiver
-        var send = JSON.parse(JSON.stringify(msg)).sender
-        var inpend = JSON.parse(JSON.stringify(msg)).inpending
+        let rec = JSON.parse(JSON.stringify(msg)).receiver
+        let send = JSON.parse(JSON.stringify(msg)).sender
+        let inpend = JSON.parse(JSON.stringify(msg)).inpending
         if ("friend-chat" != g || g1 != send) {
         
           //console.log("NotifyNewMsg")
@@ -522,9 +527,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
           //this.getFriendlist()
           /*
           this.friendlist.forEach((element: { [x: string]: any; }) => {
-            var countMsg: number = 0
-            var msgHide: boolean = true
-            var col
+            let countMsg: number = 0
+            let msgHide: boolean = true
+            let col
             this.us.get_friend(element['username']).subscribe((friend) => {
               this.messageInpending.forEach((msg: any) => {
                 if (msg.sender == element['username']) {
@@ -536,7 +541,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
               })
               //console.log(countMsg)
               console.log(this.onlineUser)
-              var sos = this.onlineUser.find((data: any) => { return data == element['username'] })
+              let sos = this.onlineUser.find((data: any) => { return data == element['username'] })
               console.log("Sos")
               console.log(sos)
               if (sos == element['username']) {
@@ -574,8 +579,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.subscriptionMsg = this.sio.isOnline().subscribe((msg) => {
         this.getUsOnline()
         
-        var usern = JSON.parse(JSON.stringify(msg)).username
-        var conn = JSON.parse(JSON.stringify(msg)).isConnected
+        let usern = JSON.parse(JSON.stringify(msg)).username
+        let conn = JSON.parse(JSON.stringify(msg)).isConnected
         //console.log("NotifyOnline")
         //console.log(this.onlineUser)
         this.friendlist.forEach((element: { [x: string]: any; }) => {
@@ -586,12 +591,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
               console.log("ONLINE")
               this.app.toastCust(usern+" è online.")
               //this.toastN(usern+" è online.")
-              element['color'] = "yellow"
+              element['color'] = "#88D498"
             } else {
               console.log("OFFFLINE")
               this.app.toastCust(usern+" è offline.")
               //this.toastN(usern+" è offline.")
-              element['color'] = "red"
+              element['color'] = "#A4A5AE"
             }
           }
           //console.log(element['color'])
@@ -613,15 +618,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
             console.log(element['color'])
           })*/
         /*
-        var sis = elem.find((data: any) => { return data.username == msg })
+        let sis = elem.find((data: any) => { return data.username == msg })
         console.log("uSERNAD")
         console.log(sis)
       })*/
       })
     }
   }
-
+  
   navigate(route: String) {
+    this.router.routeReuseStrategy.shouldReuseRoute = () => false
+    this.router.onSameUrlNavigation = "reload"
     this.router.navigate([route])
   }
 

@@ -41,7 +41,7 @@
 
         <li class="nav-item" *ngIf="has_moderator_role()">
           <button class="nav-link text-white w-100 text-start" (click)="navigate('user-deletion')">
-            Delete user
+            All User
           </button>
         </li>
       </ul>
@@ -197,7 +197,7 @@
             </span>
           </button>
           <button type="button" class="friendListBtn mr-2" data-bs-dismiss="modal"
-            (click)="navigate('friend-stats/'+lfriend.username+'')"><span>
+            (click)="navigate('user-stats/'+lfriend.username+'')"><span>
               <mat-icon>equalizer</mat-icon>
             </span></button>
           <button type="button" class="friendListBtn" data-bs-dismiss="modal"
