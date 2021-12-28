@@ -591,45 +591,6 @@ app.post('/game', auth, (req, res, next) => {
   else if (req.body.type == 'friendlyMatchmaking') {
     user.getModel().findOne({ username: req.user.username }).then((us: User) => {
       notification.getModel().findOne({ type: "friendlyMatchmaking", sender: us.username, deleted: false }).then((n) => {
-        
-        // if (notification.isNotification(n)) {
-        //   if (n != null && n.sender != us.username) {
-        //     const randomMatch = createNewRandomMatch(n.sender, n.receiver)
-        //     randomMatch.save().then((data) => {
-        //       console.log("Match have been created correctely".green)
-        //     }).catch((reason) => {
-        // 			console.log("ERROR: match creation error \nDB error: ".red + reason)							
-        //       next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-        //     })
-        //     n.deleted = true
-        //     n.inpending = false
-        // 		n.save().then((data)=> {
-        // 			console.log("Game request have been updated correctely".green)
-        // 		}).catch((reason) => {
-        // 			console.log("ERROR: match requeste update error \nDB error: ".red + reason)	
-        // 			return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-        // 		})
-
-        //     let player1 = n.sender
-        //     let player2 = us.username
-        //     let client1 = socketIOclients[player1]
-        //     let client2 = socketIOclients[player2]
-        //     matchRooms[player1][player2] = client2
-        //     client2.join(player1)
-
-        //     // When the clients receive this message they will redirect by himself to the match route
-        //     client1.emit('gameReady', 'true')
-        //     client2.emit('gameReady', 'true')
-
-        // 		console.log("Match creation and game request update done".green)						
-        // 		return res.status(200).json({ error: false, message: "Match have been created correctely" })
-        //   }
-        //   else {
-        //     console.log("Match request already exists".red);
-        //     return res.status(200).json({ error: false, message: "Match request already exists" });
-        //   }
-        // }
-        // else {
         if (!notification.isNotification(n)) {
           // Check if the opposite player is a friend
           user.getModel().findOne({ username: req.body.oppositePlayer }).then((friend) => {
@@ -917,10 +878,13 @@ app.delete('/game', auth, (req, res, next) => {
 })
 
 app.put('/game', auth, (req, res, next) => {
+  console.log(req.user);
+  
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
-    notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: user.username, deleted: false }).then((n) => {
+    console.log(user)    
+    notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: user.username.toString(), deleted: false, sender: req.body.sender }).then((n) => {
       if (n != null && n.sender != user.username) {
-        if(req.body.accept){
+        if(req.body.accept === true){
           const randomMatch = createNewRandomMatch(n.sender, n.receiver)
           randomMatch.save().then((data) => {
             console.log("Match have been created correctely".green)
@@ -1067,14 +1031,14 @@ app.post('/gameMessage', auth, (req, res, next) => {
 
 // Create a new request of different type
 app.post('/notification', auth, (req, res, next) => {
-  console.log("Entrato")
-  console.log("Receiver:", req.body.receiver);
+  // console.log("Entrato")
+  // console.log("Receiver:", req.body.receiver);
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       if (req.body.type === "friendRequest") {
         user.getModel().findOne({ username: req.body.receiver }).then((receiver: User) => {
           if (receiver.isFriend(u.username.toString())) {
-            console.log("sfaccim")
+            // console.log("sfaccim")
             return res.status(400).json({ error: true, errormessage: "You are already friend" })
           }
           else {
@@ -1088,7 +1052,7 @@ app.post('/notification', auth, (req, res, next) => {
                 fr.save().then((data) => {
                   console.log("Request forwarded")
                   if (socketIOclients[receiver.username.toString()]) {
-                    console.log("eccomi:", receiver.username.toString())
+                    // console.log("eccomi:", receiver.username.toString())
                     let receiverMessage = JSON.stringify({ sender: u.username.toString(), type: "friendRequest" })
                     //console.log("Messaggio inviato:"+)
                     socketIOclients[receiver.username.toString()].emit('newNotification', JSON.parse(receiverMessage))
@@ -1230,7 +1194,7 @@ app.put('/notification', auth, (req, res, next) => {
             } else {
               n.inpending = false
               n.deleted = true
-              if (req.body.accepted) {
+              if (req.body.accepted === true) {
                 u.addFriend(sender.username.toString(), false)
                 u.save().then((data) => {
                   ios.emit('friend', { user: [req.user.username, req.body.sender], deleted: false })
