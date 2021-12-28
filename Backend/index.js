@@ -790,48 +790,64 @@ app.put('/game', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((user) => {
         notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: user.username, deleted: false }).then((n) => {
             if (n != null && n.sender != user.username) {
-                const randomMatch = createNewRandomMatch(n.sender, n.receiver);
-                randomMatch.save().then((data) => {
-                    console.log("Match have been created correctely".green);
-                }).catch((reason) => {
-                    console.log("ERROR: match creation error \nDB error: ".red + reason);
-                    next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-                });
-                n.deleted = true;
-                n.inpending = false;
-                n.save().then((data) => {
-                    console.log("Game request have been updated correctely".green);
-                }).catch((reason) => {
-                    console.log("ERROR: match requeste update error \nDB error: ".red + reason);
-                    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-                });
-                let player1 = n.sender;
-                let player2 = user.username;
-                let client1 = socketIOclients[player1];
-                let client2 = socketIOclients[player2];
-                matchRooms[player1][player2] = client2;
-                client2.join(player1);
-                // When the clients receive this message they will redirect by himself to the match route
-                // client1.emit('gameReady', 'true')
-                // client2.emit('gameReady', 'true')
-                client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 });
-                client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 });
-                if (randomMatch.player1.toString() == player1.toString()) {
-                    console.log("starts player1");
-                    let pl1Turn = JSON.stringify({ yourTurn: true });
-                    client1.emit('move', JSON.parse(pl1Turn));
-                    let pl2Turn = JSON.stringify({ yourTurn: false });
-                    client2.emit('move', JSON.parse(pl2Turn));
+                if (req.body.accept) {
+                    const randomMatch = createNewRandomMatch(n.sender, n.receiver);
+                    randomMatch.save().then((data) => {
+                        console.log("Match have been created correctely".green);
+                    }).catch((reason) => {
+                        console.log("ERROR: match creation error \nDB error: ".red + reason);
+                        next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                    });
+                    n.deleted = true;
+                    n.inpending = false;
+                    n.save().then((data) => {
+                        console.log("Game request have been updated correctely".green);
+                    }).catch((reason) => {
+                        console.log("ERROR: match requeste update error \nDB error: ".red + reason);
+                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                    });
+                    let player1 = n.sender;
+                    let player2 = user.username;
+                    let client1 = socketIOclients[player1];
+                    let client2 = socketIOclients[player2];
+                    matchRooms[player1][player2] = client2;
+                    client2.join(player1);
+                    // When the clients receive this message they will redirect by himself to the match route
+                    // client1.emit('gameReady', 'true')
+                    // client2.emit('gameReady', 'true')
+                    client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 });
+                    client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 });
+                    if (randomMatch.player1.toString() == player1.toString()) {
+                        console.log("starts player1");
+                        let pl1Turn = JSON.stringify({ yourTurn: true });
+                        client1.emit('move', JSON.parse(pl1Turn));
+                        let pl2Turn = JSON.stringify({ yourTurn: false });
+                        client2.emit('move', JSON.parse(pl2Turn));
+                    }
+                    else {
+                        console.log("starts player2");
+                        let pl2Turn = JSON.stringify({ yourTurn: true });
+                        client2.emit('move', JSON.parse(pl2Turn));
+                        let pl1Turn = JSON.stringify({ yourTurn: false });
+                        client1.emit('move', JSON.parse(pl1Turn));
+                    }
+                    console.log("Match creation and game request update done".green);
+                    return res.status(200).json({ error: false, message: "Match have been created correctely" });
                 }
                 else {
-                    console.log("starts player2");
-                    let pl2Turn = JSON.stringify({ yourTurn: true });
-                    client2.emit('move', JSON.parse(pl2Turn));
-                    let pl1Turn = JSON.stringify({ yourTurn: false });
-                    client1.emit('move', JSON.parse(pl1Turn));
+                    n.inpending = false;
+                    n.deleted = true;
+                    n.save().then((data) => {
+                        console.log("Game request have been updated correctely".green);
+                        if (socketIOclients[n.sender.toString()]) {
+                            socketIOclients[n.sender.toString()].emit("gameReady", { "gameReady": false });
+                        }
+                        return res.status(200).json({ error: false, message: "Request refused" });
+                    }).catch((reason) => {
+                        console.log("ERROR: match requeste update error \nDB error: ".red + reason);
+                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                    });
                 }
-                console.log("Match creation and game request update done".green);
-                return res.status(200).json({ error: false, message: "Match have been created correctely" });
             }
             else {
                 console.log("Match request already exists".red);
