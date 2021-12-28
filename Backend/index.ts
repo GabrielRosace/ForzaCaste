@@ -418,14 +418,14 @@ app.put("/users", auth, (req, res, next) => {
     u.avatarImgURL = req.body.avatarImgURL ? req.body.avatarImgURL : u.avatarImgURL
     if (req.body.password) {
       if (req.body.oldpassword) {
-        
+
         if (u.validatePassword(req.body.oldpassword)) {
           u.setPassword(req.body.password)
         } else {
-          return res.status(401).json({error: true, errormessage:'Wrong password, you aren\'t allowed to do it'})
+          return res.status(401).json({ error: true, errormessage: 'Wrong password, you aren\'t allowed to do it' })
         }
       } else {
-        return res.status(400).json({error: true, errormessage: "Old password is missing"})
+        return res.status(400).json({ error: true, errormessage: "Old password is missing" })
       }
     }
 
@@ -1187,10 +1187,16 @@ app.get('/notification', auth, (req, res, next) => {
 
 // Returns all the messages
 app.get('/message', auth, (req, res, next) => {
+
+  let modmessage = undefined 
+  if (req.query && req.query.ModMessage == 'true') {
+    modmessage = true
+  }
+
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
     if (user.hasModeratorRole() || user.hasUserRole()) {
-      message.getModel().find({ receiver: user.username.toString(), inpending: true }).then((inPendingMessages) => {
-        message.getModel().find({ $or: [{ sender: user.username.toString() }, { receiver: user.username.toString() }] }).then((allMessages) => {
+      message.getModel().find({ isAModMessage:modmessage, receiver: user.username.toString(), inpending: true }).then((inPendingMessages) => {
+        message.getModel().find({isAModMessage:modmessage, $or: [{ sender: user.username.toString() }, { receiver: user.username.toString() }] }).then((allMessages) => {
           return res.status(200).json({ error: false, message: "", inPendingMessages: inPendingMessages, allMessages: allMessages });
         }).catch((reason) => {
           console.log("DB error: " + reason)
@@ -1202,7 +1208,7 @@ app.get('/message', auth, (req, res, next) => {
       })
     }
     else {
-      // ! Errore: l'utente non ha ruolo utente o moderatore 
+      return res.status(401).json({ error: true, errormessage: "You cannot do it" })
     }
   }).catch((reason) => {
     console.log("DB error: " + reason)
@@ -1210,7 +1216,7 @@ app.get('/message', auth, (req, res, next) => {
   })
 })
 
-// Send a message to a specif user
+// Send a message to a specif user that is in your friendlist
 app.post('/message', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((sender: User) => {
     if (sender != null) {
@@ -1230,21 +1236,50 @@ app.post('/message', auth, (req, res, next) => {
             })
           }
           else {
-            // ! Errore: il destinatario non è un amico
-            console.log("Errore: il destinatario non è un amico");
+            return res.status(401).json({ error: true, errormessage: "You cannot do it" })
           }
         }
         else {
-          // ! Errore: il destinatario non è un utente
-          console.log("Errore: il destinatario non è un utente");
+          return res.status(401).json({ error: true, errormessage: "You cannot do it" })
         }
       })
     }
     else {
-      // ! Errore: il mittente non è un'utente
-      console.log("Errore: il mittente non è un'utente");
-
+      return res.status(401).json({ error: true, errormessage: "You cannot do it" })
     }
+  })
+})
+
+// Send a message to a specif user, receiver or sender must be moderator
+app.post('/message/mod', auth, (req, res, next) => {
+  if (req.body.receiver == undefined || req.body.message == undefined) {
+    return res.status(400).json({ error: true, errormessage: 'You should send receiver and message' })
+  }
+  let rec = req.body.receiver
+  let message = req.body.message
+  user.getModel().findOne({ username: req.user.username }).then((sender: User) => {
+    user.getModel().findOne({ username: rec }).then((receiver: User) => {
+      if (sender != null && receiver != null && (sender.hasModeratorRole() || receiver.hasModeratorRole())) {
+        let msg = createMessage(sender.username.toString(), receiver.username.toString(), message)
+        msg.isAModMessage = true
+        msg.save().then((savedMsg) => {
+          console.log("Message from admin have been saved correctely: ".green + savedMsg)
+          if (socketIOclients[receiver.username.toString()]) {
+            socketIOclients[receiver.username.toString()].emit('message', savedMsg)
+          }
+          return res.status(200).json({ error: false, errormessage: "" })
+        }).catch((e) => {
+          console.log("DB error : " + e)
+          return res.status(404).json({ error: true, errormessage: "DB error: " + e.errmsg })
+        })
+      } else {
+        return res.status(401).json({ error: true, errormessage: "You cannot do it" })
+      }
+    }).catch((e) => {
+      return res.status(401).json({ error: true, errormessage: "You cannot do it" })
+    })
+  }).catch((e) => {
+    return res.status(401).json({ error: true, errormessage: "You cannot do it" })
   })
 })
 
@@ -1252,7 +1287,7 @@ app.post('/message', auth, (req, res, next) => {
 app.put('/message', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
     if (user.hasUserRole() || user.hasModeratorRole()) {
-      message.getModel().find({ receiver: req.body.username, sender: req.body.sender, inpending: true }).then((m) => {
+      message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true }).then((m) => {
         if (m) {
           m.forEach((message) => {
             message.inpending = false
@@ -1263,7 +1298,7 @@ app.put('/message', auth, (req, res, next) => {
               return res.status(404).json({ error: true, errormessage: "DB error: " + reason.errmsg });
             })
           })
-          console.log("All messages have been updated")
+          console.log("All messages have been updated".green)
           return res.status(200).json({ error: false, errormessage: "" })
         } else {
           // ! Non ci sono messagi
