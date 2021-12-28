@@ -490,47 +490,18 @@ app.post('/game', auth, (req, res, next) => {
     else if (req.body.type == 'friendlyMatchmaking') {
         user.getModel().findOne({ username: req.user.username }).then((us) => {
             notification.getModel().findOne({ type: "friendlyMatchmaking", sender: us.username, deleted: false }).then((n) => {
-                // if (notification.isNotification(n)) {
-                //   if (n != null && n.sender != us.username) {
-                //     const randomMatch = createNewRandomMatch(n.sender, n.receiver)
-                //     randomMatch.save().then((data) => {
-                //       console.log("Match have been created correctely".green)
-                //     }).catch((reason) => {
-                // 			console.log("ERROR: match creation error \nDB error: ".red + reason)							
-                //       next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-                //     })
-                //     n.deleted = true
-                //     n.inpending = false
-                // 		n.save().then((data)=> {
-                // 			console.log("Game request have been updated correctely".green)
-                // 		}).catch((reason) => {
-                // 			console.log("ERROR: match requeste update error \nDB error: ".red + reason)	
-                // 			return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-                // 		})
-                //     let player1 = n.sender
-                //     let player2 = us.username
-                //     let client1 = socketIOclients[player1]
-                //     let client2 = socketIOclients[player2]
-                //     matchRooms[player1][player2] = client2
-                //     client2.join(player1)
-                //     // When the clients receive this message they will redirect by himself to the match route
-                //     client1.emit('gameReady', 'true')
-                //     client2.emit('gameReady', 'true')
-                // 		console.log("Match creation and game request update done".green)						
-                // 		return res.status(200).json({ error: false, message: "Match have been created correctely" })
-                //   }
-                //   else {
-                //     console.log("Match request already exists".red);
-                //     return res.status(200).json({ error: false, message: "Match request already exists" });
-                //   }
-                // }
-                // else {
                 if (!notification.isNotification(n)) {
                     // Check if the opposite player is a friend
                     user.getModel().findOne({ username: req.body.oppositePlayer }).then((friend) => {
                         if (!us.isFriend(friend.username.toString())) {
+                            console.log(friend);
                             console.log("ERROR: opposite player is not a friend".red);
                             return next({ statusCode: 404, error: true, errormessage: "The opposite player is not a friend" });
+                        }
+                        // Check if the opposite player is online
+                        if (!checkOnlineUser(friend.username)) {
+                            console.log("ERROR: opposite player is not online".red);
+                            return next({ statusCode: 400, error: true, errormessage: "The opposite player is not online" });
                         }
                         const doc = createNewGameRequest(req.body, us.username, us.statistics.ranking, friend.username);
                         doc.save().then((data) => {
@@ -554,6 +525,7 @@ app.post('/game', auth, (req, res, next) => {
                     });
                 }
                 else {
+                    //! La richiesta esiste già
                 }
             });
         });
@@ -599,6 +571,9 @@ app.post('/game', auth, (req, res, next) => {
         return res.status(400).json({ error: true, errormessage: "Invalid request" });
     }
 });
+function checkOnlineUser(username) {
+    return socketIOclients[username] ? true : false;
+}
 // Create game against AI
 app.post('/game/cpu', auth, (req, res, next) => {
     let player = req.user.username;
@@ -842,7 +817,7 @@ app.put('/game', auth, (req, res, next) => {
                     n.save().then((data) => {
                         console.log("Game request have been updated correctely".green);
                         if (socketIOclients[n.sender.toString()]) {
-                            socketIOclients[n.sender.toString()].emit("gameReady", { "gameReady": false });
+                            socketIOclients[n.sender.toString()].emit("gameReady", { "gameReady": false, "message": "Request refused" });
                         }
                         return res.status(200).json({ error: false, message: "Request refused" });
                     }).catch((reason) => {
@@ -1676,6 +1651,23 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                             }
                             else {
                                 // Non esiste alcun match, il client può essere disconnesso
+                            }
+                        });
+                        notification.getModel().findOne({ $or: [{ sender: user.username.toString() }, { receiver: user.username.toString() }], deleted: false, type: "friendlyMatchmaking" }).then((n) => {
+                            if (n != null) {
+                                n.inpending = false;
+                                n.deleted = true;
+                                n.save().then((data) => {
+                                    // console.log(data);
+                                    if (data.receiver.toString() === user.username.toString()) {
+                                        if (checkOnlineUser(data.sender.toString()))
+                                            socketIOclients[data.sender.toString()].emit("gameReady", { "gameReady": false, "message": "User disconnect" });
+                                    }
+                                    else {
+                                        if (checkOnlineUser(data.receiver.toString()))
+                                            socketIOclients[data.receiver.toString()].emit("gameRequest", { "type": "friendlyGame", "message": "User disconnect" });
+                                    }
+                                });
                             }
                         });
                     });
