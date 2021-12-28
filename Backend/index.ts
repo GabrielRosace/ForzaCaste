@@ -1185,6 +1185,101 @@ app.get('/notification', auth, (req, res, next) => {
   })
 })
 
+// Return the inbox of the current logged user
+// app.get('/notification/inbox', auth, (req, res, next) => {
+//   const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
+//     //Verify if the user is register
+//     if (u.hasModeratorRole() || u.hasUserRole()) {
+//       console.log("Questo è l'id della notifica: ", mongoose.Types.ObjectId().toString());
+//       console.log("Chat di:" + req.user.username);
+//       return res.status(200).json({ inbox: u.inbox });
+//     }
+//   }).catch((reason) => {
+//     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+//   })
+// })
+
+// When a client read a notification, when he open it then it send this request in order to inform the server that the notification has been
+// read and it must be updated in the server
+app.put('/notification', auth, (req, res, next) => {
+  //The user accept or decline a friendRequest
+  user.getModel().findOne({ username: req.user.username }).then((u: User) => {
+    if (u.hasModeratorRole() || u.hasUserRole()) {
+      user.getModel().findOne({ username: req.body.sender }).then((sender) => {
+        if (sender.hasModeratorRole() || sender.hasUserRole()) {
+          notification.getModel().findOne({ type: "friendRequest", sender: sender.username, deleted: false }).then((n) => {
+            if (n === null) {
+              return res.status(404).json({ error: true, errormessage: "Notification not found." });
+            } else {
+              n.inpending = false
+              n.deleted = true
+              if (req.body.accepted) {
+                u.addFriend(sender.username.toString(), false)
+                u.save().then((data) => {
+                  ios.emit('friend', { user: [req.user.username, req.body.sender], deleted: false })
+                  console.log("New friend saved".green)
+
+                  sender.addFriend(u.username.toString(), false)
+                  sender.save().then((data) => {
+                    console.log("New friend saved".green);
+                  }).catch((reason) => {
+                    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+                  })
+                  if (socketIOclients[sender.username.toString()]) {
+                    let senderMessage = JSON.stringify({ newFriend: u.username.toString() })
+                    socketIOclients[sender.username.toString()].emit('request', JSON.parse(senderMessage))
+                  }                  
+                }).catch((reason) => {
+                  return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+                })
+
+                // sender.addFriend(u.username.toString(), false)
+                // sender.save().then((data) => {
+                //   console.log("New friend saved".green);
+                // }).catch((reason) => {
+                //   return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+                // })
+                // if (socketIOclients[sender.username.toString()]) {
+                //   let senderMessage = JSON.stringify({ newFriend: u.username.toString() })
+                //   socketIOclients[sender.username.toString()].emit('acceptedRequest', JSON.parse(senderMessage))
+                // }
+              }
+              else{
+                if (socketIOclients[sender.username.toString()]) {
+                  let senderMessage = JSON.stringify({ newFriend: null })
+                  socketIOclients[sender.username.toString()].emit('request', JSON.parse(senderMessage))
+                } 
+              }
+              n.save().then((data) => {
+                console.log("Data saved successfully".blue)
+                return res.status(200).json({ error: false, errormessage: "" })
+              }).catch((reason) => {
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+              })
+            }
+          }).catch((reason) => {
+            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+          })
+        }
+        else {
+          // ! Il sender non ha ruolo di utente o moderatore
+        }
+      }).catch((reason) => {
+        return next({ statuscode: 404, error: true, errormessage: "DB error: " + reason })
+      })
+    }
+    else {
+      // ! L'utete non ha ruolo utente o moderatore
+    }
+  }).catch((reason) => {
+    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+  })
+})
+
+// app.delete('/notification', auth, (req, res, next) => {
+
+// })
+
 // Returns all the messages
 app.get('/message', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
@@ -1276,82 +1371,6 @@ app.put('/message', auth, (req, res, next) => {
     }
   })
 })
-
-// Return the inbox of the current logged user
-// app.get('/notification/inbox', auth, (req, res, next) => {
-//   const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
-//     //Verify if the user is register
-//     if (u.hasModeratorRole() || u.hasUserRole()) {
-//       console.log("Questo è l'id della notifica: ", mongoose.Types.ObjectId().toString());
-//       console.log("Chat di:" + req.user.username);
-//       return res.status(200).json({ inbox: u.inbox });
-//     }
-//   }).catch((reason) => {
-//     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-//   })
-// })
-
-// When a client read a notification, when he open it then it send this request in order to inform the server that the notification has been
-// read and it must be updated in the server
-app.put('/notification', auth, (req, res, next) => {
-  //The user accept or decline a friendRequest
-  user.getModel().findOne({ username: req.user.username }).then((u: User) => {
-    if (u.hasModeratorRole() || u.hasUserRole()) {
-      user.getModel().findOne({ username: req.body.sender }).then((sender) => {
-        if (sender.hasModeratorRole() || sender.hasUserRole()) {
-          notification.getModel().findOne({ type: "friendRequest", sender: sender.username, deleted: false }).then((n) => {
-            if (n === null) {
-              return res.status(404).json({ error: true, errormessage: "Notification not found." });
-            } else {
-              n.inpending = false
-              n.deleted = true
-              if (req.body.accepted) {
-                u.addFriend(sender.username.toString(), false)
-                u.save().then((data) => {
-                  ios.emit('friend', { user: [req.user.username, req.body.sender], deleted: false })
-                  console.log("New friend saved".green)
-                }).catch((reason) => {
-                  return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-                })
-
-                sender.addFriend(u.username.toString(), false)
-                sender.save().then((data) => {
-                  console.log("New friend saved".green);
-                }).catch((reason) => {
-                  return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-                })
-                if (socketIOclients[sender.username.toString()]) {
-                  //console.log("Sono riuscito a fare l'emit.")
-                  let senderMessage = JSON.stringify({ newFriend: u.username.toString() })
-                  socketIOclients[sender.username.toString()].emit('acceptedRequest', JSON.parse(senderMessage))
-                }
-              }
-              n.save().then((data) => {
-                console.log("Data saved successfully".blue)
-                return res.status(200).json({ error: false, errormessage: "" })
-              }).catch((reason) => {
-                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-              })
-            }
-          }).catch((reason) => {
-            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-          })
-        }
-        else {
-          // ! Il sender non ha ruolo di utente o moderatore
-        }
-      }).catch((reason) => {
-        return next({ statuscode: 404, error: true, errormessage: "DB error: " + reason })
-      })
-    }
-    else {
-      // ! L'utete non ha ruolo utente o moderatore
-    }
-  }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-  })
-})
-
 
 // app.post('/friend', auth, (req, res, next) => {
 //   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
