@@ -290,12 +290,13 @@ Gli utenti connessi alla partita ricevono un messaggio SocketIO all'EL 'gameChat
 }
 ```
 # Invio di messaggi tra utenti (chat p2p)
+## Invio di messaggi tra amici
 ```
 Premessa: i due utenti devono essere amici
 ```
-## INVIO DI MESSAGGI
+### INVIO DI MESSAGGI
 ```
-Quando un utente vuole inviare un messaggio deve inviare una richiesta http in POST a localhost/message, con il seguente body:
+Quando un utente vuole inviare un messaggio deve inviare una richiesta http in POST a /message, con il seguente body:
 ```
 ```json
 {
@@ -304,21 +305,50 @@ Quando un utente vuole inviare un messaggio deve inviare una richiesta http in P
 }
 ```
 ```
-Se l'utente destinatario è online (ha fatto il login e il suo socketIO è salvato), riceverà un messaggio SocketIO all'EL 'message' con il seguente body:
+Se l'utente destinatario è online (ha fatto il login), riceverà un messaggio SocketIO all'EL 'message' con il seguente body:
 ```
 ```json  
-  {
+{
+  "_id": "identificatore",
+  "content": "messaggio",
+  "sender": "username dell'utente che ha inviato un messaggio",
+  "receiver": "username dell'utente che ha ricevuto il messaggio",
+  "timestamp": "timestamp di quando è stato inviato il messaggio",
+  "indpending" : true
+}
+```
+## Invio di messaggi tra un moderatore e un'utente
+```
+Premessa: uno dei due utenti coinvolti deve essere un moderatore
+```
+### INVIO DI MESSAGGI
+```
+Quando un utente vuole inviare un messaggio deve inviare una richieta http in POST a /message/mod, con il seguente body:
+```
+```json
+{
+  "receiver" : "username dell'utente a cui si vuole inviare il messaggio",
+  "message" : "messaggio"
+}
+```
+```
+Se l'utente destinatario è online, riceverà un messaggio SocketIO all'EL 'message' con il seguente body:
+```
+```json
+{
     "_id": "identificatore",
     "content": "messaggio",
     "sender": "username dell'utente che ha inviato un messaggio",
     "receiver": "username dell'utente che ha ricevuto il messaggio",
     "timestamp": "timestamp di quando è stato inviato il messaggio",
-    "indpending" : true
+    "inpending": true,
+    "isAModMessage": true,
+    "__v": 0
 }
 ```
 ## LETTURA MESSAGGI
 ```
-Quando il destinatario di un messaggio ne riceve uno o più, deve comunicare al server che il o i messaggi/io sono stati letti, in modo tale che l'attributo "inpending" dei messagi vengano settati a false. PEr far ciò bisogna fare una richieta http in PUT a localhost/message con il seguente body:
+Quando il destinatario di un messaggio ne riceve uno o più, deve comunicare al server che il o i messaggi/io sono stati letti, in modo tale che l'attributo "inpending" dei messagi vengano settati a false. Per far ciò bisogna fare una richieta http in PUT a localhost/message con il seguente body:
 ```
 ```json
 {
@@ -330,6 +360,7 @@ Quando il destinatario di un messaggio ne riceve uno o più, deve comunicare al 
 Quando un utente effettua il login bisogna verificare se questo ha messaggi non letti, quindi ricevuti mentre era offline, e notificarglielo in moda che li legga. Per ottenere i messaggi non letti deve fare una richiesta in GET a localhost/message con il seguente body:
 {}
 Vuoto perchè basta solo il suo username
+Per questo endpoint è disponibile il filtro isAModMessage che se settato a true consente di ricevere solo i messaggi derivanti da comunicazioni con un moderatore non amico, mentre qualora il filtro sia settato a false oppure sia assente il comportamento sarà quello di default, cioè ritornerà i messaggi che gli amici hanno inviato
 ```
 # DOCUMENTAZIONI TODO
 
