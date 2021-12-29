@@ -887,11 +887,8 @@ app.delete('/game', auth, (req, res, next) => {
   })
 })
 
-app.put('/game', auth, (req, res, next) => {
-  console.log(req.user);
-  
+app.put('/game', auth, (req, res, next) => {  
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
-    console.log(user)    
     notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: user.username.toString(), deleted: false, sender: req.body.sender }).then((n) => {
       if (n != null && n.sender != user.username) {
         if(req.body.accept === true){
@@ -1223,17 +1220,6 @@ app.put('/notification', auth, (req, res, next) => {
                 }).catch((reason) => {
                   return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
                 })
-
-                // sender.addFriend(u.username.toString(), false)
-                // sender.save().then((data) => {
-                //   console.log("New friend saved".green);
-                // }).catch((reason) => {
-                //   return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-                // })
-                // if (socketIOclients[sender.username.toString()]) {
-                //   let senderMessage = JSON.stringify({ newFriend: u.username.toString() })
-                //   socketIOclients[sender.username.toString()].emit('acceptedRequest', JSON.parse(senderMessage))
-                // }
               }
               else{
                 if (socketIOclients[sender.username.toString()]) {

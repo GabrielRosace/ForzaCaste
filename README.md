@@ -193,7 +193,15 @@ A questo punto l'amico riceverà un messaggio SocketIO dal server all'EL 'gameRe
 }
 ```
 ```
-Allora l'utente per accettare la richiesta deve inviare una richiesta http in PUT a 'localhost/game' per accettare la richiesta. Il body di questa richiesta è vuoto ({}) perchè basterà il suo username per andare a prendere la richiesta di gioco. 
+Allora l'utente per accettare la richiesta deve inviare una richiesta http in PUT a 'localhost/game' per accettare la richiesta. Il body di questa richiesta è
+```
+```json
+{
+  "sender": "username dell'utente che gli ha inviato la richiesta di gioco",
+  "accepted": true/false 
+}
+```
+```
 Quando la richiesta di gioco viene quindi accettata entrambi i player ricevono un messaggio SocketIO che li informa che il matchmaking è terminato e possono procedere a giocare. Questo messaggio viene ricevuto all'EL 'gameReady' che indica che si può procedere, con il conseguente contenuto:
 ```
 ```json
@@ -202,7 +210,15 @@ Quando la richiesta di gioco viene quindi accettata entrambi i player ricevono u
   "opponentPlayer": "opponent"
 }
 ```
-
+```
+Se invece la richiesta di gioco viene rifiutata, ovvero "accepted: false", allora la richiesta viene eliminata senza che una partita venga creata. Inoltre viene inviato un messaggio al sender della richiesta all'EL 'gameReady' che indica che la richiesta è stata rifiutata, con il seguente body:
+```
+```json
+{
+  "gameReady": false,
+  "message": "Requeste refused"
+}
+```
 # Osservatori di una partita
 ```
 Deve essere iniziata una partita, l'utente deve essere loggato e deve essere stato effettuato il saveClient.
@@ -341,6 +357,31 @@ Per aggiungere un utente tra gli amici:
 {
   "sender": "NomeUtente(che ha inviato la richiesta)",
   "accepted": true
+}
+```
+```
+Allora per confermare all'utente che ha inviato la richiesta di amicizia che è stata accettata viene inviato un messaggio Socket.IO all'EL 'request' che indica che l'utente di destinazione ha accettato la richiesta. Questo messaggio presenta il seguente body:
+```
+```json
+{
+  "newFriend": "username dell'utente che ha accettato la richiesta"
+}
+```
+```
+Se invece l'utente vuole rifiutare una richiesta di amicizia deve fare una richiesta in PUT a 'localhost:8080/notification' con il seguente body:
+```
+```json
+{
+  "sender": "nome dell'utente che ha inviato la richiesta",
+  "accepted": false
+}
+```
+```
+Allora viene inviato un messaggio Socket.IO all'EL 'request' al sender della richiesta. Questa indica che la richiesta è stata rifiutata. Il messaggio contiene il seguente body:
+```
+```json
+{
+  "newFriend": null
 }
 ```
 ## Invio messaggi privati
