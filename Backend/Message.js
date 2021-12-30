@@ -15,7 +15,8 @@ const validatorSchema = {
         sender: { type: "string" },
         receiver: { type: "string" },
         timestamp: { type: "string", format: "date-time" },
-        inpending: { type: "boolean" }
+        inpending: { type: "boolean" },
+        isAModMessage: { type: 'boolean' }
     },
     required: ["content", "sender", "timestamp"],
     additionalProperties: false
@@ -58,6 +59,10 @@ var messageSchema = new mongoose.Schema({
         required: false
     },
     inpending: {
+        type: mongoose.SchemaTypes.Boolean,
+        required: false
+    },
+    isAModMessage: {
         type: mongoose.SchemaTypes.Boolean,
         required: false
     }

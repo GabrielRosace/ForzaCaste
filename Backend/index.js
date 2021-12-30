@@ -494,7 +494,6 @@ app.post('/game', auth, (req, res, next) => {
                     // Check if the opposite player is a friend
                     user.getModel().findOne({ username: req.body.oppositePlayer }).then((friend) => {
                         if (!us.isFriend(friend.username.toString())) {
-                            console.log(friend);
                             console.log("ERROR: opposite player is not a friend".red);
                             return next({ statusCode: 404, error: true, errormessage: "The opposite player is not a friend" });
                         }
@@ -716,13 +715,6 @@ app.delete('/game', auth, (req, res, next) => {
                     match.winner = user.username.toString() ? match.player1.toString() : match.player2.toString();
                     match.save().then((data) => {
                         let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" });
-                        // if(user.username.toString() == match.player1.toString()){
-                        //   let message = JSON.stringify({winner : match.player2.toString(), message : "Opposite player have left the game"})
-                        //   socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message))
-                        // }
-                        // else{
-                        //   let message = JSON.stringify({winner : match.player1.toString(), message : "Opposite player have left the game"})
-                        // }
                         socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message));
                         console.log("The match have been deleted correctely".green);
                         return res.status(200).json({ error: false, message: "" });
@@ -762,9 +754,7 @@ app.delete('/game', auth, (req, res, next) => {
     });
 });
 app.put('/game', auth, (req, res, next) => {
-    console.log(req.user);
     user.getModel().findOne({ username: req.user.username }).then((user) => {
-        console.log(user);
         notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: user.username.toString(), deleted: false, sender: req.body.sender }).then((n) => {
             if (n != null && n.sender != user.username) {
                 if (req.body.accept === true) {
@@ -860,8 +850,11 @@ app.post('/gameMessage', auth, (req, res, next) => {
             user.getModel().findOne({ username: req.body.player }).then((player) => {
                 match.getModel().findOne({ inProgress: true, $or: [{ player1: player.username.toString() }, { player2: player.username.toString() }] }).then((m) => {
                     if (m != null && match.isMatch(m)) {
-                        if (((u.username == m.player1 || u.username == m.player2) && socketIOclients[u.username].rooms.has(m.player1.toString())) || ((u.username != m.player1 && u.username != m.player2) && (socketIOclients[u.username].rooms.has(m.player1.toString()) && socketIOclients[u.username].rooms.has(m.player1.toString() + 'Watchers')))) {
+                        console.log(socketIOclients[u.username]);
+                        console.log(socketIOclients[u.username].rooms);
+                        if (((u.username.toString() == m.player1.toString() || u.username.toString() == m.player2.toString()) && socketIOclients[u.username.toString()].rooms.has(m.player1.toString())) || ((u.username.toString() != m.player1.toString() && u.username.toString() != m.player2.toString()) && (socketIOclients[u.username.toString()].rooms.has(m.player1.toString()) && socketIOclients[u.username.toString()].rooms.has(m.player1.toString() + 'Watchers')))) {
                             let client = null;
+                            // console.log(socketIOclients[u.username.toString()]);
                             if (socketIOclients[u.username.toString()])
                                 client = socketIOclients[u.username.toString()];
                             else
@@ -1082,16 +1075,6 @@ app.put('/notification', auth, (req, res, next) => {
                                 }).catch((reason) => {
                                     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
                                 });
-                                // sender.addFriend(u.username.toString(), false)
-                                // sender.save().then((data) => {
-                                //   console.log("New friend saved".green);
-                                // }).catch((reason) => {
-                                //   return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-                                // })
-                                // if (socketIOclients[sender.username.toString()]) {
-                                //   let senderMessage = JSON.stringify({ newFriend: u.username.toString() })
-                                //   socketIOclients[sender.username.toString()].emit('acceptedRequest', JSON.parse(senderMessage))
-                                // }
                             }
                             else {
                                 if (socketIOclients[sender.username.toString()]) {
@@ -1128,10 +1111,14 @@ app.put('/notification', auth, (req, res, next) => {
 // })
 // Returns all the messages
 app.get('/message', auth, (req, res, next) => {
+    let modmessage = undefined;
+    if (req.query && req.query.ModMessage == 'true') {
+        modmessage = true;
+    }
     user.getModel().findOne({ username: req.user.username }).then((user) => {
         if (user.hasModeratorRole() || user.hasUserRole()) {
-            message.getModel().find({ receiver: user.username.toString(), inpending: true }).then((inPendingMessages) => {
-                message.getModel().find({ $or: [{ sender: user.username.toString() }, { receiver: user.username.toString() }] }).then((allMessages) => {
+            message.getModel().find({ isAModMessage: modmessage, receiver: user.username.toString(), inpending: true }).then((inPendingMessages) => {
+                message.getModel().find({ isAModMessage: modmessage, $or: [{ sender: user.username.toString() }, { receiver: user.username.toString() }] }).then((allMessages) => {
                     return res.status(200).json({ error: false, message: "", inPendingMessages: inPendingMessages, allMessages: allMessages });
                 }).catch((reason) => {
                     console.log("DB error: " + reason);
@@ -1143,14 +1130,14 @@ app.get('/message', auth, (req, res, next) => {
             });
         }
         else {
-            // ! Errore: l'utente non ha ruolo utente o moderatore 
+            return res.status(401).json({ error: true, errormessage: "You cannot do it" });
         }
     }).catch((reason) => {
         console.log("DB error: " + reason);
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
     });
 });
-// Send a message to a specif user
+// Send a message to a specif user that is in your friendlist
 app.post('/message', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((sender) => {
         if (sender != null) {
@@ -1170,27 +1157,57 @@ app.post('/message', auth, (req, res, next) => {
                         });
                     }
                     else {
-                        // ! Errore: il destinatario non è un amico
-                        console.log("Errore: il destinatario non è un amico");
+                        return res.status(401).json({ error: true, errormessage: "You cannot do it" });
                     }
                 }
                 else {
-                    // ! Errore: il destinatario non è un utente
-                    console.log("Errore: il destinatario non è un utente");
+                    return res.status(401).json({ error: true, errormessage: "You cannot do it" });
                 }
             });
         }
         else {
-            // ! Errore: il mittente non è un'utente
-            console.log("Errore: il mittente non è un'utente");
+            return res.status(401).json({ error: true, errormessage: "You cannot do it" });
         }
+    });
+});
+// Send a message to a specif user, receiver or sender must be moderator
+app.post('/message/mod', auth, (req, res, next) => {
+    if (req.body.receiver == undefined || req.body.message == undefined) {
+        return res.status(400).json({ error: true, errormessage: 'You should send receiver and message' });
+    }
+    let rec = req.body.receiver;
+    let message = req.body.message;
+    user.getModel().findOne({ username: req.user.username }).then((sender) => {
+        user.getModel().findOne({ username: rec }).then((receiver) => {
+            if (sender != null && receiver != null && (sender.hasModeratorRole() || receiver.hasModeratorRole())) {
+                let msg = createMessage(sender.username.toString(), receiver.username.toString(), message);
+                msg.isAModMessage = true;
+                msg.save().then((savedMsg) => {
+                    console.log("Message from admin have been saved correctely: ".green + savedMsg);
+                    if (socketIOclients[receiver.username.toString()]) {
+                        socketIOclients[receiver.username.toString()].emit('message', savedMsg);
+                    }
+                    return res.status(200).json({ error: false, errormessage: "" });
+                }).catch((e) => {
+                    console.log("DB error : " + e);
+                    return res.status(404).json({ error: true, errormessage: "DB error: " + e.errmsg });
+                });
+            }
+            else {
+                return res.status(401).json({ error: true, errormessage: "You cannot do it" });
+            }
+        }).catch((e) => {
+            return res.status(401).json({ error: true, errormessage: "You cannot do it" });
+        });
+    }).catch((e) => {
+        return res.status(401).json({ error: true, errormessage: "You cannot do it" });
     });
 });
 // Update the non-read messages into read messages
 app.put('/message', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((user) => {
         if (user.hasUserRole() || user.hasModeratorRole()) {
-            message.getModel().find({ receiver: req.body.username, sender: req.body.sender, inpending: true }).then((m) => {
+            message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true }).then((m) => {
                 if (m) {
                     m.forEach((message) => {
                         message.inpending = false;
@@ -1201,7 +1218,7 @@ app.put('/message', auth, (req, res, next) => {
                             return res.status(404).json({ error: true, errormessage: "DB error: " + reason.errmsg });
                         });
                     });
-                    console.log("All messages have been updated");
+                    console.log("All messages have been updated".green);
                     return res.status(200).json({ error: false, errormessage: "" });
                 }
                 else {
@@ -1658,7 +1675,6 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                                 n.inpending = false;
                                 n.deleted = true;
                                 n.save().then((data) => {
-                                    // console.log(data);
                                     if (data.receiver.toString() === user.username.toString()) {
                                         if (checkOnlineUser(data.sender.toString()))
                                             socketIOclients[data.sender.toString()].emit("gameReady", { "gameReady": false, "message": "User disconnect" });

@@ -841,13 +841,6 @@ app.delete('/game', auth, (req, res, next) => {
           match.winner = user.username.toString() ? match.player1.toString() : match.player2.toString()
           match.save().then((data) => {
             let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" })
-            // if(user.username.toString() == match.player1.toString()){
-            //   let message = JSON.stringify({winner : match.player2.toString(), message : "Opposite player have left the game"})
-            //   socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message))
-            // }
-            // else{
-            //   let message = JSON.stringify({winner : match.player1.toString(), message : "Opposite player have left the game"})
-            // }
             socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message))
             console.log("The match have been deleted correctely".green)
             return res.status(200).json({ error: false, message: "" })
@@ -990,8 +983,14 @@ app.post('/gameMessage', auth, (req, res, next) => {
       user.getModel().findOne({ username: req.body.player }).then((player: User) => {
         match.getModel().findOne({ inProgress: true, $or: [{ player1: player.username.toString() }, { player2: player.username.toString() }] }).then((m) => {
           if (m != null && match.isMatch(m)) {
-            if (((u.username == m.player1 || u.username == m.player2) && socketIOclients[u.username].rooms.has(m.player1.toString())) || ((u.username != m.player1 && u.username != m.player2) && (socketIOclients[u.username].rooms.has(m.player1.toString()) && socketIOclients[u.username].rooms.has(m.player1.toString() + 'Watchers')))) {
+            console.log(socketIOclients[u.username]);
+            console.log(socketIOclients[u.username].rooms);
+            
+            
+            if (((u.username.toString() == m.player1.toString() || u.username.toString() == m.player2.toString()) && socketIOclients[u.username.toString()].rooms.has(m.player1.toString())) || ((u.username.toString() != m.player1.toString() && u.username.toString() != m.player2.toString()) && (socketIOclients[u.username.toString()].rooms.has(m.player1.toString()) && socketIOclients[u.username.toString()].rooms.has(m.player1.toString() + 'Watchers')))) {
               let client = null
+              // console.log(socketIOclients[u.username.toString()]);
+              
               if (socketIOclients[u.username.toString()])
                 client = socketIOclients[u.username.toString()]
               else
