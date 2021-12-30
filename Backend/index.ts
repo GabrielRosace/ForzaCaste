@@ -1670,7 +1670,7 @@ function makeMove(index, m, client, placehold, otherPlayer, res, username) {
       // Notify event to other player
       socketIOclients[otherPlayer.toString()].emit('move', JSON.parse(opponentMessage))
 
-      let watchersMessage = JSON.stringify({ player: m.player1, move: index, nextTurn: otherPlayer })
+      let watchersMessage = JSON.stringify({ player: username, move: index, nextTurn: otherPlayer })
 
       // Notify event to watchers
       client.broadcast.to(`${m.player1}Watchers`).emit('gameStatus', JSON.parse(watchersMessage))
