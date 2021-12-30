@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserHttpService } from '../user-http.service';
 import { SocketioService } from '../socketio.service';
@@ -11,33 +11,40 @@ import { ToastService } from '../_services/toast.service';
   styleUrls: ['./homepage.component.css']
 })
 export class HomepageComponent implements OnInit {
-
   public username: string = ''
   public friendlist: any[] = []
-  public gameReady:Subscription
+  public gameReady: Subscription
+  private enterGameWatchMode!: Subscription;
+  public foundwatch: boolean = true
 
-  constructor(private toast: ToastService, private sio: SocketioService,private us: UserHttpService, private router: Router) { 
+  constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router) {
     /* Subscribe to a socket's listener, the lobby, for knwo if i find a match */
-    this.gameReady=this.sio.gameReady().subscribe(msg => {
-      console.log('got a msg lobby: ' + msg);
-      if(msg.gameReady){
+    this.gameReady = this.sio.gameReady().subscribe(msg => {
+      console.log('got a msg lobby: ' + JSON.stringify(msg));
+      if (msg.gameReady) {
         //rimuove il backdrop dei modal (bug di bootstrap)
-        this.sio.setOpponent(msg.opponentPlayer)
+        this.sio.setP2(msg.opponentPlayer)
         Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
           item.parentElement?.removeChild(item);
-          });
+        });
         this.router.navigate(['game']);
       }
-      
+      if (msg.gameReady != undefined && !msg.gameReady) {
+        //chiudere il modal
+        Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
+          item.parentElement?.removeChild(item);
+        });
+        this.toastN("Friendly match refused")
+      }
     });
   }
-  
-  ngOnDestroy(): void{
+
+  ngOnDestroy(): void {
     /* Delete the subscription from the socket's listener */
     this.gameReady.unsubscribe();
   }
-  
-  
+
+
   ngOnInit(): void {
     // if (!this.us.get_token()) {
     //   this.router.navigate(["/"])
@@ -73,7 +80,7 @@ export class HomepageComponent implements OnInit {
 
     if (!this.us.get_token()) {
       this.router.navigate(['/'])
-    }else if (this.us.has_nonregmod_role()) {
+    } else if (this.us.has_nonregmod_role()) {
       this.router.navigate(['/profile'])
     } else {
       this.username = this.us.get_username()
@@ -100,23 +107,179 @@ export class HomepageComponent implements OnInit {
     });
   }
   /* Call the function for creata a matchmaking */
-  findmatch(){
+  findmatch() {
     this.us.create_matchmaking().subscribe(
-      (u)=>{
+      (u) => {
         console.log(u);
         this.sio.creatematchroomemit();
-        
+
+      }
+    )
+  }
+  findMatchWatchFriend(friend: string) {
+    let game: number[][] = []
+
+    this.foundwatch = true
+
+    for (var i: number = 0; i < 6; i++) {
+      game[i] = [];
+      for (var j: number = 0; j < 7; j++) {
+        game[i][j] = 0;
+      }
+    }
+    this.enterGameWatchMode = this.sio.enterGameWatchMode().subscribe(msg => {
+      console.log('got a msg enterGameWatchMode: ' + JSON.stringify(msg));
+      const rplayground = msg.playground
+      if (rplayground != undefined) {
+        let x = 5, y = 0
+        for (var i: number = 0; i < 6; i++) {
+          y = 0
+          for (var j: number = 0; j < 7; j++) {
+            if (rplayground[i][j] == "X") {
+              game[x][y] = 1;
+            }
+            if (rplayground[i][j] == "O") {
+              game[x][y] = 2;
+            }
+
+            y++
+          }
+          x--
+        }
+      }
+      this.sio.setGame(game)
+      Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
+        item.parentElement?.removeChild(item);
+      });
+      this.enterGameWatchMode.unsubscribe()
+      if (this.sio.getP1() == msg.playerTurn) {
+        this.sio.turn = 1
+      } else {
+        this.sio.turn = 2
+      }
+      this.router.navigate(['watch']);
+    });
+    this.us.get_GameinProgress().subscribe(
+      (u) => {
+        console.log(JSON.stringify(u));
+
+        if (u.matches.length >= 1) {
+          let game = 0
+          for (var i: number = 0; i < u.matches.length; i++) {
+            if (u.matches[i].player1 == friend) {
+              this.sio.setP1(friend)
+              this.sio.setP2(u.matches[i].player2)
+              this.sio.switched = false
+              game++
+            }
+            if (u.matches[i].player2 == friend) {
+              this.sio.setP1(u.matches[i].player2)
+              this.sio.setP2(friend)
+              this.sio.switched = true
+              game++
+            }
+          }
+          if (game < 1) {
+            this.foundwatch = false
+            this.enterGameWatchMode.unsubscribe()
+          } else {
+            this.us.watchPeople(this.sio.getP1()).subscribe((msg) => {
+              console.log(msg)
+
+            })
+          }
+
+        } else {
+          this.foundwatch = false
+          this.enterGameWatchMode.unsubscribe()
+        }
+      }
+    )
+  }
+  findMatchWatch() {
+    let game: number[][] = []
+
+    this.foundwatch = true
+
+    for (var i: number = 0; i < 6; i++) {
+      game[i] = [];
+      for (var j: number = 0; j < 7; j++) {
+        game[i][j] = 0;
+      }
+    }
+    this.enterGameWatchMode = this.sio.enterGameWatchMode().subscribe(msg => {
+      console.log('got a msg enterGameWatchMode: ' + JSON.stringify(msg));
+      const rplayground = msg.playground
+      if (rplayground != undefined) {
+        let x = 5, y = 0
+        for (var i: number = 0; i < 6; i++) {
+          y = 0
+          for (var j: number = 0; j < 7; j++) {
+            if (rplayground[i][j] == "X") {
+              game[x][y] = 1;
+            }
+            if (rplayground[i][j] == "O") {
+              game[x][y] = 2;
+            }
+
+            y++
+          }
+          x--
+        }
+      }
+      this.sio.setGame(game)
+      Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
+        item.parentElement?.removeChild(item);
+      });
+      this.enterGameWatchMode.unsubscribe()
+      if (this.sio.getP1() == msg.playerTurn) {
+        this.sio.turn = 1
+      } else {
+        this.sio.turn = 2
+      }
+      this.router.navigate(['watch']);
+    });
+    this.us.get_GameinProgress().subscribe(
+      (u) => {
+        console.log(JSON.stringify(u));
+        const game = this.randomNumber(0, u.matches.length - 1)
+        const player = this.randomNumber(1, 2)
+        console.log(" my game", game, " player", player)
+        if (u.matches.length >= 1) {
+          const selectgame = u.matches[game]
+          if (player == 1) {
+            this.sio.setP1(selectgame.player1)
+            this.sio.setP2(selectgame.player2)
+            this.sio.switched = false
+          } else {
+            this.sio.setP1(selectgame.player2)
+            this.sio.setP2(selectgame.player1)
+            this.sio.switched = true
+          }
+          this.us.watchPeople(this.sio.getP1()).subscribe((msg) => {
+            console.log(msg)
+
+          })
+        } else {
+          this.foundwatch = false
+          this.enterGameWatchMode.unsubscribe()
+        }
       }
     )
   }
 
-  inviteFriendToMatch(username: string){
-    console.log("Opposite Player: "+ username)
+  /* Create random number - USELESS */
+  randomNumber(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  inviteFriendToMatch(username: string) {
+    console.log("Opposite Player: " + username)
     this.us.create_friendlymatchmaking(username).subscribe((data) => {
       this.toastN("Request Forwarded")
     })
   }
-  
+
   /* Navigate to one route */
   navigate(route: String) {
     this.router.navigate([route])
