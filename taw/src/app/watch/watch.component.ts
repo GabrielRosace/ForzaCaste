@@ -86,13 +86,8 @@ export class WatchComponent implements OnInit {
 
       console.log('got a msg result: ' + JSON.stringify(msg));
       if(msg.winner!=undefined){
-        if(msg.winner==this.p1){
-          this.title=this.p1+ " WIN!!!"
+          this.title=msg.winner+ " WIN!!!"
           this.content=this.p1+ " win this game angaist "+this.p2
-        }else{
-          this.title=this.p1+ " Lose :("
-          this.content=this.p1+ " lose this game angaist "+this.p2
-        }
       }
       document.getElementById("openstats")!.click();
     });

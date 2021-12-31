@@ -1,0 +1,64 @@
+<div class="myContainer">
+    <button type="button" id="openstats" [hidden]="true" class="w-100 btn btn-warning btn-lg mybtn"
+        data-bs-toggle="modal" data-bs-target="#w-stats"></button>
+    <div class="d-flex flex-column">
+        <div class="alert alert-warning alert-dismissible fade show" role="alert" *ngFor="let alert of alerts">
+            {{alert.message }}
+            <button type="button" class="btn-close btn-close-black" aria-label="Close" (click)="close(alert)"></button>
+        </div>
+        <button type="button" class="btn btn-danger btn-sm exit" (click)="closeMatch()">EXIT</button>
+        <ul class="list-group pt-2">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                You are playing VS CPU at difficulty: {{lv}}
+
+            </li>
+        </ul>
+
+        <div class="enable" [style.pointer-events]="visibility" [style.opacity]="opacity">
+            <div class="gameboard">
+                <table class="table">
+                    <tbody>
+                        <tr *ngFor='let row of game'>
+                            <td *ngFor='let column of row;let i=index;'>
+                                <div class="griglia" (click)="add(i)">
+                                    <span class="gettone" style="background-color:red;" *ngIf="isred(column)"></span>
+                                    <span class="gettone" style="background-color:gold;"
+                                        *ngIf="isyellow(column)"></span>
+                                    <span class="gettone" style="background-color:trasparent;"
+                                        *ngIf="isempty(column)"></span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+            <div>
+                You are playing as:
+                <span class="ml-3 gettone" style="background-color:gold;"></span>
+            </div>
+            <div>
+                CPU is playing as:
+                <span class="ml-3 gettone" style="background-color:red;"></span>
+            </div>
+
+        </div>
+    </div>
+    <div style="height: 135vh;"></div>
+</div>
+<div class="modal fade" id="w-stats" tabindex="-1" data-backdrop="false">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel1" >{{title}}</h5>
+        </div>
+        <p class="text-center fs-2">{{content}}</p>
+        <div class="modal-footer">
+          <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
