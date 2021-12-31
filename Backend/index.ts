@@ -985,7 +985,9 @@ app.post('/gameMessage', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasUserRole() || u.hasModeratorRole()) {
       user.getModel().findOne({ username: req.body.player }).then((player: User) => {
+        console.log(player.username)
         match.getModel().findOne({ inProgress: true, $or: [{ player1: player.username.toString() }, { player2: player.username.toString() }] }).then((m) => {
+          console.log(m)
           if (m != null && match.isMatch(m)) {
             console.log(socketIOclients[u.username]);
             console.log(socketIOclients[u.username].rooms);

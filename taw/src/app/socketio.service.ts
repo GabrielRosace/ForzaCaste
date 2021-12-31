@@ -9,8 +9,12 @@ import { NULL_EXPR } from '@angular/compiler/src/output/output_ast';
 })
 export class SocketioService {
 
-  private socket!: Socket;
-  private opponent!:string;
+  private socket!: Socket
+  private p1!:string
+  private p2!:string
+  private game:number[][]=[]
+  public turn:number=0;
+  public switched:boolean=false;
 
   constructor(private us: UserHttpService) {
   }
@@ -23,11 +27,24 @@ export class SocketioService {
       }
     })
   }
-  getOpponent(){
-    return this.opponent;
+  getGame(){
+    return this.game;
   }
-  setOpponent(opponent:string){
-    this.opponent=opponent;
+  setGame(game:number[][]){
+    this.game=game;
+  }
+  getP1(){
+    return this.p1;
+  }
+  
+  setP1(p1:string){
+    this.p1=p1;
+  }
+  getP2(){
+    return this.p2;
+  }
+  setP2(p2:string){
+    this.p2=p2;
   }
   gameChat():Observable<any>{
 
@@ -47,7 +64,7 @@ export class SocketioService {
       });
     });
   }
-  gameStatus(){
+  gameStatus():Observable<any>{
     console.log(" Created gameStatus")
     return new Observable(observer => {
       this.socket.on('gameStatus', msg => {
@@ -81,6 +98,14 @@ export class SocketioService {
   creatematchroomemit(): void {
     console.log("createMatchRoom emit")
     this.socket.emit('createMatchRoom',{username:this.us.get_username()})
+  }
+  enterGameWatchMode():Observable<any>{
+    console.log("Created enterGameWatchMode")
+    return new Observable(observer => {
+      this.socket.on('enterGameWatchMode', msg => {
+        observer.next(msg);
+      });
+    });
   }
 /*
   addFriend(receiver: String, type: String): void{

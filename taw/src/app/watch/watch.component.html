@@ -1,54 +1,89 @@
 <div class="myContainer">
-    <div class="d-flex flex-column">
-        <div class="title">
-            <h1 class="h3 m-3 fw-normal">Spectate mode</h1>
-        </div>
-        <div class="enable" [style.pointer-events]="visibility"[style.opacity]="opacity">
-            <div class="gameboard">
-              <table class="table">
-                <tbody>
-                  <tr *ngFor='let row of game'>
-                    <td *ngFor='let column of row;let i=index;'>
-                      <div class="griglia">
-                        <span class="gettone"style="background-color:red;" *ngIf="isred(column)"></span>
-                        <span class="gettone"style="background-color:gold;" *ngIf="isyellow(column)"></span> 
-                        <span class="gettone"style="background-color:trasparent;"*ngIf="isempty(column)"></span>    
-                        </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+  <button type="button" id="openstats" [hidden]="true" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#w-stats"></button>
+  <div class="d-flex flex-column">
+    <ul class="list-group pt-2">
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        You are watching: {{p1}} VS {{p2}}
+        <button type="button" class=" btn btn-primary mybtn" (click)="addFriend()">Add friend</button>
+
+      </li>
+    </ul>
+    <div class="title">
+      <h1 class="h3 m-3 fw-normal">Turn of: {{txtturno}}</h1>
+    </div>
+    <div class="enable" [style.pointer-events]="visibility" [style.opacity]="opacity">
+      <div class="gameboard">
+        <table class="table">
+          <tbody>
+            <tr *ngFor='let row of game'>
+              <td *ngFor='let column of row;let i=index;'>
+                <div class="griglia">
+                  <span class="gettone" style="background-color:red;" *ngIf="isred(column)"></span>
+                  <span class="gettone" style="background-color:gold;" *ngIf="isyellow(column)"></span>
+                  <span class="gettone" style="background-color:trasparent;" *ngIf="isempty(column)"></span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end">
+      {{p1}} is playing as:
+      <span class="ml-3 gettone" style="background-color:red;" *ngIf="switched"></span>
+      <span class="ml-3 gettone" style="background-color:gold;" *ngIf="switched==false"></span>
+    </div>
+
+
+    <div class="card border-dark mb-3 mt-3">
+      <div class="card-body text-dark">
+        <p class="text-center fs-2 fw-bold">In-game chat</p>
+        <div class="container">
+          <div class="mychat">
+            <div class="chatcontainer" #scrollMe [scrollTop]="scrollMe.scrollHeight">
+              <div class="elements" *ngFor='let message of chat'>
+                <div class="containerchat" *ngIf="message.from=='me'">
+                  <img src={{message.imgUrl}} alt="" width="32" height="32" style="float: left;"
+                    class="rounded-circle me-2">
+                  <p>{{message.text}}</p>
+                  <span class="time-right">{{message.from}} - {{message.time}}</span>
+                </div>
+                <div class="containerchat darker" *ngIf="message.from!='me'">
+                  <img src={{message.imgUrl}} alt="" width="32" height="32" style="float: right;"
+                    class="rounded-circle me-2">
+                  <p>{{message.text}}</p>
+                  <span class="time-left">{{message.from}} - {{message.time}}</span>
+                </div>
               </div>
-        </div>
-        <div class="card border-dark mb-3">
-            <div class="card-body text-dark">
-                <p class="text-center fs-2 fw-bold">In-game chat</p>
-                <div class="container">
-                    <div class="mychat">
-                        <div class="chatcontainer" #scrollMe [scrollTop]="scrollMe.scrollHeight">
-                          <div class="elements" *ngFor='let message of chat'>
-                            <div class="containerchat" *ngIf="message.from=='me'">
-                              <img src={{message.imgUrl}} alt="" width="32" height="32" style="float: left;"class="rounded-circle me-2">
-                              <p>{{message.text}}</p>
-                              <span class="time-right">{{message.from}} - {{message.time}}</span>
-                            </div>
-                            <div class="containerchat darker" *ngIf="message.from!='me'">
-                              <img src={{message.imgUrl}} alt="" width="32" height="32" style="float: right;"class="rounded-circle me-2">
-                              <p>{{message.text}}</p>
-                              <span class="time-left">{{message.from}} - {{message.time}}</span>
-                            </div>
-                          </div>
-                      </div>
-                      <form class="form-inline" style="padding-left: 1vw;padding-right: 1vw; padding-top: 1vw;" (submit)="sendmessage(tosend.value); tosend.value = '';false">
-                        
-                        <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Write something" #tosend>
-                      
-                        <button type="button" class="w-100 btn btn-lg btn-primary" (click)="sendmessage(tosend.value); tosend.value = ''">Send</button>
-                      </form>
-                      
-                    </div>
-                  </div>
             </div>
+            <form class="form-inline" style="padding-left: 1vw;padding-right: 1vw; padding-top: 1vw;"
+              (submit)="sendmessage(tosend.value); tosend.value = '';false">
+
+              <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2"
+                placeholder="Write something" #tosend>
+
+              <button type="button" class="w-100 btn btn-lg btn-primary"
+                (click)="sendmessage(tosend.value); tosend.value = ''">Send</button>
+            </form>
+
+          </div>
         </div>
-     </div>
+      </div>
+    </div>
+  </div>
+  <div style="height: 135vh;"></div>
+</div>
+<div class="modal fade" id="w-stats" tabindex="-1" data-backdrop="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel1" >{{title}}</h5>
+      </div>
+      <p class="text-center fs-2">{{content}}</p>
+      <div class="modal-footer">
+        <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+    
+  </div>
 </div>

@@ -381,15 +381,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
     })
   }
   //Is used to add a new friend in the friendlist, when the friendRequest is accepted 
-  acceptGamerequest(sender: string, accepted: boolean) {
+  acceptGamerequest(sender: string) {
     console.log("sender: ", sender)
     if (!this.sio.isNull()) {
-      this.us.acceptFriendgame().subscribe((msg)=>{
+      this.us.acceptFriendgame(sender,true).subscribe((msg)=>{
         this.gameReady=this.sio.gameReady().subscribe(msg => {
           console.log('got a msg lobby: ' + msg);
           if(msg.gameReady){
             //rimuove il backdrop dei modal (bug di bootstrap)
-            this.sio.setOpponent(msg.opponentPlayer)
+            this.sio.setP2(msg.opponentPlayer)
             this.router.navigate(['game']);
           }
           
@@ -397,6 +397,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
       })
       
     
+  }
+  }
+  denyGamerequest(sender: string) {
+    console.log("sender: ", sender)
+    if (!this.sio.isNull()) {
+      this.us.acceptFriendgame(sender,false).subscribe((msg)=>{})
   }
   }
 

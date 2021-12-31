@@ -133,6 +133,7 @@ export class GameComponent implements OnInit {
     this.result.unsubscribe();
     this.gameReady.unsubscribe();
     this.gameChat.unsubscribe();
+    this.closeMatch();
   }
   /* Create random number - USELESS */
   randomNumber(min:number, max:number) {
@@ -140,13 +141,20 @@ export class GameComponent implements OnInit {
   }
   /* When components load, it will load the gameboard */
   ngOnInit(): void {
-    for(var i: number = 0; i < 6; i++) {
-      this.game[i] = [];
-      for(var j: number = 0; j< 7; j++) {
-          this.game[i][j] = 0;
+    if (!this.us.get_token()) {
+      this.router.navigate(['/'])
+    } else if (this.us.has_nonregmod_role()) {
+      this.router.navigate(['/profile'])
+    } else {
+      for(var i: number = 0; i < 6; i++) {
+        this.game[i] = [];
+        for(var j: number = 0; j< 7; j++) {
+            this.game[i][j] = 0;
+        }
       }
+      this.opponent=this.sio.getP2()
     }
-    this.opponent=this.sio.getOpponent()
+    
   }
 
   /* remove alert from the alters list, then from the view */

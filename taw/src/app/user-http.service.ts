@@ -399,6 +399,18 @@ export class UserHttpService {
     }
     return this.http.post(`${this.url}/gameMessage`,body,options)
   }
+  sendMessageSpect(text: string,player:string) {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      player: player,
+      message:text
+    }
+    return this.http.post(`${this.url}/gameMessage`,body,options)
+  }
 
   get_userMessage(){
     const options = {
@@ -470,13 +482,17 @@ gamefriend(friend: string) {
 }
 
 //accept friend game
-acceptFriendgame(){
+acceptFriendgame(friend: string,accept:boolean){
   const options = {
     headers: new HttpHeaders({
       'authorization': `Bearer ${this.get_token()}`
     })
   }
-  const body={}
+  console.log(accept)
+  const body={
+    sender: friend,
+    accept: accept
+  }
   return this.http.put(`${this.url}/game`,body,options)
 }
 delete_match() {
@@ -487,6 +503,30 @@ delete_match() {
   }
   return this.http.delete(`${this.url}/game`,options)
 }
+get_GameinProgress(): Observable<any> {
+  const options = {
+    headers: new HttpHeaders({
+      'authorization': `Bearer ${this.get_token()}`,
+      'cache-control': 'no-cache',
+      'Content-Type': 'application/json',
+    })
+  }
+  return this.http.get<User>(`${this.url}/game`, options)
+}
+
+  // send friend game request
+  watchPeople(friend: String) {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body={
+      type : "watchGame",
+      player : friend
+    }
+    return this.http.post(`${this.url}/game`,body,options)
+  }
 
 }
 
