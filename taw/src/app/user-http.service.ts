@@ -522,6 +522,7 @@ export class UserHttpService {
         'authorization': `Bearer ${this.get_token()}`
       })
     }
+    console.log("you are trying to watch: "+friend)
     const body = {
       type: "watchGame",
       player: friend
@@ -536,6 +537,7 @@ export class UserHttpService {
         'authorization': `Bearer ${this.get_token()}`
       })
     }
+    console.log(this.lv)
     const body = {
     }
     return this.http.post(`${this.url}/game/cpu`, body, options)
@@ -553,6 +555,18 @@ export class UserHttpService {
       difficulty: this.lv
     }
     return this.http.post(`${this.url}/move/cpu`, body, options)
+  }
+
+  // ask for suggestion
+  askSuggestion(): Observable<any> {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`,
+        'cache-control': 'no-cache',
+        'Content-Type': 'application/json',
+      })
+    }
+    return this.http.get(`${this.url}/move`, options)
   }
 
 }
