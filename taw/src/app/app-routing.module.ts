@@ -11,6 +11,7 @@ import { UserSigninComponent } from './user-signin/user-signin.component';
 import { WatchComponent } from './watch/watch.component';
 import { FriendStatsComponent } from './friend-stats/friend-stats.component';
 import { FriendChatComponent } from './friend-chat/friend-chat.component';
+import { CpuComponent } from './cpu/cpu.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -23,6 +24,7 @@ const routes: Routes = [
   { path: 'user-deletion', component: UserDeletionComponent },
   { path: 'game', component: GameComponent },
   { path: 'watch', component: WatchComponent },
+  { path: 'cpu', component: CpuComponent },
   { path: 'user-stats/:friend',  component: FriendStatsComponent },
   { path: 'friend-chat/:friend',  component: FriendChatComponent }
 

@@ -5,6 +5,31 @@
         <h1 class="h3 mb-3 fw-normal">Welcome to ForzaCaste!</h1>
         <br>
         <div class="duw">
+          <div class="card border-dark mb-3">
+              <div class="card-body text-dark">
+                  <p class="text-center fs-2 fw-bold">Can you beat the CPU?</p>
+                  <div class="container">
+                      <div class="row">
+                        <div class="col-sm">
+                          <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+                            <button type="button" class="btn btn-primary" (click)="createCPUGame(5)">Play vs the CPU</button>
+                          
+                            <div class="btn-group" ngbDropdown role="group" aria-label="Button group with nested dropdown">
+                              <button class="btn btn-warning" ngbDropdownToggle>Levels</button>
+                              <div class="dropdown-menu" ngbDropdownMenu>
+                                <button ngbDropdownItem (click)="createCPUGame(2)">Easy</button>
+                                <button ngbDropdownItem (click)="createCPUGame(5)">Medium</button>
+                                <button ngbDropdownItem (click)="createCPUGame(7)">Hard</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+              </div>
+            </div>
+      </div>
+        <div class="duw">
             <div class="card border-dark mb-3">
                 <div class="card-body text-dark">
                     <p class="text-center fs-2 fw-bold">Do you want to play?</p>

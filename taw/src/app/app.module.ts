@@ -27,6 +27,7 @@ import { WatchComponent } from './watch/watch.component';
 import { FriendStatsComponent } from './friend-stats/friend-stats.component';
 import { NgChartsModule } from 'ng2-charts';
 import { FriendChatComponent } from './friend-chat/friend-chat.component';
+import { CpuComponent } from './cpu/cpu.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +44,8 @@ import { FriendChatComponent } from './friend-chat/friend-chat.component';
     ToastComponent,
     WatchComponent,
     FriendStatsComponent,
-    FriendChatComponent
+    FriendChatComponent,
+    CpuComponent
   ],
   imports: [
     BrowserModule,

@@ -196,6 +196,13 @@ export class HomepageComponent implements OnInit {
       }
     )
   }
+  createCPUGame(lv:number){
+    this.us.lv
+    this.us.createCPUgame().subscribe((msg)=>{
+      console.log(JSON.stringify(msg))
+      this.router.navigate(['cpu']);
+    })
+  }
   findMatchWatch() {
     let game: number[][] = []
 

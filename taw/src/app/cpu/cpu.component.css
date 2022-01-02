@@ -1,0 +1,235 @@
+
+.myContainer{
+    display: flex;
+    justify-content:center;
+    padding-top: 5vw;
+    padding-bottom: 10vw;
+    padding-left: 5vw;
+    padding-right: 5vw;
+    height: 100vh;
+    overflow-y: scroll;
+    background-color: #f5f5f5;
+  }
+  .exit{
+    align-items: flex-end;
+  }
+  .title{
+    display: flex;
+    justify-content:center;
+    align-content: center;
+    padding-top: 2vw;
+  }
+    /* Chat containers */
+    .containerchat {
+      border: 0.5px solid #dedede;
+      background-color: #b8cfe6;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    /* Darker chat container */
+    .darker {
+      border-color: #ccc;
+      background-color: rgb(172, 216, 188);
+    }
+    /* Clear floats */
+    .containerchat::after {
+      content: "";
+      clear: both;
+      display: table;
+    }
+  
+  @media (orientation: landscape){ 
+    .gameboard {
+      width: 71vh;
+      display: flex;
+      align-items: center;
+      align-content: center;
+  
+    }
+    .chatcontainer{
+        display: block;
+        max-width: 100%;
+        width: 100%;
+        max-height: 50vh;
+        height: 50vh;
+        overflow-y: scroll;
+        background-color: #f5f5f5;
+        border-style: solid;
+        border-radius: 3%;
+        border-width: 1pt;
+      }
+    .mychat{
+        width: 100%;
+        max-width: 100%;
+        max-height: 70vh;
+    }
+    .gettone {
+        height: 4vh;
+        width: 4vh;
+        border-radius: 50%;
+        display: inline-block;
+      }
+    .griglia {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height:10vh;
+        width:10vh;
+        background-image: url('/assets/img/rvuoto.png');
+        background-size: cover;
+    }
+    table {
+        max-width: 70vh;
+        overflow: hidden;
+        transform: rotate(0deg);
+        border-collapse: collapse;
+        border-radius: 4%;
+        }
+      
+      td:hover {
+        background-color: #587B7F;
+      }
+      td, tr {
+        padding: 0;
+        cursor: pointer;
+        position: relative;
+        border: none;
+        height:10vh;
+        width:10vh;
+        max-width: 10vh;
+        
+      }
+      td:hover::after{
+        content: "";
+        position: absolute;
+        background-color: #587B7F;
+        left: 0;
+        top: -5000px;
+        height: 10000px;
+        width:10vw;
+        z-index: -1;
+      }
+  
+      /* Style images */
+    .container img {
+      float: left;
+      max-width: 7vh;
+      max-height: 7vh;
+      width: 7vh;
+      height: 7vh;
+      background-size: contain;
+      margin-right: 20px;
+      border-radius: 50%;
+    }
+  
+    /* Style the right image */
+    .container img.right {
+      float: right;
+      margin-left: 20px;
+      margin-right:0;
+    }
+  }
+  
+  @media (orientation: portrait) { 
+  
+    .gameboard {
+      width: 71vw;
+      display: flex;
+      align-items: center;
+      align-content: center;
+  
+  }
+    .chatcontainer{
+        max-width: 100%;
+        width: 100%;
+        max-height: 50vw;
+        height: 50vw;
+        overflow-y: scroll;
+        background-color: #f5f5f5;
+        border-style: solid;
+        border-radius: 3%;
+        border-width: 1pt;
+    }
+    .mychat{
+        width: 100%;
+        max-width: 100%;
+        max-height: 70vw;
+    }
+  .gettone {
+      height: 4vw;
+      width: 4vw;
+      border-radius: 50%;
+      display: inline-block;
+    }
+  .griglia {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height:10vw;
+      width:10vw;
+      background-image: url('/assets/img/rvuoto.png');
+      background-size: cover;
+  }
+  table {
+      max-width: 70vw;
+      overflow: hidden;
+      transform: rotate(0deg);
+      border-collapse: collapse;
+      border-radius: 4%;
+      }
+    
+    td:hover {
+      background-color: #587B7F;
+    }
+    td, tr {
+      padding: 0;
+      cursor: pointer;
+      position: relative;
+      border: none;
+      height:10vw;
+      width:10vw;
+      max-width: 10vw;
+      
+    }
+    td:hover::after{
+      content: "";
+      position: absolute;
+      background-color: #587B7F;
+      left: 0;
+      top: -5000px;
+      height: 10000px;
+      width:10vw;
+      z-index: -1;
+    }
+    /* Style images */
+  .container img {
+    max-width: 7vw;
+    max-height: 7vw;
+    width: 7vw;
+    height: 7vw;
+    background-size: contain;
+    margin-right: 20px;
+    border-radius: 50%;
+  }
+  
+  /* Style the right image */
+  .container img.right {
+    float: right;
+    margin-left: 20px;
+    margin-right:0;
+  }
+  }
+  
+  /* Style time text */
+  .time-right {
+    float: right;
+    color: #aaa;
+  }
+  
+  /* Style time text */
+  .time-left {
+    float: left;
+    color: #999;
+  }
+  
