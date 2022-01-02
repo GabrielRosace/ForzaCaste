@@ -28,6 +28,7 @@ export class UserHttpService {
 
   private rememberToken: boolean = false
   public lv!:any
+  public friendGame:boolean=false
 
 
   send_update(message: string) {
