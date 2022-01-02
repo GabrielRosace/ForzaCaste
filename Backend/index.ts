@@ -1084,34 +1084,39 @@ app.post('/notification', auth, (req, res, next) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       if (req.body.type === "friendRequest") {
         user.getModel().findOne({ username: req.body.receiver }).then((receiver: User) => {
-          if (receiver.isFriend(u.username.toString())) {
-            // console.log("sfaccim")
-            return res.status(400).json({ error: true, errormessage: "You are already friend" })
+          if(receiver != null){
+            if (receiver.isFriend(u.username.toString())) {
+              return res.status(400).json({ error: true, errormessage: "You are already friend" })
+            }
+            else {
+              // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
+              notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: receiver.username.toString(), deleted: false }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
+                if (n !== null) {
+                  console.log("You have already sent a request to this user.");
+                  return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
+                } else {
+                  const fr = createNewFriendRequest("friendRequest", u.username, receiver.username.toString())
+                  fr.save().then((data) => {
+                    console.log("Request forwarded")
+                    if (socketIOclients[receiver.username.toString()]) {
+                      // console.log("eccomi:", receiver.username.toString())
+                      let receiverMessage = JSON.stringify({ sender: u.username.toString(), type: "friendRequest" })
+                      //console.log("Messaggio inviato:"+)
+                      socketIOclients[receiver.username.toString()].emit('newNotification', JSON.parse(receiverMessage))
+                    }
+                    return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver })
+                  }).catch((reason) => {
+                    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                  })
+                }
+              }).catch((reason) => {
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+              })
+            }
           }
-          else {
-            // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
-            notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: receiver.username.toString(), deleted: false }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
-              if (n !== null) {
-                console.log("You have already sent a request to this user.");
-                return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
-              } else {
-                const fr = createNewFriendRequest("friendRequest", u.username, receiver.username.toString())
-                fr.save().then((data) => {
-                  console.log("Request forwarded")
-                  if (socketIOclients[receiver.username.toString()]) {
-                    // console.log("eccomi:", receiver.username.toString())
-                    let receiverMessage = JSON.stringify({ sender: u.username.toString(), type: "friendRequest" })
-                    //console.log("Messaggio inviato:"+)
-                    socketIOclients[receiver.username.toString()].emit('newNotification', JSON.parse(receiverMessage))
-                  }
-                  return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver })
-                }).catch((reason) => {
-                  return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-                })
-              }
-            }).catch((reason) => {
-              return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-            })
+          else{
+            console.log("Specified user does not exist".red)
+            return next({ statusCode: 404, error: true, errormessage: "The specified user does not exist"})
           }
         })
         // } else if (req.body.type === "friendMessage") {//Send a new message to a friend

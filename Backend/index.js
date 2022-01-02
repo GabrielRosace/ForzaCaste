@@ -70,12 +70,15 @@ const { Server } = require("socket.io");
 // const option = {
 //   allowEIO3: true
 // }
+// Declaration of variabile to store connected socket
 let ios = null;
 const user = require("./User");
 const statistics = require("./Statistics");
 const notification = require("./Notification");
 const match = require("./Match");
 const message = require("./Message");
+// import { PrivateChat } from './PrivateChat'
+// import * as privateChat from './PrivateChat'
 const CPU = require("./cpu");
 //var ios = undefined;
 var app = express();
@@ -130,12 +133,19 @@ passport.use(new passportHTTP.BasicStrategy(function (username, password, done) 
         return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid password" });
     });
 }));
-//TODO add console.log
 //* Add API routes to express application
 app.get("/", (req, res) => {
-    res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/matchmaking", "/game", "/notification", "/friend", "/message", "/gameMessage", "/whoami"] }); //TODO setta gli endpoints
+    res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/game", "/gameMessage", "/notification", "/friend", "/message", "/move", "/whoami",] }); //TODO setta gli endpoints
 });
-function getToken(username, id, avatarImgURL, roles, mail, state) {
+// In our token we save username, id and role of the logged user
+// function getToken(username, id, avatarImgURL, roles, mail, state) {  //! Remove code
+//   return {
+//     username: username,
+//     id: id,
+//     roles: roles
+//   };
+// }
+function getToken(username, id, roles) {
     return {
         username: username,
         id: id,
@@ -153,8 +163,8 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
     // has been injected into req.user
     // We now generate a JWT with the useful user data
     // and return it as response
-    //TODO: add useful info to JWT
-    const tokendata = getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state);
+    // const tokendata = getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state) //! Remove code
+    const tokendata = getToken(req.user.username, req.user.id, req.user.roles);
     console.log("Login granted. Generating token");
     var token_signed = signToken(tokendata);
     return res.status(200).json({ error: false, errormessage: "", token: token_signed });
@@ -704,7 +714,7 @@ app.post('/move/cpu', auth, (req, res, next) => {
                             }
                             let returnObj = { error: false, errormessage: "Correctly added move", cpu: cpuInfo[0] };
                             if (winner != undefined) {
-                                returnObj.winner = `${winner} wins`;
+                                returnObj.winner = `${winner}`;
                                 let watchersMessage = JSON.stringify({ winner: winner });
                                 client.broadcast.to(`${m.player1}Watchers`).emit('result', JSON.parse(watchersMessage));
                             }
@@ -935,35 +945,40 @@ app.post('/notification', auth, (req, res, next) => {
         if (u.hasModeratorRole() || u.hasUserRole()) {
             if (req.body.type === "friendRequest") {
                 user.getModel().findOne({ username: req.body.receiver }).then((receiver) => {
-                    if (receiver.isFriend(u.username.toString())) {
-                        // console.log("sfaccim")
-                        return res.status(400).json({ error: true, errormessage: "You are already friend" });
+                    if (receiver != null) {
+                        if (receiver.isFriend(u.username.toString())) {
+                            return res.status(400).json({ error: true, errormessage: "You are already friend" });
+                        }
+                        else {
+                            // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
+                            notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: receiver.username.toString(), deleted: false }).then((n) => {
+                                if (n !== null) {
+                                    console.log("You have already sent a request to this user.");
+                                    return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
+                                }
+                                else {
+                                    const fr = createNewFriendRequest("friendRequest", u.username, receiver.username.toString());
+                                    fr.save().then((data) => {
+                                        console.log("Request forwarded");
+                                        if (socketIOclients[receiver.username.toString()]) {
+                                            // console.log("eccomi:", receiver.username.toString())
+                                            let receiverMessage = JSON.stringify({ sender: u.username.toString(), type: "friendRequest" });
+                                            //console.log("Messaggio inviato:"+)
+                                            socketIOclients[receiver.username.toString()].emit('newNotification', JSON.parse(receiverMessage));
+                                        }
+                                        return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver });
+                                    }).catch((reason) => {
+                                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                                    });
+                                }
+                            }).catch((reason) => {
+                                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                            });
+                        }
                     }
                     else {
-                        // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
-                        notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: receiver.username.toString(), deleted: false }).then((n) => {
-                            if (n !== null) {
-                                console.log("You have already sent a request to this user.");
-                                return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
-                            }
-                            else {
-                                const fr = createNewFriendRequest("friendRequest", u.username, receiver.username.toString());
-                                fr.save().then((data) => {
-                                    console.log("Request forwarded");
-                                    if (socketIOclients[receiver.username.toString()]) {
-                                        // console.log("eccomi:", receiver.username.toString())
-                                        let receiverMessage = JSON.stringify({ sender: u.username.toString(), type: "friendRequest" });
-                                        //console.log("Messaggio inviato:"+)
-                                        socketIOclients[receiver.username.toString()].emit('newNotification', JSON.parse(receiverMessage));
-                                    }
-                                    return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver });
-                                }).catch((reason) => {
-                                    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-                                });
-                            }
-                        }).catch((reason) => {
-                            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-                        });
+                        console.log("Specified user does not exist".red);
+                        return next({ statusCode: 404, error: true, errormessage: "The specified user does not exist" });
                     }
                 });
                 // } else if (req.body.type === "friendMessage") {//Send a new message to a friend
@@ -1473,7 +1488,8 @@ app.get("/whoami", auth, (req, res, next) => {
     };
     if (req.user.exp * 1000 <= next5Minutes.getTime()) {
         console.log("Your token will expires within 5 minutes, generating new one".blue);
-        response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state));
+        // response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state)) //! Remove this
+        response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.roles));
     }
     return res.status(200).json(response);
 });
