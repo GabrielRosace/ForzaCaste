@@ -405,19 +405,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     })
   }
   //Is used to add a new friend in the friendlist, when the friendRequest is accepted 
-  acceptGamerequest(sender: string) {
+  async acceptGamerequest(sender: string) {
     console.log("sender: ", sender)
     if (!this.sio.isNull()) {
+      this.us.friendGame=true
+      await this.router.navigate(['/home'])
       this.us.acceptFriendgame(sender,true).subscribe((msg)=>{
-        this.gameReady=this.sio.gameReady().subscribe(msg => {
-          console.log('got a msg lobby: ' + msg);
-          if(msg.gameReady){
-            //rimuove il backdrop dei modal (bug di bootstrap)
-            this.sio.setP2(msg.opponentPlayer)
-            this.router.navigate(['game']);
-          }
-          
-        });
       })
       
     

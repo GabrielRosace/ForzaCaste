@@ -83,6 +83,8 @@ import { nextTick } from 'process'; //! Cos'è?
 // const option = {
 //   allowEIO3: true
 // }
+
+// Declaration of variabile to store connected socket
 let ios = null
 
 
@@ -103,15 +105,13 @@ import * as match from './Match'
 
 import { Message } from './Message'
 import * as message from './Message'
-import { isObject } from 'util';
-import { table, timeStamp } from 'console';
 
-import { PrivateChat } from './PrivateChat'
-import * as privateChat from './PrivateChat'
+// import { PrivateChat } from './PrivateChat'
+// import * as privateChat from './PrivateChat'
 
 import * as CPU from './cpu'
 
-declare global { // TODO: Modifica questo
+declare global {
   namespace Express {
     interface User {
       mail: string,
@@ -192,13 +192,20 @@ passport.use(new passportHTTP.BasicStrategy(
   }
 ));
 
-//TODO add console.log
 //* Add API routes to express application
 app.get("/", (req, res) => {
-  res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/matchmaking", "/game", "/notification", "/friend", "/message", "/gameMessage", "/whoami"] }); //TODO setta gli endpoints
+  res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/game","/gameMessage", "/notification", "/friend", "/message", "/move", "/whoami",] }); //TODO setta gli endpoints
 });
 
-function getToken(username, id, avatarImgURL, roles, mail, state) {
+// In our token we save username, id and role of the logged user
+// function getToken(username, id, avatarImgURL, roles, mail, state) {  //! Remove code
+//   return {
+//     username: username,
+//     id: id,
+//     roles: roles
+//   };
+// }
+function getToken(username, id, roles) {
   return {
     username: username,
     id: id,
@@ -220,8 +227,8 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
   // We now generate a JWT with the useful user data
   // and return it as response
 
-  //TODO: add useful info to JWT
-  const tokendata = getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state)
+  // const tokendata = getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state) //! Remove code
+  const tokendata = getToken(req.user.username, req.user.id,req.user.roles)
 
   console.log("Login granted. Generating token");
   var token_signed = signToken(tokendata)
@@ -829,7 +836,7 @@ app.post('/move/cpu', auth, (req, res, next) => {
               let returnObj: any = { error: false, errormessage: "Correctly added move", cpu: cpuInfo[0] }
 
               if (winner != undefined) {
-                returnObj.winner = `${winner} wins`
+                returnObj.winner = `${winner}`
 
                 let watchersMessage = JSON.stringify({ winner: winner })
                 client.broadcast.to(`${m.player1}Watchers`).emit('result', JSON.parse(watchersMessage))
@@ -1643,7 +1650,8 @@ app.get("/whoami", auth, (req, res, next) => {
 
   if (req.user.exp * 1000 <= next5Minutes.getTime()) {
     console.log("Your token will expires within 5 minutes, generating new one".blue)
-    response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state))
+    // response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state)) //! Remove this
+    response["token"] = signToken(getToken(req.user.username, req.user.id,req.user.roles))
   }
 
   return res.status(200).json(response);

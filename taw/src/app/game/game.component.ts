@@ -37,8 +37,11 @@ export class GameComponent implements OnInit {
   public rank!:number;
   public inputtext:string="";
   public opponent:string="Unknown"
+  public title: string = "";
+  public content: string = "";
+  public suggestion:string="Ask for some suggestion";
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
-
+    this.us.friendGame=false
     this.gameChat=this.sio.gameChat().subscribe(msg => {
 
       console.log('got a msg gameChat: ' + JSON.stringify(msg));
@@ -215,15 +218,40 @@ export class GameComponent implements OnInit {
     }
 
   }
-  closeMatch(){
-    if(this.rank==undefined){
-      this.us.delete_match().subscribe((data) => {
-        console.log(data)
-        this.router.navigate(['/home'])
-      })
-    }else{
-      this.router.navigate(['/home'])
+  askSuggestion(){
+    if(this.rank!=undefined){
+      this.title="Error suggestion"
+      this.content="Someone have already win"
+      document.getElementById("opensugg")!.click();
     }
+    this.us.askSuggestion().subscribe((msg)=>{
+      console.log(JSON.stringify(msg))
+      if(msg.error){
+        this.title="Error suggestion"
+      this.content=msg.errormessage
+      }else{
+        this.suggestion="AI suggest to add to collumn: "+(msg.move["0"]+1);
+      }
+    })
+  }
+  closeMatch(){
+    if(this.us.friendGame){
+      if(this.rank==undefined){
+        this.us.delete_match().subscribe((data) => {
+          console.log(data)
+        })
+      }
+    }else{
+      if(this.rank==undefined){
+        this.us.delete_match().subscribe((data) => {
+          console.log(data)
+          this.router.navigate(['/home'])
+        })
+      }else{
+        this.router.navigate(['/home'])
+      }
+    }
+    
     
 
   }

@@ -86,8 +86,8 @@ export class WatchComponent implements OnInit {
 
       console.log('got a msg result: ' + JSON.stringify(msg));
       if(msg.winner!=undefined){
-          this.title=msg.winner+ " WIN!!!"
-          this.content=this.p1+ " win this game angaist "+this.p2
+          this.title=msg.winner.toUpperCase()+ " WIN!!!"
+          this.content=msg.winner.toUpperCase()+ " win this game"
       }
       document.getElementById("openstats")!.click();
     });
@@ -122,7 +122,7 @@ export class WatchComponent implements OnInit {
       this.alerts = [];
       this.alerts.push({ message: "you have to write something for send it" });
     } else {
-      this.us.sendMessageSpect(text,this.p1).subscribe((msg) => {
+      this.us.sendMessageSpect(text,(this.p1=="cpu")?this.p2:this.p1).subscribe((msg) => {
         console.log("ricevuto da sendMessage: ", msg);
         var response = JSON.parse(JSON.stringify(msg));
         if (response.error == false && response.error != undefined) {
@@ -157,7 +157,11 @@ export class WatchComponent implements OnInit {
     }
   }
   
+  closeMatch(){
 
+      this.router.navigate(['/home'])
+
+  }
   addFriend() {
     this.us.add_friendRequest(this.p2).subscribe((data) => {
       // miss toast service

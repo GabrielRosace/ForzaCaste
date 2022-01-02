@@ -30,6 +30,7 @@ export class CpuComponent implements OnInit {
   public suggestion:string="Ask for some suggestion";
   public win:boolean=false
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
+    this.us.friendGame=false
     if(this.us.lv!=undefined){
 
       if(this.us.lv==2){
@@ -77,15 +78,27 @@ export class CpuComponent implements OnInit {
     this.alerts.splice(this.alerts.indexOf(alert), 1);
   }
   closeMatch(){
-    if(this.win){
-      this.us.lv=undefined
-      this.router.navigate(['/home'])
+    if(this.us.friendGame){
+      if(this.win){
+        this.us.lv=undefined
+
+      }else{
+      this.us.delete_match().subscribe((data) => {
+        console.log(data)
+        this.us.lv=undefined
+      })}
     }else{
-    this.us.delete_match().subscribe((data) => {
-      console.log(data)
-      this.us.lv=undefined
-      this.router.navigate(['/home'])
-    })}
+      if(this.win){
+        this.us.lv=undefined
+        this.router.navigate(['/home'])
+      }else{
+      this.us.delete_match().subscribe((data) => {
+        console.log(data)
+        this.us.lv=undefined
+        this.router.navigate(['/home'])
+      })}
+    }
+    
   }
   askSuggestion(){
     if(this.win){
@@ -96,7 +109,8 @@ export class CpuComponent implements OnInit {
     this.us.askSuggestion().subscribe((msg)=>{
       console.log(JSON.stringify(msg))
       if(msg.error){
-        console.log(msg.errormessage)
+        this.title="Error suggestion"
+      this.content=msg.errormessage
       }else{
         this.suggestion="AI suggest to add to collumn: "+(msg.move["0"]+1);
       }
