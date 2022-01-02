@@ -575,6 +575,23 @@ function checkOnlineUser(username) {
 }
 // Create game against AI
 app.post('/game/cpu', auth, (req, res, next) => {
+    try {
+        let client = socketIOclients[req.user.username];
+        if (matchRooms[req.user.username] != client) {
+            matchRooms[req.user.username] = {};
+            matchRooms[req.user.username][req.user.username] = client;
+            matchWatcherRooms[req.user.username] = {};
+        }
+        else {
+            console.log("L'utente è già inserito in una room: ".red);
+        }
+        client.join(req.user.username);
+        console.log("Client joined the room ".green + req.user.username);
+    }
+    catch (error) {
+        console.log("error");
+        return next({ statusCode: 404, error: true, errormessage: "Client already in a room" });
+    }
     let player = req.user.username;
     user.getModel().findOne({ username: player }).then((u) => {
         if (!(u.hasModeratorRole() || u.hasUserRole())) {
@@ -712,10 +729,14 @@ app.delete('/game', auth, (req, res, next) => {
             match.getModel().findOne({ $or: [{ player1: user.username.toString() }, { player2: user.username.toString() }], inProgress: true }).then((match) => {
                 if (match != null) {
                     match.inProgress = false;
-                    match.winner = user.username.toString() ? match.player1.toString() : match.player2.toString();
+                    match.winner = user.username.toString() === match.player1.toString() ? match.player2.toString() : match.player1.toString();
                     match.save().then((data) => {
-                        let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" });
-                        socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message));
+                        if (data.player2.toString() != "cpu") {
+                            if (socketIOclients[user.username.toString()]) {
+                                let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" });
+                                socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message));
+                            }
+                        }
                         console.log("The match have been deleted correctely".green);
                         return res.status(200).json({ error: false, message: "" });
                     }).catch((reason) => {
