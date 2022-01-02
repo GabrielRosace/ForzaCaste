@@ -96,7 +96,8 @@ export class CpuComponent implements OnInit {
     this.us.askSuggestion().subscribe((msg)=>{
       console.log(JSON.stringify(msg))
       if(msg.error){
-        console.log(msg.errormessage)
+        this.title="Error suggestion"
+      this.content=msg.errormessage
       }else{
         this.suggestion="AI suggest to add to collumn: "+(msg.move["0"]+1);
       }

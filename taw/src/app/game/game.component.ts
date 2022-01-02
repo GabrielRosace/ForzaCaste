@@ -37,6 +37,9 @@ export class GameComponent implements OnInit {
   public rank!:number;
   public inputtext:string="";
   public opponent:string="Unknown"
+  public title: string = "";
+  public content: string = "";
+  public suggestion:string="Ask for some suggestion";
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
 
     this.gameChat=this.sio.gameChat().subscribe(msg => {
@@ -214,6 +217,22 @@ export class GameComponent implements OnInit {
       });
     }
 
+  }
+  askSuggestion(){
+    if(this.rank!=undefined){
+      this.title="Error suggestion"
+      this.content="Someone have already win"
+      document.getElementById("opensugg")!.click();
+    }
+    this.us.askSuggestion().subscribe((msg)=>{
+      console.log(JSON.stringify(msg))
+      if(msg.error){
+        this.title="Error suggestion"
+      this.content=msg.errormessage
+      }else{
+        this.suggestion="AI suggest to add to collumn: "+(msg.move["0"]+1);
+      }
+    })
   }
   closeMatch(){
     if(this.rank==undefined){

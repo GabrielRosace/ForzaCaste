@@ -1,11 +1,10 @@
 <div class="myContainer">
   <button type="button" id="openstats" [hidden]="true" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#w-stats"></button>
   <div class="d-flex flex-column">
+    <button type="button" class="btn btn-danger btn-sm exit" (click)="closeMatch()">EXIT</button>
     <ul class="list-group pt-2">
       <li class="list-group-item d-flex justify-content-between align-items-center">
-        You are watching: {{p1}} VS {{p2}}
-        <button type="button" class=" btn btn-primary mybtn" (click)="addFriend()">Add friend</button>
-
+        You are watching: {{p1.toUpperCase()}} VS {{p2.toUpperCase()}}
       </li>
     </ul>
     <div class="title">
@@ -28,11 +27,20 @@
         </table>
       </div>
     </div>
-    <div class="d-flex justify-content-end">
-      {{p1}} is playing as:
-      <span class="ml-3 gettone" style="background-color:red;" *ngIf="switched"></span>
-      <span class="ml-3 gettone" style="background-color:gold;" *ngIf="switched==false"></span>
-    </div>
+    <ul class="list-group mb-3" style="border: none;">
+      <li class="list-group-item d-flex justify-content-between align-items-center" style="border: none;">
+        <div class="list-group-item d-flex align-items-center" style="border: none;">
+          <div> {{p1.toUpperCase()}} is playing as: </div>
+          <span class="gettone" style="background-color:gold;margin-left: 3px !important;" *ngIf="switched==false"></span>
+          <span class="gettone" style="background-color:red; margin-left: 3px !important;"  *ngIf="switched"></span>
+      </div>
+      <div class="list-group-item d-flex align-items-center" style="border: none;">
+        <div>{{p2.toUpperCase()}} is playing as: </div>
+          <span class="gettone" style="background-color:gold; margin-left: 3px !important;"  *ngIf="switched"></span>
+          <span class="gettone" style="background-color:red; margin-left: 3px !important;" *ngIf="switched==false"></span>
+      </div>
+      </li>
+    </ul>
 
 
     <div class="card border-dark mb-3 mt-3">
@@ -46,13 +54,13 @@
                   <img src={{message.imgUrl}} alt="" width="32" height="32" style="float: left;"
                     class="rounded-circle me-2">
                   <p>{{message.text}}</p>
-                  <span class="time-right">{{message.from}} - {{message.time}}</span>
+                  <span class="time-right">{{message.from.toUpperCase()}} - {{message.time}}</span>
                 </div>
                 <div class="containerchat darker" *ngIf="message.from!='me'">
                   <img src={{message.imgUrl}} alt="" width="32" height="32" style="float: right;"
                     class="rounded-circle me-2">
                   <p>{{message.text}}</p>
-                  <span class="time-left">{{message.from}} - {{message.time}}</span>
+                  <span class="time-left">{{message.from.toUpperCase()}} - {{message.time}}</span>
                 </div>
               </div>
             </div>
