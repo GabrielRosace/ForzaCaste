@@ -737,11 +737,15 @@ app.delete('/game', auth, (req, res, next) => {
                     match.inProgress = false;
                     match.winner = user.username.toString() === match.player1.toString() ? match.player2.toString() : match.player1.toString();
                     match.save().then((data) => {
+                        let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" });
                         if (data.player2.toString() != "cpu") {
                             if (socketIOclients[user.username.toString()]) {
                                 let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" });
                                 socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message));
                             }
+                        }
+                        else {
+                            socketIOclients[user.username.toString()].broadcast.to(match.player1 + 'Watchers').emit('result', JSON.parse(message));
                         }
                         console.log("The match have been deleted correctely".green);
                         return res.status(200).json({ error: false, message: "" });
