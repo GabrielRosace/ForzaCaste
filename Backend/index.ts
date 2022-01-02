@@ -803,7 +803,7 @@ app.post('/move/cpu', auth, (req, res, next) => {
 
               data.playground = insertMove(data.playground, cpuInfo[0], 'O')
 
-              watchersMessage = JSON.stringify({ player: 'cpu', move: index, nextTurn: m.player1.toString()})
+              watchersMessage = JSON.stringify({ player: 'cpu', move: cpuInfo[0], nextTurn: m.player1.toString()})
               client.broadcast.to(`${m.player1}Watchers`).emit('gameStatus', JSON.parse(watchersMessage))
 
               if (checkWinner(data.playground, 'O')) {
