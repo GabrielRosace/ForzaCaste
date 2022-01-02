@@ -12,6 +12,7 @@ import { WatchComponent } from './watch/watch.component';
 import { FriendStatsComponent } from './friend-stats/friend-stats.component';
 import { FriendChatComponent } from './friend-chat/friend-chat.component';
 import { CpuComponent } from './cpu/cpu.component';
+import { ModChatComponent } from './mod-chat/mod-chat.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -26,7 +27,8 @@ const routes: Routes = [
   { path: 'watch', component: WatchComponent },
   { path: 'cpu', component: CpuComponent },
   { path: 'user-stats/:friend',  component: FriendStatsComponent },
-  { path: 'friend-chat/:friend',  component: FriendChatComponent }
+  { path: 'friend-chat/:friend',  component: FriendChatComponent },
+  { path: 'mod-chat/:user',  component: ModChatComponent }
 
 ];
 

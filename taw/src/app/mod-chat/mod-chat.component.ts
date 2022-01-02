@@ -1,0 +1,148 @@
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { UserHttpService } from '../user-http.service';
+import { Socket } from 'socket.io-client';
+import { SocketioService } from '../socketio.service';
+import { AppComponent } from '../app.component';
+import { ToastService } from '../_services/toast.service';
+import { MatBadgeModule } from '@angular/material/badge';
+import { ActivatedRoute } from '@angular/router';
+
+
+interface Message {
+  imgUrl: string;
+  from: string;
+  text: string;
+  time: string;
+}
+
+@Component({
+  selector: 'app-mod-chat',
+  templateUrl: './mod-chat.component.html',
+  styleUrls: ['./mod-chat.component.css']
+})
+export class ModChatComponent implements OnInit {
+  public messagelist?: any
+  public messageInpending?: any
+  public singleChat: Message[] = []
+  public username: string = "" //TODO tipo user
+  public avatarImgURL: string = ""
+  private tok: string = ""
+  private subscriptionName!: Subscription
+  public subscriptionMsg!: Subscription
+  public subscriptionBlck!: Subscription
+  public hideBadgeMod: boolean = false
+  public badgeContMod: number = 0
+  public role: string = ""
+  public type: string = ""
+
+  constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router, private activeRoute: ActivatedRoute, private cdRef: ChangeDetectorRef) { }
+  
+  ngOnInit(): void {
+    this.tok = this.us.get_token()
+    console.log("Sono ngInit Friend")
+    if (!this.tok) {
+      // TODO aggiungi un messaggio, magari con una funzione nel servizio per non replicare codice
+      this.router.navigate(['/']) 
+    }else{
+      this.username = this.us.get_username()
+      this.avatarImgURL = this.us.get_avatarImgURL()
+      this.role = this.us.get_role()
+      this.readMessage(this.us.get_username(), this.activeRoute.snapshot.params['user'])
+      this.openChat(this.activeRoute.snapshot.params['user'])
+      this.notifyNewMsg()
+      console.log(this.router.parseUrl(this.router.url).root.children.primary.segments[0].path)
+      //this.getNotification(false, true)
+    }
+  }
+
+  ngOnDestroy(): void {
+    if(this.tok){
+      this.subscriptionName.unsubscribe()
+      this.subscriptionMsg.unsubscribe()
+    }
+  }
+  
+  ngAfterViewChecked(){
+    this.cdRef.detectChanges()
+  }
+
+  sendMessage(message: string) {
+    console.log("Mesg inviato")
+    this.us.send_ModMsg(this.activeRoute.snapshot.params['user'], message).subscribe((data) => {
+      var time = new Date();
+      this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: message, time: time.toLocaleTimeString() });
+    })
+  }
+
+
+  openChat(username: string) {
+    this.subscriptionName = this.us.get_userMessage(true).subscribe((elem: any) => {
+      console.log("OpenChat")
+      this.messagelist = elem.allMessages
+      this.messageInpending = elem.inPendingMessages
+      console.log(this.messageInpending)
+      console.log(this.messagelist)
+      this.us.get_Otheruser(username).subscribe((user) => {
+        this.messagelist.forEach((element: any) => {
+          var date = new Date(element.timestamp);
+          if (element.sender == username) {
+            //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
+            this.singleChat.push({ imgUrl: user.avatarImgURL, from: user.username, text: element.content, time: date.toUTCString() });
+          } else if (element.receiver == username) {
+            this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString() });
+          }
+        })
+      })
+
+      this.badgeContMod = 0
+      //console.log("MsgList: ")
+      //console.log(this.messageInpending)
+      this.messageInpending.forEach((element: any) => {
+        if (element.receiver == this.us.get_username()) {
+          this.badgeContMod++;
+        }
+      });
+
+      console.log("badgeContent")
+      console.log(this.badgeContMod)
+      if (this.badgeContMod == 0) {
+        this.hideBadgeMod = true
+      }
+    })
+  }
+
+  readMessage(myus: string, username: string) {
+    this.us.readMessage(myus, username).subscribe(() => {
+      console.log("Read Message")
+      this.us.update_badge("read mod-chat")
+    })
+  }
+
+  getInpendinMsg(username: string) {
+    this.subscriptionName = this.us.get_userMessage(true).subscribe((elem: any) => {
+      this.messageInpending = elem.inPendingMessages
+      this.badgeContMod = 0
+      this.us.get_Otheruser(username).subscribe((user) => {
+        this.messageInpending.forEach((element: any) => {
+          var date = new Date(element.timestamp);
+          if (element.sender == username) {
+            //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
+            this.singleChat.push({ imgUrl: user.avatarImgURL, from: user.username, text: element.content, time: date.toUTCString() });
+          }
+        })
+        this.us.readMessage(this.us.get_username(), username).subscribe()
+      })
+    })
+  }
+
+
+  notifyNewMsg() {
+    if (!this.sio.isNull()) {
+      this.subscriptionMsg = this.sio.newMessage().subscribe((msg) => {
+        this.getInpendinMsg(this.activeRoute.snapshot.params['user'])
+      })
+    }
+  }
+}

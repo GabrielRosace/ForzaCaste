@@ -103,8 +103,14 @@
 
 /*Button FriendList*/
 .mat-icon{
-  vertical-align: bottom;
-  font-size: 20px;
+  vertical-align: sub;
+  font-size: 25px;
+}
+
+.customIcon{
+  text-align-last: right;
+  vertical-align: sub;
+  font-size: 19px;
 }
 
 .friendListBtn {
