@@ -642,7 +642,7 @@ app.post('/game', auth, (req, res, next) => {
             if (socketIOclients[user.username.toString()])
               client = socketIOclients[user.username.toString()]
             else
-              return next({ statusCode: 404, error: true, errormessage: "SocketIO client is not connected" })
+              return next({ statusCode: 404, error: true, errormessage: "SocketIO client is not connected" })            
             if (!matchRooms[m.player1.toString()][user.username.toString()]) {
               matchRooms[m.player1.toString()][user.username.toString()] = client
               client.join(m.player1.toString())
@@ -680,6 +680,25 @@ function checkOnlineUser(username){
 
 // Create game against AI
 app.post('/game/cpu', auth, (req, res, next) => {
+  try{
+    let client = socketIOclients[req.user.username]
+
+    if (matchRooms[req.user.username] != client) {
+      matchRooms[req.user.username] = {}
+      matchRooms[req.user.username][req.user.username] = client
+      matchWatcherRooms[req.user.username] = {}
+    }
+    else {
+      console.log("L'utente è già inserito in una room: ".red)
+    }
+    client.join(req.user.username)
+    console.log("Client joined the room ".green + req.user.username);
+  }
+  catch(error){
+    console.log("error")
+    return next({ statusCode: 404, error: true, errormessage: "Client already in a room" })
+  }
+  
   let player = req.user.username
   user.getModel().findOne({ username: player }).then((u: User) => {
     if (!(u.hasModeratorRole() || u.hasUserRole())) {
@@ -699,7 +718,6 @@ app.post('/game/cpu', auth, (req, res, next) => {
     doc.save().then((m) => {
       console.log(`Single player match has been created`.green)
       return res.status(200).json({ error: false, errormessage: "Single player match has been created" })
-
     })
   })
 })
@@ -830,7 +848,6 @@ app.post('/move/cpu', auth, (req, res, next) => {
   })
 
 })
-
 
 app.delete('/game', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
