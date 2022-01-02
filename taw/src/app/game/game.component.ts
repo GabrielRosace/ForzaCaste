@@ -41,7 +41,7 @@ export class GameComponent implements OnInit {
   public content: string = "";
   public suggestion:string="Ask for some suggestion";
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
-
+    this.us.friendGame=false
     this.gameChat=this.sio.gameChat().subscribe(msg => {
 
       console.log('got a msg gameChat: ' + JSON.stringify(msg));
@@ -235,14 +235,23 @@ export class GameComponent implements OnInit {
     })
   }
   closeMatch(){
-    if(this.rank==undefined){
-      this.us.delete_match().subscribe((data) => {
-        console.log(data)
-        this.router.navigate(['/home'])
-      })
+    if(this.us.friendGame){
+      if(this.rank==undefined){
+        this.us.delete_match().subscribe((data) => {
+          console.log(data)
+        })
+      }
     }else{
-      this.router.navigate(['/home'])
+      if(this.rank==undefined){
+        this.us.delete_match().subscribe((data) => {
+          console.log(data)
+          this.router.navigate(['/home'])
+        })
+      }else{
+        this.router.navigate(['/home'])
+      }
     }
+    
     
 
   }
