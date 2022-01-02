@@ -682,6 +682,8 @@ app.post('/move/cpu', auth, (req, res, next) => {
                             }
                             let cpuInfo = CPU.minmax(data.playground, depth, -Infinity, Infinity, true, 'X', 'O');
                             data.playground = insertMove(data.playground, cpuInfo[0], 'O');
+                            watchersMessage = JSON.stringify({ player: 'cpu', move: index, nextTurn: m.player1.toString() });
+                            client.broadcast.to(`${m.player1}Watchers`).emit('gameStatus', JSON.parse(watchersMessage));
                             if (checkWinner(data.playground, 'O')) {
                                 winnerControl(client, m, m.player1, m.player2);
                                 winner = "Cpu";
