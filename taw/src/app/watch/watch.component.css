@@ -39,6 +39,26 @@
     display: table;
   }
 
+  .gameboard{
+    min-width: 400px;
+      min-height: 343px;
+  }
+  .gettone{
+    min-width: 23px;
+      min-height: 23px;
+  }
+  .griglia{
+    min-width: 57px;
+      min-height: 57px;
+  }
+  .table{
+    max-width: 70vw;
+      min-width: 399px;
+  }
+  td:hover::after{
+    min-width: 57px;
+  }
+
 @media (orientation: landscape){ 
   .gameboard {
     width: 71vh;
@@ -107,7 +127,7 @@
       left: 0;
       top: -5000px;
       height: 10000px;
-      width:10vw;
+      width:10vh;
       z-index: -1;
     }
 

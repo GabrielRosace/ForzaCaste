@@ -68,6 +68,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.getFriendlist()
         this.getUsOnline()
         this.notifyOnline()
+        this.foundGame()
         this.username = this.us.get_username()
       } else if (msg == "Update user") {
         this.avatarImgURL = this.us.get_avatarImgURL()
@@ -77,6 +78,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.notifyFriendReqAccepted()
         this.notifyNewMsg()
         this.notifyOnline()
+        this.foundGame()
         //this.getNotification(false, true)
       }
     })
@@ -119,10 +121,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    /* Delete the subscription from the socket's listener */
     this.subscriptionName.unsubscribe()
     this.subscriptionReq.unsubscribe()
     this.subscriptionNot.unsubscribe()
     this.subscriptionMsg.unsubscribe()
+    this.gameReady.unsubscribe();
   }
 
   setName(username: string) {
@@ -317,7 +321,27 @@ export class SidebarComponent implements OnInit, OnDestroy {
       })
     }
   }
-
+  foundGame(){
+     /* Subscribe to a socket's listener, the lobby, for knwo if i find a match */
+     this.gameReady = this.sio.gameReady().subscribe(msg => {
+      console.log('got a msg lobby: ' + JSON.stringify(msg));
+      if (msg.gameReady) {
+        //rimuove il backdrop dei modal (bug di bootstrap)
+        this.sio.setP2(msg.opponentPlayer)
+        Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
+          item.parentElement?.removeChild(item);
+        });
+        this.router.navigate(['game']);
+      }
+      if (msg.gameReady != undefined && !msg.gameReady) {
+        //chiudere il modal
+        Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
+          item.parentElement?.removeChild(item);
+        });
+        this.app.toastCust("Friendly match refused")
+      }
+    });
+  }
   notifyGameReq() {
     if (!this.sio.isNull()) {
       this.subscriptionReq = this.sio.gameRequest().subscribe(msg => {

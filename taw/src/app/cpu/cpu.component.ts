@@ -24,12 +24,24 @@ export class CpuComponent implements OnInit {
   public visibility:string="none";//default="none"
   public opacity: number=0.5;//default=0.5
   public alerts: any[]=[];
-  public lv:number=0;
+  public lv:string="";
   public title: string = "";
   public content: string = "";
+  public suggestion:string="Ask for some suggestion";
+  public win:boolean=false
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
-    if(this.us!=undefined){
-      this.lv=this.us.lv
+    if(this.us.lv!=undefined){
+
+      if(this.us.lv==2){
+        this.lv="Easy"
+      }
+      if(this.us.lv==5){
+        this.lv="Medium"
+      }
+      if(this.us.lv==7){
+        this.lv="Hard"
+      }
+
       this.visibility="";
       this.opacity=1;
     }
@@ -65,10 +77,29 @@ export class CpuComponent implements OnInit {
     this.alerts.splice(this.alerts.indexOf(alert), 1);
   }
   closeMatch(){
+    if(this.win){
+      this.us.lv=undefined
+      this.router.navigate(['/home'])
+    }else{
     this.us.delete_match().subscribe((data) => {
       console.log(data)
       this.us.lv=undefined
       this.router.navigate(['/home'])
+    })}
+  }
+  askSuggestion(){
+    if(this.win){
+      this.title="Error suggestion"
+      this.content="Someone have already win"
+      document.getElementById("openstats")!.click();
+    }
+    this.us.askSuggestion().subscribe((msg)=>{
+      console.log(JSON.stringify(msg))
+      if(msg.error){
+        console.log(msg.errormessage)
+      }else{
+        this.suggestion="AI suggest to add to collumn: "+(msg.move["0"]+1);
+      }
     })
   }
   /* make a turn, when is over, switch the player turn */
@@ -109,13 +140,14 @@ export class CpuComponent implements OnInit {
         
     }
     if(msg.winner!=undefined){
+      this.win=true
       this.visibility="none";
       this.opacity=0.5;
       
       let username=this.us.get_username()
-      let p2=(msg.winner==username)?username:"CPU"
+      let p2="CPU"
       if(msg.winner==username){
-        this.title=username+ " WIN!!!"
+        this.title=username.toUpperCase()+ " WIN!!!"
         this.content=username+ " win this game angaist "+p2
       }else{
         this.title=p2+ " WIN!!!"

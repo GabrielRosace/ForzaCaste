@@ -13,36 +13,16 @@ import { ToastService } from '../_services/toast.service';
 export class HomepageComponent implements OnInit {
   public username: string = ''
   public friendlist: any[] = []
-  public gameReady: Subscription
   private enterGameWatchMode!: Subscription;
   public foundwatch: boolean = true
 
   constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router) {
-    /* Subscribe to a socket's listener, the lobby, for knwo if i find a match */
-    this.gameReady = this.sio.gameReady().subscribe(msg => {
-      console.log('got a msg lobby: ' + JSON.stringify(msg));
-      if (msg.gameReady) {
-        //rimuove il backdrop dei modal (bug di bootstrap)
-        this.sio.setP2(msg.opponentPlayer)
-        Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
-          item.parentElement?.removeChild(item);
-        });
-        this.router.navigate(['game']);
-      }
-      if (msg.gameReady != undefined && !msg.gameReady) {
-        //chiudere il modal
-        Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
-          item.parentElement?.removeChild(item);
-        });
-        this.toastN("Friendly match refused")
-      }
-    });
+   
   }
 
   ngOnDestroy(): void {
-    /* Delete the subscription from the socket's listener */
-    this.gameReady.unsubscribe();
   }
+  
 
 
   ngOnInit(): void {
@@ -99,6 +79,11 @@ export class HomepageComponent implements OnInit {
 
   }
 
+  closeMatch():void{
+    this.us.delete_match().subscribe((data) => {
+      console.log(data)
+    })
+  }
   toastN(msg: string) {
     this.toast.show(msg, {
       classname: 'bg-info text-light',
@@ -197,7 +182,8 @@ export class HomepageComponent implements OnInit {
     )
   }
   createCPUGame(lv:number){
-    this.us.lv
+    this.us.lv=lv
+    console.log("livello difficolta: "+this.us.lv)
     this.us.createCPUgame().subscribe((msg)=>{
       console.log(JSON.stringify(msg))
       this.router.navigate(['cpu']);
