@@ -654,6 +654,8 @@ app.post('/move/cpu', auth, (req, res, next) => {
                         m.nTurns += 2;
                         let winner = undefined;
                         m.save().then((data) => {
+                            let watchersMessage = JSON.stringify({ player: m.player1.toString(), move: index, nextTurn: 'cpu' });
+                            client.broadcast.to(`${m.player1}Watchers`).emit('gameStatus', JSON.parse(watchersMessage));
                             console.log(`Playground updated`.green);
                             if (checkWinner(m.playground, 'X')) {
                                 winnerControl(client, m, m.player1, m.player2);
@@ -701,6 +703,8 @@ app.post('/move/cpu', auth, (req, res, next) => {
                             let returnObj = { error: false, errormessage: "Correctly added move", cpu: cpuInfo[0] };
                             if (winner != undefined) {
                                 returnObj.winner = `${winner} wins`;
+                                let watchersMessage = JSON.stringify({ winner: winner });
+                                client.broadcast.to(`${m.player1}Watchers`).emit('result', JSON.parse(watchersMessage));
                             }
                             data.save().then((mm) => {
                                 return res.status(200).json(returnObj);
@@ -869,7 +873,7 @@ app.post('/gameMessage', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((u) => {
         if (u.hasUserRole() || u.hasModeratorRole()) {
             user.getModel().findOne({ username: req.body.player }).then((player) => {
-                console.log(player.username);
+                console.log(player.username.toString());
                 match.getModel().findOne({ inProgress: true, $or: [{ player1: player.username.toString() }, { player2: player.username.toString() }] }).then((m) => {
                     console.log(m);
                     if (m != null && match.isMatch(m)) {
@@ -877,7 +881,6 @@ app.post('/gameMessage', auth, (req, res, next) => {
                         console.log(socketIOclients[u.username].rooms);
                         if (((u.username.toString() == m.player1.toString() || u.username.toString() == m.player2.toString()) && socketIOclients[u.username.toString()].rooms.has(m.player1.toString())) || ((u.username.toString() != m.player1.toString() && u.username.toString() != m.player2.toString()) && (socketIOclients[u.username.toString()].rooms.has(m.player1.toString()) && socketIOclients[u.username.toString()].rooms.has(m.player1.toString() + 'Watchers')))) {
                             let client = null;
-                            // console.log(socketIOclients[u.username.toString()]);
                             if (socketIOclients[u.username.toString()])
                                 client = socketIOclients[u.username.toString()];
                             else
