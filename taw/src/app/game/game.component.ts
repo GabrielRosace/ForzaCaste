@@ -40,6 +40,7 @@ export class GameComponent implements OnInit {
   public title: string = "";
   public content: string = "";
   public suggestion:string="Ask for some suggestion";
+  public suggestedcollum:number=-1
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
     this.us.friendGame=false
     this.gameChat=this.sio.gameChat().subscribe(msg => {
@@ -167,6 +168,7 @@ export class GameComponent implements OnInit {
 
   /* make a turn, when is over, switch the player turn */
   add(c:number,who:number){
+    this.suggestedcollum=-1
     if(who==0){
       for(var i:number=5;i>=0;i--){
         if(this.game[i][c]==0){
@@ -230,7 +232,8 @@ export class GameComponent implements OnInit {
         this.title="Error suggestion"
       this.content=msg.errormessage
       }else{
-        this.suggestion="AI suggest to add to column: "+(msg.move["0"]+1);
+        this.suggestion="AI suggest to add to collumn: "+(msg.move["0"]+1);
+        this.suggestedcollum=msg.move["0"]
       }
     }, (err) => {
       console.log(err)
@@ -239,6 +242,17 @@ export class GameComponent implements OnInit {
       document.getElementById("openstats")!.click();
     })
   }
+  
+  isTosuggest(collumn:number){
+    
+    if(collumn==this.suggestedcollum){
+      console.log(collumn)
+      return "#F56476"
+    }else{
+      return "transparent"
+    }
+  }
+
   deleteMatch(){
     this.us.delete_match().subscribe((data) => {
     })
