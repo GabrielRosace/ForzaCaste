@@ -7,11 +7,11 @@ import { User } from '../User';
 import { UserHttpService } from '../user-http.service';
 
 @Component({
-  selector: 'app-user-deletion',
-  templateUrl: './user-deletion.component.html',
-  styleUrls: ['./user-deletion.component.css']
+  selector: 'app-all-user',
+  templateUrl: './all-user.component.html',
+  styleUrls: ['./all-user.component.css']
 })
-export class UserDeletionComponent implements OnInit {
+export class AllUserComponent implements OnInit {
 
   public list?: any
   public myUsername!: string

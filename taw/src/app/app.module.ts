@@ -19,7 +19,7 @@ import { SidebarComponent } from './sidebar/sidebar.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { NewModeratorComponent } from './new-moderator/new-moderator.component';
 import { SocketioService } from './socketio.service';
-import { UserDeletionComponent } from './user-deletion/user-deletion.component';
+import { AllUserComponent } from './all-user/all-user.component';
 import { GameComponent } from './game/game.component';
 import { ToastComponent } from './toast/toast.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -40,7 +40,7 @@ import { ModChatComponent } from './mod-chat/mod-chat.component';
     SidebarComponent,
     UserProfileComponent,
     NewModeratorComponent,
-    UserDeletionComponent,
+    AllUserComponent,
     GameComponent,
     ToastComponent,
     WatchComponent,
