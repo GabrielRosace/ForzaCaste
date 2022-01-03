@@ -776,6 +776,9 @@ app.get('/move', auth, (req, res, next) => {
   let username = req.user.username
   user.getModel().findOne({ username: username }).then((u: User) => {
     if (!(u.hasModeratorRole() || u.hasUserRole())) return res.status(403).json({ error: true, errormessage: "You cannot do it" })
+
+    if(u.statistics.ranking < 100) return res.status(403).json({ error: true, errormessage: "You have to improve your ranking before doing that!"})
+
     match.getModel().findOne({ inProgress: true, $or: [{ player1: username }, { player2: username }] }).then((m) => {
       if (match.isMatch(m)) {
         if (m.player1.toString() == username) {

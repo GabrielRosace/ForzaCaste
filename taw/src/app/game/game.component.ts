@@ -235,6 +235,11 @@ export class GameComponent implements OnInit {
         this.suggestion="AI suggest to add to collumn: "+(msg.move["0"]+1);
         this.suggestedcollum=msg.move["0"]
       }
+    }, (err) => {
+      console.log(err)
+      this.title="Error suggestion"
+      this.content = err.error.errormessage
+      document.getElementById("openstats")!.click();
     })
   }
   

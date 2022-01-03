@@ -556,7 +556,7 @@ export class UserHttpService {
     return this.http.post(`${this.url}/game`, body, options)
   }
 
-  // create a game angainst CPU
+  // create a game against CPU
   createCPUgame():Observable<any> {
     const options = {
       headers: new HttpHeaders({
@@ -568,7 +568,7 @@ export class UserHttpService {
     }
     return this.http.post(`${this.url}/game/cpu`, body, options)
   }
-  // make move angainst CPU
+  // make move against CPU
   moveCPUgame(move: number): Observable<any> {
     const options = {
       headers: new HttpHeaders({

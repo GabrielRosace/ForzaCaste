@@ -130,6 +130,11 @@ export class CpuComponent implements OnInit {
         this.suggestion="AI suggest to add to collumn: "+(msg.move["0"]+1);
         this.suggestedcollum=msg.move["0"]
       }
+    }, (err) => {
+      console.log(err)
+      this.title="Error suggestion"
+      this.content = err.error.errormessage
+      document.getElementById("openstats")!.click();
     })
   }
   /* make a turn, when is over, switch the player turn */
@@ -179,10 +184,10 @@ export class CpuComponent implements OnInit {
       let p2="CPU"
       if(msg.winner==username){
         this.title=username.toUpperCase()+ " WIN!!!"
-        this.content=username+ " win this game angaist "+p2
+        this.content=username+ " win this game against "+p2
       }else{
         this.title=p2+ " WIN!!!"
-        this.content=p2+ " win this game angaist "+username
+        this.content=p2+ " win this game against "+username
       }
       
       document.getElementById("openstats")!.click();
