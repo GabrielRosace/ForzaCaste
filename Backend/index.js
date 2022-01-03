@@ -133,11 +133,10 @@ passport.use(new passportHTTP.BasicStrategy(function (username, password, done) 
         return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid password" });
     });
 }));
-//* Add API routes to express application
+// List of available endpoints in specified version
 app.get("/", (req, res) => {
     res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/game", "/gameMessage", "/notification", "/friend", "/message", "/move", "/whoami",] }); //TODO setta gli endpoints
 });
-// In our token we save username, id and role of the logged user
 // function getToken(username, id, avatarImgURL, roles, mail, state) {  //! Remove code
 //   return {
 //     username: username,
@@ -145,6 +144,8 @@ app.get("/", (req, res) => {
 //     roles: roles
 //   };
 // }
+// ------------------------- User management ---------------------------------
+// In our token we save username, id and role of the logged user
 function getToken(username, id, roles) {
     return {
         username: username,
@@ -154,10 +155,10 @@ function getToken(username, id, roles) {
 }
 function signToken(tokendata) {
     // return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, {expiresIn: '360s'})
+    // Making token expiration within 1h, this method is used to make token renewal
     return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '1h' });
 }
-// Login endpoint uses passport middleware to check
-// user credentials before generating a new JWT
+// Login endpoint uses passport middleware to check user credentials and if it is everything ok a new JWT will be returned
 app.get("/login", passport.authenticate('basic', { session: false }), (req, res, next) => {
     // If we reach this point, the user is successfully authenticated and
     // has been injected into req.user
@@ -169,7 +170,22 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
     var token_signed = signToken(tokendata);
     return res.status(200).json({ error: false, errormessage: "", token: token_signed });
 });
-// Create new user
+// Get user information associated with the current JWT_TOKEN, in addition refreshes the JWT_TOKEN if the expire time is less than 5 minutes
+app.get("/whoami", auth, (req, res, next) => {
+    let next5Minutes = new Date();
+    next5Minutes.setMinutes(next5Minutes.getMinutes() + 5);
+    let response = {
+        error: false,
+        errormessage: `L'utente loggato è ${req.user.username}`
+    };
+    if (req.user.exp * 1000 <= next5Minutes.getTime()) {
+        console.log("Your token will expires within 5 minutes, generating new one".blue);
+        // response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state)) //! Remove this
+        response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.roles));
+    }
+    return res.status(200).json(response);
+});
+// Creation of a new user, this endpoint reset statistics and save user information into DB
 app.post('/users', (req, res, next) => {
     const basicStats = new (statistics.getModel())({
         nGamesWon: 0,
@@ -181,7 +197,7 @@ app.post('/users', (req, res, next) => {
     console.log("Request Body".blue);
     console.log(req.body);
     if (!req.body.password || !req.body.username || !req.body.name || !req.body.surname || !req.body.mail || !req.body.avatarImgURL) {
-        return next({ statusCode: 404, error: true, errormessage: "Some field missing, signin cannot be possibile" });
+        return next({ statusCode: 404, error: true, errormessage: "Some field missing, signup cannot be possible" });
     }
     if (req.body.username == 'cpu') {
         return next({ statusCode: 400, error: true, errormessage: "You cannot register yourself as cpu" });
@@ -327,6 +343,7 @@ app.delete("/users/:username", auth, (req, res, next) => {
         return res.status(401).json({ error: true, errormessage: "DB error " + reason });
     });
 });
+// This request allows the user to modify his profile. This is also used by moderators who must update the profile before they can browse the API.
 app.put("/users", auth, (req, res, next) => {
     console.log("Update user information for ".blue + req.user.username);
     console.log("Request Body".blue);
@@ -361,12 +378,13 @@ app.put("/users", auth, (req, res, next) => {
             console.log("Data saved successfully".blue);
             return res.status(200).json({ error: false, errormessage: "" });
         }).catch((reason) => {
-            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+            return next({ statusCode: 401, error: true, errormessage: "DB error: " + reason.errmsg });
         });
     }).catch((reason) => {
         return res.status(401).json({ error: true, errormessage: "DB error: " + reason });
     });
 });
+// ---------------------------------------------------------------------------------------------------
 // getting ranking history associated to logged user
 app.get('/rankingstory', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username, deleted: false }).then((u) => {
@@ -1252,9 +1270,23 @@ app.post('/message/mod', auth, (req, res, next) => {
 });
 // Update the non-read messages into read messages
 app.put('/message', auth, (req, res, next) => {
+    if (!req.body.sender) {
+        return res.status(400).json({ error: true, errormessage: "You have to specify the message sender" });
+    }
+    let modMessage = req.body.modMessage;
     user.getModel().findOne({ username: req.user.username }).then((user) => {
         if (user.hasUserRole() || user.hasModeratorRole()) {
-            message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true }).then((m) => {
+            let query;
+            if (modMessage == undefined) {
+                query = message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true });
+            }
+            else if (modMessage) {
+                query = message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true, isAModMessage: true });
+            }
+            else {
+                query = message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true, $or: [{ isAModMessage: false }, { isAModMessage: undefined }] });
+            }
+            query.then((m) => {
                 if (m) {
                     m.forEach((message) => {
                         message.inpending = false;
@@ -1269,13 +1301,12 @@ app.put('/message', auth, (req, res, next) => {
                     return res.status(200).json({ error: false, errormessage: "" });
                 }
                 else {
-                    // ! Non ci sono messagi
-                    return res.status(404).json({ error: true, errormessage: "There is no messages to be update" });
+                    return res.status(404).json({ error: true, errormessage: "There are no messages to be update" });
                 }
             });
         }
         else {
-            // ! Errore: l'utente non ha ruolo utente o moderatore 
+            return res.status(401).json({ error: true, errormessage: "You cannot do it" });
         }
     });
 });
@@ -1478,21 +1509,6 @@ function createNewFriendRequest(type, username, receiver) {
 //   })
 //   return doc
 // }
-// get connected user and refresh token if expires within 5 minutes
-app.get("/whoami", auth, (req, res, next) => {
-    let next5Minutes = new Date();
-    next5Minutes.setMinutes(next5Minutes.getMinutes() + 5);
-    let response = {
-        error: false,
-        errormessage: `L'utente loggato è ${req.user.username}`
-    };
-    if (req.user.exp * 1000 <= next5Minutes.getTime()) {
-        console.log("Your token will expires within 5 minutes, generating new one".blue);
-        // response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state)) //! Remove this
-        response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.roles));
-    }
-    return res.status(200).json(response);
-});
 app.post("/move", auth, (req, res, next) => {
     let username = req.user.username;
     let move = req.body.move;

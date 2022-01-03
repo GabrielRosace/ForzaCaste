@@ -15,13 +15,13 @@
             </li>
         </ul>
 
-        <div class="enable" [style.pointer-events]="visibility" [style.opacity]="opacity" style="margin: auto;">
+        <div class="enable" [style.pointer-events]="visibility" [style.opacity]="opacity" >
             <div class="gameboard">
                 <table class="table">
                     <tbody>
                         <tr *ngFor='let row of game'>
                             <td *ngFor='let column of row;let i=index;'>
-                                <div class="griglia" (click)="add(i)">
+                                <div class="griglia" (click)="add(i)" [style.background-color]="isTosuggest(i)" >
                                     <span class="gettone" style="background-color:red;" *ngIf="isred(column)"></span>
                                     <span class="gettone" style="background-color:gold;"
                                         *ngIf="isyellow(column)"></span>
