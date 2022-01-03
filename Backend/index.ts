@@ -192,12 +192,11 @@ passport.use(new passportHTTP.BasicStrategy(
   }
 ));
 
-//* Add API routes to express application
+// List of available endpoints in specified version
 app.get("/", (req, res) => {
-  res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/game","/gameMessage", "/notification", "/friend", "/message", "/move", "/whoami",] }); //TODO setta gli endpoints
+  res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/game", "/gameMessage", "/notification", "/friend", "/message", "/move", "/whoami",] }); //TODO setta gli endpoints
 });
 
-// In our token we save username, id and role of the logged user
 // function getToken(username, id, avatarImgURL, roles, mail, state) {  //! Remove code
 //   return {
 //     username: username,
@@ -205,6 +204,11 @@ app.get("/", (req, res) => {
 //     roles: roles
 //   };
 // }
+
+
+
+// ------------------------- User management ---------------------------------
+// In our token we save username, id and role of the logged user
 function getToken(username, id, roles) {
   return {
     username: username,
@@ -215,10 +219,13 @@ function getToken(username, id, roles) {
 
 function signToken(tokendata) {
   // return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, {expiresIn: '360s'})
+
+  // Making token expiration within 1h, this method is used to make token renewal
   return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '1h' })
 }
-// Login endpoint uses passport middleware to check
-// user credentials before generating a new JWT
+
+
+// Login endpoint uses passport middleware to check user credentials and if it is everything ok a new JWT will be returned
 app.get("/login", passport.authenticate('basic', { session: false }), (req, res, next) => {
 
   // If we reach this point, the user is successfully authenticated and
@@ -228,7 +235,7 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
   // and return it as response
 
   // const tokendata = getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state) //! Remove code
-  const tokendata = getToken(req.user.username, req.user.id,req.user.roles)
+  const tokendata = getToken(req.user.username, req.user.id, req.user.roles)
 
   console.log("Login granted. Generating token");
   var token_signed = signToken(tokendata)
@@ -237,7 +244,28 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
 
 });
 
-// Create new user
+
+// Get user information associated with the current JWT_TOKEN, in addition refreshes the JWT_TOKEN if the expire time is less than 5 minutes
+app.get("/whoami", auth, (req, res, next) => {
+  let next5Minutes = new Date()
+  next5Minutes.setMinutes(next5Minutes.getMinutes() + 5)
+
+  let response = {
+    error: false,
+    errormessage: `L'utente loggato è ${req.user.username}`
+  }
+
+
+  if (req.user.exp * 1000 <= next5Minutes.getTime()) {
+    console.log("Your token will expires within 5 minutes, generating new one".blue)
+    // response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state)) //! Remove this
+    response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.roles))
+  }
+
+  return res.status(200).json(response);
+})
+
+// Creation of a new user, this endpoint reset statistics and save user information into DB
 app.post('/users', (req, res, next) => {
 
   const basicStats = new (statistics.getModel())({
@@ -252,7 +280,7 @@ app.post('/users', (req, res, next) => {
   console.log(req.body)
 
   if (!req.body.password || !req.body.username || !req.body.name || !req.body.surname || !req.body.mail || !req.body.avatarImgURL) {
-    return next({ statusCode: 404, error: true, errormessage: "Some field missing, signin cannot be possibile" })
+    return next({ statusCode: 404, error: true, errormessage: "Some field missing, signup cannot be possible" })
   }
 
   if (req.body.username == 'cpu') {
@@ -412,6 +440,7 @@ app.delete("/users/:username", auth, (req, res, next) => {
     })
 })
 
+// This request allows the user to modify his profile. This is also used by moderators who must update the profile before they can browse the API.
 app.put("/users", auth, (req, res, next) => {
   console.log("Update user information for ".blue + req.user.username)
 
@@ -450,12 +479,16 @@ app.put("/users", auth, (req, res, next) => {
       console.log("Data saved successfully".blue)
       return res.status(200).json({ error: false, errormessage: "" })
     }).catch((reason) => {
-      return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+      return next({ statusCode: 401, error: true, errormessage: "DB error: " + reason.errmsg })
     })
   }).catch((reason) => {
     return res.status(401).json({ error: true, errormessage: "DB error: " + reason })
   })
 })
+
+
+// ---------------------------------------------------------------------------------------------------
+
 
 // getting ranking history associated to logged user
 app.get('/rankingstory', auth, (req, res, next) => {
@@ -607,9 +640,9 @@ app.post('/game', auth, (req, res, next) => {
             }
 
             // Check if the opposite player is online
-            if(!checkOnlineUser(friend.username)){
+            if (!checkOnlineUser(friend.username)) {
               console.log("ERROR: opposite player is not online".red);
-              return next({statusCode: 400, error: true, errormessage: "The opposite player is not online"})
+              return next({ statusCode: 400, error: true, errormessage: "The opposite player is not online" })
             }
 
             const doc = createNewGameRequest(req.body, us.username, us.statistics.ranking, friend.username)
@@ -649,7 +682,7 @@ app.post('/game', auth, (req, res, next) => {
             if (socketIOclients[user.username.toString()])
               client = socketIOclients[user.username.toString()]
             else
-              return next({ statusCode: 404, error: true, errormessage: "SocketIO client is not connected" })            
+              return next({ statusCode: 404, error: true, errormessage: "SocketIO client is not connected" })
             if (!matchRooms[m.player1.toString()][user.username.toString()]) {
               matchRooms[m.player1.toString()][user.username.toString()] = client
               client.join(m.player1.toString())
@@ -681,13 +714,13 @@ app.post('/game', auth, (req, res, next) => {
   }
 })
 
-function checkOnlineUser(username){
+function checkOnlineUser(username) {
   return socketIOclients[username] ? true : false
 }
 
 // Create game against AI
 app.post('/game/cpu', auth, (req, res, next) => {
-  try{
+  try {
     let client = socketIOclients[req.user.username]
 
     if (matchRooms[req.user.username] != client) {
@@ -701,11 +734,11 @@ app.post('/game/cpu', auth, (req, res, next) => {
     client.join(req.user.username)
     console.log("Client joined the room ".green + req.user.username);
   }
-  catch(error){
+  catch (error) {
     console.log("error")
     return next({ statusCode: 404, error: true, errormessage: "Client already in a room" })
   }
-  
+
   let player = req.user.username
   user.getModel().findOne({ username: player }).then((u: User) => {
     if (!(u.hasModeratorRole() || u.hasUserRole())) {
@@ -776,7 +809,7 @@ app.post('/move/cpu', auth, (req, res, next) => {
             let winner: string = undefined
 
             m.save().then((data) => {
-              let watchersMessage = JSON.stringify({ player: m.player1.toString(), move: index, nextTurn: 'cpu'})
+              let watchersMessage = JSON.stringify({ player: m.player1.toString(), move: index, nextTurn: 'cpu' })
               client.broadcast.to(`${m.player1}Watchers`).emit('gameStatus', JSON.parse(watchersMessage))
 
               console.log(`Playground updated`.green)
@@ -810,7 +843,7 @@ app.post('/move/cpu', auth, (req, res, next) => {
 
               data.playground = insertMove(data.playground, cpuInfo[0], 'O')
 
-              watchersMessage = JSON.stringify({ player: 'cpu', move: cpuInfo[0], nextTurn: m.player1.toString()})
+              watchersMessage = JSON.stringify({ player: 'cpu', move: cpuInfo[0], nextTurn: m.player1.toString() })
               client.broadcast.to(`${m.player1}Watchers`).emit('gameStatus', JSON.parse(watchersMessage))
 
               if (checkWinner(data.playground, 'O')) {
@@ -872,8 +905,8 @@ app.delete('/game', auth, (req, res, next) => {
           match.inProgress = false
           match.winner = user.username.toString() === match.player1.toString() ? match.player2.toString() : match.player1.toString()
           match.save().then((data) => {
-            if(data.player2.toString() != "cpu"){
-              if(socketIOclients[user.username.toString()]){
+            if (data.player2.toString() != "cpu") {
+              if (socketIOclients[user.username.toString()]) {
                 let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" })
                 socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message))
               }
@@ -916,11 +949,11 @@ app.delete('/game', auth, (req, res, next) => {
   })
 })
 
-app.put('/game', auth, (req, res, next) => {  
+app.put('/game', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
     notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: user.username.toString(), deleted: false, sender: req.body.sender }).then((n) => {
       if (n != null && n.sender != user.username) {
-        if(req.body.accept === true){
+        if (req.body.accept === true) {
           const randomMatch = createNewRandomMatch(n.sender, n.receiver)
           randomMatch.save().then((data) => {
             console.log("Match have been created correctely".green)
@@ -936,21 +969,21 @@ app.put('/game', auth, (req, res, next) => {
             console.log("ERROR: match requeste update error \nDB error: ".red + reason)
             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
           })
-  
+
           let player1 = n.sender
           let player2 = user.username
           let client1 = socketIOclients[player1]
           let client2 = socketIOclients[player2]
           matchRooms[player1][player2] = client2
           client2.join(player1)
-  
+
           // When the clients receive this message they will redirect by himself to the match route
           // client1.emit('gameReady', 'true')
           // client2.emit('gameReady', 'true')
           client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 })
           client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 })
-  
-  
+
+
           if (randomMatch.player1.toString() == player1.toString()) {
             console.log("starts player1")
             let pl1Turn = JSON.stringify({ yourTurn: true })
@@ -964,19 +997,19 @@ app.put('/game', auth, (req, res, next) => {
             let pl1Turn = JSON.stringify({ yourTurn: false })
             client1.emit('move', JSON.parse(pl1Turn))
           }
-  
+
           console.log("Match creation and game request update done".green)
           return res.status(200).json({ error: false, message: "Match have been created correctely" })
         }
-        else{
+        else {
           n.inpending = false
           n.deleted = true
           n.save().then((data) => {
             console.log("Game request have been updated correctely".green)
             if (socketIOclients[n.sender.toString()]) {
-              socketIOclients[n.sender.toString()].emit("gameReady", {"gameReady": false, "message": "Request refused"})
+              socketIOclients[n.sender.toString()].emit("gameReady", { "gameReady": false, "message": "Request refused" })
             }
-            return res.status(200).json({error: false, message: "Request refused"})
+            return res.status(200).json({ error: false, message: "Request refused" })
           }).catch((reason) => {
             console.log("ERROR: match requeste update error \nDB error: ".red + reason)
             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
@@ -1023,11 +1056,11 @@ app.post('/gameMessage', auth, (req, res, next) => {
           if (m != null && match.isMatch(m)) {
             console.log(socketIOclients[u.username]);
             console.log(socketIOclients[u.username].rooms);
-            
-            
+
+
             if (((u.username.toString() == m.player1.toString() || u.username.toString() == m.player2.toString()) && socketIOclients[u.username.toString()].rooms.has(m.player1.toString())) || ((u.username.toString() != m.player1.toString() && u.username.toString() != m.player2.toString()) && (socketIOclients[u.username.toString()].rooms.has(m.player1.toString()) && socketIOclients[u.username.toString()].rooms.has(m.player1.toString() + 'Watchers')))) {
               let client = null
-              
+
               if (socketIOclients[u.username.toString()])
                 client = socketIOclients[u.username.toString()]
               else
@@ -1079,12 +1112,11 @@ app.post('/notification', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       if (req.body.type === "friendRequest") {
-        user.getModel().findOne({ username: req.body.receiver }).then((receiver: User) => {
+          user.getModel().findOne({ username: req.body.receiver }).then((receiver: User) => {
           if (receiver.isFriend(u.username.toString())) {
             // console.log("sfaccim")
             return res.status(400).json({ error: true, errormessage: "You are already friend" })
-          }
-          else {
+          } else {
             // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
             notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: receiver.username.toString(), deleted: false }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
               if (n !== null) {
@@ -1252,16 +1284,16 @@ app.put('/notification', auth, (req, res, next) => {
                   if (socketIOclients[sender.username.toString()]) {
                     let senderMessage = JSON.stringify({ newFriend: u.username.toString() })
                     socketIOclients[sender.username.toString()].emit('request', JSON.parse(senderMessage))
-                  }                  
+                  }
                 }).catch((reason) => {
                   return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
                 })
               }
-              else{
+              else {
                 if (socketIOclients[sender.username.toString()]) {
                   let senderMessage = JSON.stringify({ newFriend: null })
                   socketIOclients[sender.username.toString()].emit('request', JSON.parse(senderMessage))
-                } 
+                }
               }
               n.save().then((data) => {
                 console.log("Data saved successfully".blue)
@@ -1296,15 +1328,15 @@ app.put('/notification', auth, (req, res, next) => {
 // Returns all the messages
 app.get('/message', auth, (req, res, next) => {
 
-  let modmessage = undefined 
+  let modmessage = undefined
   if (req.query && req.query.ModMessage == 'true') {
     modmessage = true
   }
 
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
     if (user.hasModeratorRole() || user.hasUserRole()) {
-      message.getModel().find({ isAModMessage:modmessage, receiver: user.username.toString(), inpending: true }).then((inPendingMessages) => {
-        message.getModel().find({isAModMessage:modmessage, $or: [{ sender: user.username.toString() }, { receiver: user.username.toString() }] }).then((allMessages) => {
+      message.getModel().find({ isAModMessage: modmessage, receiver: user.username.toString(), inpending: true }).then((inPendingMessages) => {
+        message.getModel().find({ isAModMessage: modmessage, $or: [{ sender: user.username.toString() }, { receiver: user.username.toString() }] }).then((allMessages) => {
           return res.status(200).json({ error: false, message: "", inPendingMessages: inPendingMessages, allMessages: allMessages });
         }).catch((reason) => {
           console.log("DB error: " + reason)
@@ -1393,6 +1425,12 @@ app.post('/message/mod', auth, (req, res, next) => {
 
 // Update the non-read messages into read messages
 app.put('/message', auth, (req, res, next) => {
+
+  //! Penso che vada aggiunto questo
+  // if (!req.body.sender) {
+  //   return res.status(400).json({error:true, errormessage: "You have to specify the message sender"})
+  // }
+
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
     if (user.hasUserRole() || user.hasModeratorRole()) {
       message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true }).then((m) => {
@@ -1409,13 +1447,11 @@ app.put('/message', auth, (req, res, next) => {
           console.log("All messages have been updated".green)
           return res.status(200).json({ error: false, errormessage: "" })
         } else {
-          // ! Non ci sono messagi
-          return res.status(404).json({ error: true, errormessage: "There is no messages to be update" })
+          return res.status(404).json({ error: true, errormessage: "There are no messages to be update" })
         }
       })
-    }
-    else {
-      // ! Errore: l'utente non ha ruolo utente o moderatore 
+    } else {
+      return res.status(401).json({ error: true, errormessage: "You cannot do it" })
     }
   })
 })
@@ -1632,26 +1668,6 @@ function createNewFriendRequest(type, username, receiver) {
 //   return doc
 // }
 
-
-// get connected user and refresh token if expires within 5 minutes
-app.get("/whoami", auth, (req, res, next) => {
-  let next5Minutes = new Date()
-  next5Minutes.setMinutes(next5Minutes.getMinutes() + 5)
-
-  let response = {
-    error: false,
-    errormessage: `L'utente loggato è ${req.user.username}`
-  }
-
-
-  if (req.user.exp * 1000 <= next5Minutes.getTime()) {
-    console.log("Your token will expires within 5 minutes, generating new one".blue)
-    // response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state)) //! Remove this
-    response["token"] = signToken(getToken(req.user.username, req.user.id,req.user.roles))
-  }
-
-  return res.status(200).json(response);
-})
 
 
 app.post("/move", auth, (req, res, next) => {
@@ -1908,18 +1924,18 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                   // Non esiste alcun match, il client può essere disconnesso
                 }
               })
-              notification.getModel().findOne({$or: [{sender: user.username.toString()}, {receiver: user.username.toString()}], deleted: false, type:"friendlyMatchmaking"}).then((n) => {
-                if(n != null){
+              notification.getModel().findOne({ $or: [{ sender: user.username.toString() }, { receiver: user.username.toString() }], deleted: false, type: "friendlyMatchmaking" }).then((n) => {
+                if (n != null) {
                   n.inpending = false
                   n.deleted = true
                   n.save().then((data) => {
-                    if(data.receiver.toString() === user.username.toString()){
-                      if(checkOnlineUser(data.sender.toString()))
-                        socketIOclients[data.sender.toString()].emit("gameReady", {"gameReady": false, "message": "User disconnect"})
+                    if (data.receiver.toString() === user.username.toString()) {
+                      if (checkOnlineUser(data.sender.toString()))
+                        socketIOclients[data.sender.toString()].emit("gameReady", { "gameReady": false, "message": "User disconnect" })
                     }
-                    else{
-                      if(checkOnlineUser(data.receiver.toString()))
-                        socketIOclients[data.receiver.toString()].emit("gameRequest",{"type": "friendlyGame", "message": "User disconnect"})
+                    else {
+                      if (checkOnlineUser(data.receiver.toString()))
+                        socketIOclients[data.receiver.toString()].emit("gameRequest", { "type": "friendlyGame", "message": "User disconnect" })
                     }
                   })
                 }
