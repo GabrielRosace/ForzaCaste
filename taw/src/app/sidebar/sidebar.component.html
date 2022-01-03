@@ -2,7 +2,7 @@
   <nav class="navbar navbar-dark text-white bg-dark">
     <div class="container">
       <div class="col-8">
-        <span>Forza Quattro</span>
+        <button id="mainbtn" class="text-white border-0" (click)="navigate('home')">Forza Quattro</button>
       </div>
       <div class="col-4 nav justify-content-end">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -198,11 +198,11 @@
           <strong>{{username}}</strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-          <li><button class="dropdown-item" (click)="navigate('profile')">Profile</button></li>
+          <li><button class="dropdown-item" (click)="navigate('profile')"><mat-icon [ngStyle]="{'color':'white'} ">account_circle</mat-icon> Profile</button></li>
           <li>
             <hr class="dropdown-divider">
           </li>
-          <li><button class="dropdown-item" (click)="navigate('logout')">Sign out</button></li>
+          <li><button class="dropdown-item" (click)="navigate('logout')"><mat-icon>exit_to_app</mat-icon> Sign out</button></li>
         </ul>
       </div>
     </div>

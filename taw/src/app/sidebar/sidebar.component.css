@@ -192,6 +192,10 @@
 }
 /*Button FriendList*/
 
-.nav-link:focus, .nav-link:hover {
+.nav-link:hover, .dropdown-item:hover {
   background-color: #1e5a7a;
+}
+
+#mainbtn{
+  background-color: var(--bs-dark)
 }
