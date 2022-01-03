@@ -232,11 +232,11 @@
         <span class="dot bg-dark" ></span>
       </span> (click)="readMessage(username,lfriend.username);navigate('friend-chat/'+lfriend.username+'')" routerLink="/friend-chat/{{lfriend.username}}" routerLinkActive="active-link"-->
         <span class="align-items-right">
-          <button type="button" class="friendListBtn mr-2" data-bs-dismiss="modal"
+          <button type="button" class="friendListBtn mr-2" 
             (click)="deleteFriend(lfriend.username)" id="btnDel"><span>
               <mat-icon>close</mat-icon>
             </span></button>
-          <button type="button" class="friendListBtn mr-6" data-bs-dismiss="modal"
+          <button type="button" class="friendListBtn mr-6" data-bs-dismiss="offcanvas"
             (click)="readMessage(username,lfriend.username,false);getInpendinMsg();navigate('friend-chat/'+lfriend.username+'')">
             <span>
               <!--matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"-->
@@ -245,11 +245,11 @@
                 [ngStyle]="{'color':'white'} ">chat</mat-icon>
             </span>
           </button>
-          <button type="button" class="friendListBtn mr-2" data-bs-dismiss="modal"
+          <button type="button" class="friendListBtn mr-2" data-bs-dismiss="offcanvas"
             (click)="navigate('user-stats/'+lfriend.username+'')"><span>
               <mat-icon>equalizer</mat-icon>
             </span></button>
-          <button type="button" class="friendListBtn" data-bs-dismiss="modal"
+          <button type="button" class="friendListBtn" 
             (click)="blockUnblock(lfriend.username,lfriend.isBlocked)" id="btnBlock"><span><i
                 class="{{lfriend.isBlocked}}"></i></span></button>
         </span>

@@ -28,6 +28,7 @@ export class ModChatComponent implements OnInit {
   public singleChat: Message[] = []
   public username: string = "" //TODO tipo user
   public avatarImgURL: string = ""
+  public friend: string = ""
   private tok: string = ""
   private subscriptionName!: Subscription
   public subscriptionMsg!: Subscription
@@ -49,6 +50,7 @@ export class ModChatComponent implements OnInit {
       this.username = this.us.get_username()
       this.avatarImgURL = this.us.get_avatarImgURL()
       this.role = this.us.get_role()
+      this.friend = this.activeRoute.snapshot.params['user']
       this.readMessage(this.us.get_username(), this.activeRoute.snapshot.params['user'])
       this.openChat(this.activeRoute.snapshot.params['user'])
       this.notifyNewMsg()
@@ -71,8 +73,8 @@ export class ModChatComponent implements OnInit {
   sendMessage(message: string) {
     console.log("Mesg inviato")
     this.us.send_ModMsg(this.activeRoute.snapshot.params['user'], message).subscribe((data) => {
-      var time = new Date();
-      this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: message, time: time.toLocaleTimeString() });
+      let date = new Date();
+      this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: message, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}` });
     })
   }
 
@@ -86,12 +88,12 @@ export class ModChatComponent implements OnInit {
       console.log(this.messagelist)
       this.us.get_Otheruser(username).subscribe((user) => {
         this.messagelist.forEach((element: any) => {
-          var date = new Date(element.timestamp);
+          let date = new Date(element.timestamp);
           if (element.sender == username) {
             //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
-            this.singleChat.push({ imgUrl: user.avatarImgURL, from: user.username, text: element.content, time: date.toUTCString() });
+            this.singleChat.push({ imgUrl: user.avatarImgURL, from: user.username, text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}` });
           } else if (element.receiver == username) {
-            this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString() });
+            this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}` });
           }
         })
       })
@@ -126,10 +128,10 @@ export class ModChatComponent implements OnInit {
       this.badgeContMod = 0
       this.us.get_Otheruser(username).subscribe((user) => {
         this.messageInpending.forEach((element: any) => {
-          var date = new Date(element.timestamp);
+          let date = new Date(element.timestamp);
           if (element.sender == username) {
             //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
-            this.singleChat.push({ imgUrl: user.avatarImgURL, from: user.username, text: element.content, time: date.toUTCString() });
+            this.singleChat.push({ imgUrl: user.avatarImgURL, from: user.username, text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}` });
           }
         })
         this.us.readMessage(this.us.get_username(), username,true).subscribe()

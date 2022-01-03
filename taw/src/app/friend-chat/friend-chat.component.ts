@@ -27,6 +27,7 @@ export class FriendChatComponent implements OnInit {
   public messageInpending?: any
   public singleChat: Message[] = []
   public username: string = "" //TODO tipo user
+  public friend: string = ""
   public avatarImgURL: string = ""
   private tok: string = ""
   public imBlock!: boolean
@@ -43,12 +44,12 @@ export class FriendChatComponent implements OnInit {
    /*
     this.subscriptionName = this.us.get_userMessage().subscribe((elem: any) => {
       console.log("OpenChat")
-      var username = this.activeRoute.snapshot.params['friend']
+      let username = this.activeRoute.snapshot.params['friend']
       this.messagelist = elem.allMessages
       this.messageInpending = elem.inPendingMessages
       this.us.get_friend(username).subscribe((friend) => {
         this.messagelist.forEach((element: any) => {
-          var date = new Date(element.timestamp);
+          let date = new Date(element.timestamp);
           if (element.sender == username) {
             //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
             this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
@@ -57,7 +58,7 @@ export class FriendChatComponent implements OnInit {
           }
         })
         /*
-        var date = new Date(element.timestamp);
+        let date = new Date(element.timestamp);
         if (element.sender == username) {
           this.us.readMessage(this.us.get_username(), username)
           this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
@@ -94,6 +95,7 @@ export class FriendChatComponent implements OnInit {
       this.username = this.us.get_username()
       this.avatarImgURL = this.us.get_avatarImgURL()
       this.role = this.us.get_role()
+      this.friend = this.activeRoute.snapshot.params['friend']
       this.imBlocked()
       this.readMessage(this.us.get_username(), this.activeRoute.snapshot.params['friend'])
       this.openChat(this.activeRoute.snapshot.params['friend'])
@@ -117,14 +119,14 @@ export class FriendChatComponent implements OnInit {
 
   sendMessage(message: string) {
     this.us.send_chatMsg(this.activeRoute.snapshot.params['friend'], message).subscribe((data) => {
-      var time = new Date();
-      this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: message, time: time.toLocaleTimeString() });
+      let date = new Date();
+      this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: message, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}` });
     })
   }
 
   imBlocked() {
     this.us.get_friend(this.activeRoute.snapshot.params['friend']).subscribe((friend) => {
-      var fr: any
+      let fr: any
       friend.friendList.filter((u: any) => {
         if (u.username == this.us.get_username()) {
           fr = u.isBlocked
@@ -144,17 +146,17 @@ export class FriendChatComponent implements OnInit {
       this.messageInpending = elem.inPendingMessages
       this.us.get_friend(username).subscribe((friend) => {
         this.messagelist.forEach((element: any) => {
-          var date = new Date(element.timestamp);
+          let date = new Date(element.timestamp);
           if (element.sender == username) {
             //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
-            this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
+            this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}` });
             console.log(`${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}`) //! Date parsing
           } else if (element.receiver == username) {
-            this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString() });
+            this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}` });
           }
         })
         /*
-        var date = new Date(element.timestamp);
+        let date = new Date(element.timestamp);
         if (element.sender == username) {
           this.us.readMessage(this.us.get_username(), username)
           this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
@@ -193,10 +195,10 @@ export class FriendChatComponent implements OnInit {
       this.badgeContentMsg = 0
       this.us.get_friend(username).subscribe((friend) => {
         this.messageInpending.forEach((element: any) => {
-          var date = new Date(element.timestamp);
+          let date = new Date(element.timestamp);
           if (element.sender == username) {
             //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
-            this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
+            this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}` });
           }
         })
         this.us.readMessage(this.us.get_username(), username, false).subscribe()
