@@ -418,19 +418,19 @@ function getRankingList(username) {
     return notification.getModel().find({ deleted: true, sender: username, $or: [{ type: "randomMatchmaking" }, { type: "friendlyMatchmaking" }] }, 'ranking');
 }
 app.post('/game', auth, (req, res, next) => {
-    if (req.body.type != 'watchGame') {
-        let client = socketIOclients[req.user.username];
-        // if (matchRooms[req.user.username] != client) {
-        //   matchRooms[req.user.username] = {}
-        //   matchRooms[req.user.username][req.user.username] = client
-        // matchWatcherRooms[req.user.username] = {}
-        // }
-        // else {
-        //   console.log("L'utente è già inserito in una room: ".red)
-        // }
-        // client.join(req.user.username)
-        console.log("Client joined the room ".green + req.user.username);
-    }
+    // if (req.body.type != 'watchGame') {
+    // let client = socketIOclients[req.user.username]
+    // if (matchRooms[req.user.username] != client) {
+    //   matchRooms[req.user.username] = {}
+    //   matchRooms[req.user.username][req.user.username] = client
+    // matchWatcherRooms[req.user.username] = {}
+    // }
+    // else {
+    //   console.log("L'utente è già inserito in una room: ".red)
+    // }
+    // client.join(req.user.username)
+    // console.log("Client joined the room ".green + req.user.username);
+    // }
     if (req.body.type == 'randomMatchmaking') {
         user.getModel().findOne({ username: req.user.username }).then((us) => {
             notification.getModel().find({ type: "randomMatchmaking", receiver: null, deleted: false }).then((nList) => {
@@ -453,15 +453,15 @@ app.post('/game', auth, (req, res, next) => {
                             console.log("Match have been created correctely".green);
                         }).catch((reason) => {
                             console.log("ERROR: match creation error \nDB error: ".red + reason);
-                            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                            return next({ statusCode: 404, error: true, errormessage: "ERROR: match creation error" });
                         });
                         n.deleted = true;
                         n.inpending = false;
                         n.save().then((data) => {
                             console.log("Game request have been updated correctely".green);
                         }).catch((reason) => {
-                            console.log("ERROR: match requeste update error \nDB error: ".red + reason);
-                            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                            console.log("ERROR: match request update error \nDB error: ".red + reason);
+                            return next({ statusCode: 404, error: true, errormessage: "ERROR: match request update error" });
                         });
                         // matchRooms[us.username.toString()] = {}
                         // matchRooms[us.username.toString()][us.username.toString] = socketIOclients[us.username.toString()]
@@ -500,19 +500,19 @@ app.post('/game', auth, (req, res, next) => {
                     }
                     else {
                         console.log("Match request already exists".red);
-                        return res.status(200).json({ error: false, errormessage: "Match request already exists" });
+                        return next({ statusCode: 404, error: true, errormessage: "ERROR: match request already exists" });
                     }
                 }
                 else {
                     const doc = createNewGameRequest(req.body, us.username, us.statistics.ranking);
                     doc.save().then((data) => {
                         if (notification.isNotification(data)) {
-                            console.log("Creation of a new random game request done, player1 is: ".green + data.sender);
-                            return res.status(200).json({ error: false, message: "Waiting for other player..." });
+                            console.log("Notification creation done");
+                            return res.status(200).json({ error: false, message: "Match request have been created correctely" });
                         }
                     }).catch((reason) => {
                         console.log("ERROR: random game request creation error \nDB error: ".red + reason);
-                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                        return next({ statusCode: 404, error: true, errormessage: "ERROR: random game request creation error" });
                     });
                 }
             });
@@ -531,7 +531,7 @@ app.post('/game', auth, (req, res, next) => {
                         // Check if the opposite player is online
                         if (!checkOnlineUser(friend.username)) {
                             console.log("ERROR: opposite player is not online".red);
-                            return next({ statusCode: 400, error: true, errormessage: "The opposite player is not online" });
+                            return next({ statusCode: 404, error: true, errormessage: "The opposite player is not online" });
                         }
                         const doc = createNewGameRequest(req.body, us.username, us.statistics.ranking, friend.username);
                         doc.save().then((data) => {
@@ -541,21 +541,21 @@ app.post('/game', auth, (req, res, next) => {
                                     let friendMessage = JSON.stringify({ type: "friendlyGame", player: us.username.toString() });
                                     socketIOclients[friend.username].emit("gameRequest", JSON.parse(friendMessage));
                                     console.log("Creation of friendly game request done, player1 is: ".green + data.sender);
-                                    return res.status(200).json({ error: false, message: "Waiting for other player..." });
+                                    return res.status(200).json({ error: false, message: "Request sended to friend" });
                                 }
                                 else {
                                     console.log("Opposite player is not online".green + data.sender);
-                                    return res.status(200).json({ error: true, message: "Opposite player is not online" });
+                                    return next({ statusCode: 404, error: true, errormessage: "The opposite player is not online" });
                                 }
                             }
                         }).catch((reason) => {
                             console.log("ERROR: friendly game request creation error \nDB error: ".red + reason);
-                            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                            return next({ statusCode: 404, error: true, errormessage: "Friendly game request creation error" });
                         });
                     });
                 }
                 else {
-                    //! La richiesta esiste già
+                    //TODO La richiesta esiste già
                 }
             });
         });
@@ -584,7 +584,7 @@ app.post('/game', auth, (req, res, next) => {
                         // }
                         let watcherMessage = m.nTurns % 2 ? JSON.stringify({ playerTurn: m.player1.toString(), playground: m.playground }) : JSON.stringify({ playerTurn: m.player2.toString(), playground: m.playground });
                         client.emit('enterGameWatchMode', JSON.parse(watcherMessage));
-                        return res.status(200).json({ error: false, message: "" });
+                        return res.status(200).json({ error: false, message: "Match joined as observator" });
                     }
                     else {
                         // ! Errore: il match non esiste
@@ -602,7 +602,7 @@ app.post('/game', auth, (req, res, next) => {
     }
     else {
         console.log("ERROR: invalid request");
-        return res.status(400).json({ error: true, errormessage: "Invalid request" });
+        return next({ statusCode: 400, error: true, errormessage: "Invalid request" });
     }
 });
 function checkOnlineUser(username) {
@@ -625,12 +625,12 @@ app.post('/game/cpu', auth, (req, res, next) => {
     }
     catch (error) {
         console.log("error");
-        return next({ statusCode: 404, error: true, errormessage: "Client already in a room" });
+        return next({ statusCode: 404, error: true, errormessage: "Socket.IO error" });
     }
     let player = req.user.username;
     user.getModel().findOne({ username: player }).then((u) => {
         if (!(u.hasModeratorRole() || u.hasUserRole())) {
-            return res.status(403).json({ error: true, errormessage: "You cannot do it" });
+            return next({ statusCode: 403, error: true, errormessage: "Unauthorized" });
         }
         const model = match.getModel();
         const doc = new model({
@@ -678,7 +678,7 @@ app.post('/move/cpu', auth, (req, res, next) => {
     let move = req.body.move;
     user.getModel().findOne({ username: req.user.username }).then((u) => {
         if (!(u.hasModeratorRole() || u.hasUserRole()))
-            return res.status(403).json({ error: true, errormessage: "You cannot do it" });
+            return res.status(403).json({ error: true, errormessage: "Unauthorized" });
         if (move == undefined)
             return res.status(401).json({ error: true, errormessage: "Incorrectly formed request" });
         match.getModel().findOne({ player1: req.user.username, player2: "cpu", inProgress: true }).then((m) => {
@@ -785,10 +785,10 @@ app.delete('/game', auth, (req, res, next) => {
                             socketIOclients[user.username.toString()].broadcast.to(match.player1 + 'Watchers').emit('result', JSON.parse(message));
                         }
                         console.log("The match have been deleted correctely".green);
-                        return res.status(200).json({ error: false, message: "" });
+                        return res.status(200).json({ error: false, message: "The match have been deleted correctely" });
                     }).catch((reason) => {
                         console.log("ERROR: match cancellation error \nDB error: ".red + reason);
-                        return res.status(404).json({ error: true, errormessage: "DB error: " + reason.errmsg });
+                        return next({ statusCode: 404, error: true, errormessage: "Match cancellation error" });
                     });
                 }
                 else {
@@ -799,16 +799,16 @@ app.delete('/game', auth, (req, res, next) => {
                             notification.save().then((data) => {
                                 // delete matchRooms[notification.sender.toString()]
                                 console.log("The match request have been deleted correctely".green);
-                                return res.status(200).json({ error: false, message: "" });
+                                return res.status(200).json({ error: false, message: "The match request have been deleted correctely" });
                             }).catch((reason) => {
-                                console.log("ERROR: match cancellation error \nDB error: ".red + reason);
-                                return res.status(404).json({ error: true, errormessage: "DB error: " + reason.errmsg });
+                                console.log("ERROR: notification cancellation error \nDB error: ".red + reason);
+                                return next({ statusCode: 404, error: true, errormessage: "Notification cancellation error" });
                             });
                         }
                         else {
                             // ! Non esiste alcuna notification
                             console.log("Match request does not exist".red);
-                            return res.status(404).json({ error: true, errormessage: "Match request does not exists" });
+                            return next({ statusCode: 404, error: true, errormessage: "Match request does not exists" });
                         }
                     });
                 }
@@ -831,15 +831,15 @@ app.put('/game', auth, (req, res, next) => {
                         console.log("Match have been created correctely".green);
                     }).catch((reason) => {
                         console.log("ERROR: match creation error \nDB error: ".red + reason);
-                        next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                        next({ statusCode: 404, error: true, errormessage: "ERROR: match creation error" });
                     });
                     n.deleted = true;
                     n.inpending = false;
                     n.save().then((data) => {
                         console.log("Game request have been updated correctely".green);
                     }).catch((reason) => {
-                        console.log("ERROR: match requeste update error \nDB error: ".red + reason);
-                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                        console.log("ERROR: match request update error \nDB error: ".red + reason);
+                        return next({ statusCode: 404, error: true, errormessage: "ERROR: match request update error" });
                     });
                     // matchRooms[user.username.toString()] = {}
                     // matchRooms[user.username.toString()][user.username.toString] = socketIOclients[user.username.toString()]
@@ -890,14 +890,14 @@ app.put('/game', auth, (req, res, next) => {
                         }
                         return res.status(200).json({ error: false, message: "Request refused" });
                     }).catch((reason) => {
-                        console.log("ERROR: match requeste update error \nDB error: ".red + reason);
-                        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                        console.log("ERROR: match request update error \nDB error: ".red + reason);
+                        return next({ statusCode: 404, error: true, errormessage: "match request update error" });
                     });
                 }
             }
             else {
-                console.log("Match request already exists".red);
-                return res.status(200).json({ error: false, message: "Match request already exists" });
+                console.log("ERROR: Match request does not exists".red);
+                return next({ statusCode: 404, error: true, errormessage: "Match request does not exists" });
             }
         });
     });
@@ -909,8 +909,8 @@ app.get('/game', auth, (req, res, next) => {
                 console.log("Matches obtained".green);
                 return res.status(200).json({ error: false, matches: matches });
             }).catch((reason) => {
-                console.log("ERROR: get match \nDB error: ".red + reason);
-                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                console.log("ERROR: error getting matches \nDB error: ".red + reason);
+                return next({ statusCode: 404, error: true, errormessage: "error getting matches" });
             });
         }
         else {
@@ -918,9 +918,6 @@ app.get('/game', auth, (req, res, next) => {
             console.log("ERROR: the user hasn't the necessary roles".red);
             return next({ statusCode: 404, error: true, errormessage: "User hasn't the necessary roles" });
         }
-    }).catch((reason) => {
-        console.log("ERROR: get match \nDB error: ".red + reason);
-        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
     });
 });
 app.post('/gameMessage', auth, (req, res, next) => {
@@ -948,7 +945,7 @@ app.post('/gameMessage', auth, (req, res, next) => {
                             }
                             m.updateOne({ $push: { chat: newMessage } }).then((data) => {
                                 console.log("Message have been send and saved correctely".green);
-                                return res.status(200).json({ error: false, message: "" });
+                                return res.status(200).json({ error: false, message: "Message have been send and saved correctely" });
                             }).catch((reason) => {
                                 console.log("ERROR: send message error\nDB error: ".red + reason);
                                 return next({ statusCode: 404, error: true, errormessage: "Send message error" });
