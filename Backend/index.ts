@@ -1436,10 +1436,9 @@ app.post('/message/mod', auth, (req, res, next) => {
 // Update the non-read messages into read messages
 app.put('/message', auth, (req, res, next) => {
 
-  //! Penso che vada aggiunto questo
-  // if (!req.body.sender) {
-  //   return res.status(400).json({error:true, errormessage: "You have to specify the message sender"})
-  // }
+  if (!req.body.sender) {
+    return res.status(400).json({error:true, errormessage: "You have to specify the message sender"})
+  }
 
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
     if (user.hasUserRole() || user.hasModeratorRole()) {

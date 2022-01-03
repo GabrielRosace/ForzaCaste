@@ -181,7 +181,7 @@ export class FriendChatComponent implements OnInit {
   }
 
   readMessage(myus: string, username: string) {
-    this.us.readMessage(myus, username).subscribe(() => {
+    this.us.readMessage(myus, username, false).subscribe(() => {
       this.us.update_badge("read friend-chat")
     })
   }
@@ -198,7 +198,7 @@ export class FriendChatComponent implements OnInit {
             this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
           }
         })
-        this.us.readMessage(this.us.get_username(), username).subscribe()
+        this.us.readMessage(this.us.get_username(), username, false).subscribe()
       })
     })
   }

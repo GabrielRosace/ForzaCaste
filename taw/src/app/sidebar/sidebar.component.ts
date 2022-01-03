@@ -552,9 +552,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     })
   }
 
-  readMessage(myus: string, username: string) {
+  readMessage(myus: string, username: string, modMessage: boolean) {
     console.log(this.router.parseUrl(this.router.url))
-    this.us.readMessage(myus, username).subscribe()
+    this.us.readMessage(myus, username, modMessage).subscribe()
   }
 
   /*

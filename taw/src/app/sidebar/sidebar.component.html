@@ -18,6 +18,7 @@
       <ul class="nav nav-pills flex-column mb-auto">
         <li class="nav-item">
           <button (click)="navigate('home')" class="nav-link text-white w-100 text-start">
+            <mat-icon class="customIcon" color="primary" [ngStyle]="{'color':'white'}">home</mat-icon>
             Home
           </button>
         </li>
@@ -26,36 +27,37 @@
           <!--Open the modal(modalNot)  <span mat-raised-button >Notification</span>-->
           <button class="nav-link text-white w-100 text-start" (click)="getNotification(true, undefined)"
             id="notification" data-bs-toggle="modal" data-bs-target="#modalNot">
-            <span mat-raised-button>Notification</span>
-            <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeContent" matBadgePosition="above after"
-              matBadgeOverlap="true" [matBadgeHidden]="hideMatBadge" matBadgeSize="medium" [ngStyle]="{'color':'white'}">notifications
-            </mat-icon>
+            <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeContent" matBadgePosition="above before"
+            matBadgeOverlap="true" [matBadgeHidden]="hideMatBadge" matBadgeSize="medium" [ngStyle]="{'color':'white'}">notifications
+          </mat-icon>
+          <span mat-raised-button> Notification</span>
           </button>
         </li>
         <!--Allow the user to dipslay the message from all moderator-->
         <li class="nav-item" *ngIf="username">
           <!--Open the modal(modalNot)  <span mat-raised-button >Notification</span>-->
-          <button class="nav-link text-white w-100 text-start" (click)="getModeratorList()" id="notification"
+          <button class="nav-link text-white w-100 text-start" style="text-overflow: ellipsis;" (click)="getModeratorList()" id="notification"
             data-bs-toggle="modal" data-bs-target="#modalMod">
-            <span mat-raised-button>Moderator Message</span>
-            <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeContMod" matBadgePosition="above after"
-              matBadgeOverlap="true" [matBadgeHidden]="hideBadgeMod" matBadgeSize="medium" [ngStyle]="{'color':'white'}">chat
-            </mat-icon>
+            <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeContMod" matBadgePosition="above before"
+            matBadgeOverlap="true" [matBadgeHidden]="hideBadgeMod" matBadgeSize="medium" [ngStyle]="{'color':'white'}">chat
+          </mat-icon>
+          <span mat-raised-button> Moderator Message</span>
           </button>
         </li>
 
         <li *ngIf="has_moderator_role()" class="nav-item">
           <button (click)="navigate('new-mod')" class="nav-link text-white w-100 text-start">
+            <mat-icon class="customIcon" color="primary" [ngStyle]="{'color':'white'}">person_add</mat-icon>
             Add new mod
           </button>
         </li>
 
         <li class="nav-item" *ngIf="has_moderator_role()">
           <button class="nav-link text-white w-100 text-start" (click)="navigate('user-deletion')" id="allUs">
-            <span mat-raised-button>All User</span>
-            <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeAllUs" matBadgePosition="above after"
-              matBadgeOverlap="true" [matBadgeHidden]="hideBadgeAll" matBadgeSize="medium" [ngStyle]="{'color':'white'}">chat
-            </mat-icon>
+            <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeAllUs" matBadgePosition="above before"
+            matBadgeOverlap="true" [matBadgeHidden]="hideBadgeAll" matBadgeSize="medium" [ngStyle]="{'color':'white'}">people
+          </mat-icon>
+          <span mat-raised-button> All User</span>
           </button>
         </li>
       </ul>
@@ -168,7 +170,7 @@
                   *ngFor='let mod of modlist'>
                   {{mod.username}}
                   <span class="align-items-right">
-                    <button type="button" class="friendListBtn mr-6" data-bs-dismiss="modal" (click)="readMessage(username,mod.username);getInpendingMsgMod();navigate('mod-chat/'+mod.username+'')">
+                    <button type="button" class="friendListBtn mr-6" data-bs-dismiss="modal" (click)="readMessage(username,mod.username,true);getInpendingMsgMod();navigate('mod-chat/'+mod.username+'')">
                       <span>
                         <!--matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"-->
                         <mat-icon [matBadge]="mod.badgeNum" matBadgeColor="accent" matBadgeSize="small"
@@ -235,7 +237,7 @@
               <mat-icon>close</mat-icon>
             </span></button>
           <button type="button" class="friendListBtn mr-6" data-bs-dismiss="modal"
-            (click)="readMessage(username,lfriend.username);getInpendinMsg();navigate('friend-chat/'+lfriend.username+'')">
+            (click)="readMessage(username,lfriend.username,false);getInpendinMsg();navigate('friend-chat/'+lfriend.username+'')">
             <span>
               <!--matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"-->
               <mat-icon [matBadge]="lfriend.badgeNum" matBadgeColor="accent" matBadgeSize="small"

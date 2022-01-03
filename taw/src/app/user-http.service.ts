@@ -459,7 +459,7 @@ export class UserHttpService {
     return this.http.post(`${this.url}/message/mod`, body, options)
   }
 
-  readMessage(receiver: string, sender: string) {
+  readMessage(receiver: string, sender: string, modMessage: boolean) {
     const options = {
       headers: new HttpHeaders({
         'authorization': `Bearer ${this.get_token()}`
@@ -467,10 +467,12 @@ export class UserHttpService {
     }
     const body = {
       username: receiver,
-      sender: sender
+      sender: sender,
+      modMessage: modMessage
     }
     return this.http.put(`${this.url}/message`, body, options)
   }
+  
   get_usersOnline() {
     const options = {
       headers: new HttpHeaders({

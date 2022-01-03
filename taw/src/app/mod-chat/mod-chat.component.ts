@@ -114,7 +114,7 @@ export class ModChatComponent implements OnInit {
   }
 
   readMessage(myus: string, username: string) {
-    this.us.readMessage(myus, username).subscribe(() => {
+    this.us.readMessage(myus, username,true).subscribe(() => {
       console.log("Read Message")
       this.us.update_badge("read mod-chat")
     })
@@ -132,7 +132,7 @@ export class ModChatComponent implements OnInit {
             this.singleChat.push({ imgUrl: user.avatarImgURL, from: user.username, text: element.content, time: date.toUTCString() });
           }
         })
-        this.us.readMessage(this.us.get_username(), username).subscribe()
+        this.us.readMessage(this.us.get_username(), username,true).subscribe()
       })
     })
   }

@@ -97,7 +97,7 @@ export class UserDeletionComponent implements OnInit {
   }
 
   readMessage(myus: string, username: string){
-      this.us.readMessage(myus, username).subscribe()
+      this.us.readMessage(myus, username, true).subscribe()
     }
 
   getInpendinMsg() {

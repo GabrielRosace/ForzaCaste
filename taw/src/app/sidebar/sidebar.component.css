@@ -191,3 +191,7 @@
   display: inline-block;
 }
 /*Button FriendList*/
+
+.nav-link:focus, .nav-link:hover {
+  background-color: #1e5a7a;
+}
