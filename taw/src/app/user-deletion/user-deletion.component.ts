@@ -41,6 +41,7 @@ export class UserDeletionComponent implements OnInit {
     this.getInpendinMsg()
     this.get_userlist()
     this.us.get_username()
+    this.notifyNewMsg()
   }
 
   delete(username: string) {
@@ -127,7 +128,7 @@ export class UserDeletionComponent implements OnInit {
         let rec = JSON.parse(JSON.stringify(msg)).receiver
         let send = JSON.parse(JSON.stringify(msg)).sender
         let inpend = JSON.parse(JSON.stringify(msg)).inpending
-        if ("friend-chat" != g || g1 != send) {
+        // if ("friend-chat" != g || g1 != send) {
 
           //console.log("NotifyNewMsg")
           if (inpend) {
@@ -147,7 +148,7 @@ export class UserDeletionComponent implements OnInit {
               }
             }
           })
-        }
+        // }
       })
       // }
     }
