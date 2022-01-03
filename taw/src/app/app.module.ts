@@ -28,6 +28,7 @@ import { FriendStatsComponent } from './friend-stats/friend-stats.component';
 import { NgChartsModule } from 'ng2-charts';
 import { FriendChatComponent } from './friend-chat/friend-chat.component';
 import { CpuComponent } from './cpu/cpu.component';
+import { ModChatComponent } from './mod-chat/mod-chat.component';
 
 @NgModule({
   declarations: [
@@ -45,7 +46,8 @@ import { CpuComponent } from './cpu/cpu.component';
     WatchComponent,
     FriendStatsComponent,
     FriendChatComponent,
-    CpuComponent
+    CpuComponent,
+    ModChatComponent
   ],
   imports: [
     BrowserModule,

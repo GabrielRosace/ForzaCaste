@@ -905,11 +905,15 @@ app.delete('/game', auth, (req, res, next) => {
           match.inProgress = false
           match.winner = user.username.toString() === match.player1.toString() ? match.player2.toString() : match.player1.toString()
           match.save().then((data) => {
-            if (data.player2.toString() != "cpu") {
-              if (socketIOclients[user.username.toString()]) {
+            let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" })
+            if(data.player2.toString() != "cpu"){
+              if(socketIOclients[user.username.toString()]){
                 let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" })
                 socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message))
               }
+            }
+            else{
+              socketIOclients[user.username.toString()].broadcast.to(match.player1+'Watchers').emit('result', JSON.parse(message))
             }
             console.log("The match have been deleted correctely".green)
             return res.status(200).json({ error: false, message: "" })
@@ -1112,34 +1116,40 @@ app.post('/notification', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       if (req.body.type === "friendRequest") {
-          user.getModel().findOne({ username: req.body.receiver }).then((receiver: User) => {
-          if (receiver.isFriend(u.username.toString())) {
-            // console.log("sfaccim")
-            return res.status(400).json({ error: true, errormessage: "You are already friend" })
-          } else {
-            // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
-            notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: receiver.username.toString(), deleted: false }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
-              if (n !== null) {
-                console.log("You have already sent a request to this user.");
-                return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
-              } else {
-                const fr = createNewFriendRequest("friendRequest", u.username, receiver.username.toString())
-                fr.save().then((data) => {
-                  console.log("Request forwarded")
-                  if (socketIOclients[receiver.username.toString()]) {
-                    // console.log("eccomi:", receiver.username.toString())
-                    let receiverMessage = JSON.stringify({ sender: u.username.toString(), type: "friendRequest" })
-                    //console.log("Messaggio inviato:"+)
-                    socketIOclients[receiver.username.toString()].emit('newNotification', JSON.parse(receiverMessage))
-                  }
-                  return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver })
-                }).catch((reason) => {
-                  return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-                })
-              }
-            }).catch((reason) => {
-              return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-            })
+        user.getModel().findOne({ username: req.body.receiver }).then((receiver: User) => {
+          if(receiver != null){
+            if (receiver.isFriend(u.username.toString())) {
+              return res.status(400).json({ error: true, errormessage: "You are already friend" })
+            }
+            else {
+              // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
+              notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: receiver.username.toString(), deleted: false }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
+                if (n !== null) {
+                  console.log("You have already sent a request to this user.");
+                  return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
+                } else {
+                  const fr = createNewFriendRequest("friendRequest", u.username, receiver.username.toString())
+                  fr.save().then((data) => {
+                    console.log("Request forwarded")
+                    if (socketIOclients[receiver.username.toString()]) {
+                      // console.log("eccomi:", receiver.username.toString())
+                      let receiverMessage = JSON.stringify({ sender: u.username.toString(), type: "friendRequest" })
+                      //console.log("Messaggio inviato:"+)
+                      socketIOclients[receiver.username.toString()].emit('newNotification', JSON.parse(receiverMessage))
+                    }
+                    return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver })
+                  }).catch((reason) => {
+                    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                  })
+                }
+              }).catch((reason) => {
+                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+              })
+            }
+          }
+          else{
+            console.log("Specified user does not exist".red)
+            return next({ statusCode: 404, error: true, errormessage: "The specified user does not exist"})
           }
         })
         // } else if (req.body.type === "friendMessage") {//Send a new message to a friend

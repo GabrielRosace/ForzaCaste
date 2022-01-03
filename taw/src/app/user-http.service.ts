@@ -22,6 +22,7 @@ export class UserHttpService {
   private token = ''
   public url = 'http://localhost:8080' //TODO cambiare indirizzo
   private subjectName = new Subject<any>()
+  private subjBadge = new Subject<any>()
   // public userRole: string = ''
   private img: string = ''
   private mail: string = ''
@@ -37,6 +38,15 @@ export class UserHttpService {
 
   get_update(): Observable<any> {
     return this.subjectName.asObservable()
+  }
+
+  update_badge(message: string){
+    console.log("Badge Update")
+    this.subjBadge.next({ text: message })
+  }
+
+  get_badge(){
+    return this.subjBadge.asObservable()
   }
 
   constructor(private http: HttpClient, private router: Router) {
@@ -414,13 +424,13 @@ export class UserHttpService {
     return this.http.post(`${this.url}/gameMessage`, body, options)
   }
 
-  get_userMessage() {
+  get_userMessage(isAModMessage?: boolean) {
     const options = {
       headers: new HttpHeaders({
         'authorization': `Bearer ${this.get_token()}`
       })
     }
-    return this.http.get(`${this.url}/message`, options)
+    return this.http.get(`${this.url}/message?ModMessage=${isAModMessage}`, options)
   }
 
   send_chatMsg(receiver: string, message: string) {
@@ -434,6 +444,19 @@ export class UserHttpService {
       message: message
     }
     return this.http.post(`${this.url}/message`, body, options)
+  }
+
+  send_ModMsg(receiver: string, message: string) {
+    const options = {
+      headers: new HttpHeaders({
+        'authorization': `Bearer ${this.get_token()}`
+      })
+    }
+    const body = {
+      receiver: receiver,
+      message: message
+    }
+    return this.http.post(`${this.url}/message/mod`, body, options)
   }
 
   readMessage(receiver: string, sender: string) {

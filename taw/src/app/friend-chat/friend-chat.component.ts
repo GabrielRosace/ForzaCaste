@@ -181,7 +181,9 @@ export class FriendChatComponent implements OnInit {
   }
 
   readMessage(myus: string, username: string) {
-    this.us.readMessage(myus, username).subscribe()
+    this.us.readMessage(myus, username).subscribe(() => {
+      this.us.update_badge("read friend-chat")
+    })
   }
 
   getInpendinMsg(username: string) {

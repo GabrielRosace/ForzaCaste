@@ -123,6 +123,14 @@ export class SocketioService {
     })
   }
   
+  friendRequYN(){
+    return new Observable<string>(observer =>{
+      this.socket.on('request', msg => {
+        observer.next(msg);
+      });
+    })
+  }
+
   gameRequest(){
     return new Observable<string>(observer =>{
       this.socket.on('gameRequest', msg => {
@@ -131,13 +139,14 @@ export class SocketioService {
     })
   }
 
+  /*
   friendReqAccepted(){
     return new Observable<string>(observer =>{
       this.socket.on('acceptedRequest', msg => {
         observer.next(msg);
       });
     })
-  }
+  }*/
 
   newMessage(){
     return new Observable<string>(observer =>{

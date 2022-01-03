@@ -6,3 +6,15 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .friendListBtn .mat-badge-content{
     transform: translate(-4px, 16px)
   }
+
+#navbarToggleExternalContent .mat-badge-content{
+  width: 20px;
+  height: 20px;
+  /* min-width: 32px; */
+  /* min-height: 28px; */
+  /* text-align: center; */
+  /* align-items: center; */
+  padding: 0px 6px;
+  /* top: -20px; */
+  /* right: -22px; */
+}
