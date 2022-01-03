@@ -32,11 +32,11 @@ export class UserDeletionComponent implements OnInit {
 
   constructor(private us: UserHttpService, private router: Router, private sio: SocketioService) { }
 
-  
+
   ngOnInit(): void {
     if (!this.us.get_token() || !this.us.has_moderator_role()) {
       // TODO aggiungi un messaggio, magari con una funzione nel servizio per non replicare codice
-      this.router.navigate(['/']) 
+      this.router.navigate(['/'])
     }
     this.getInpendinMsg()
     this.get_userlist()
@@ -52,11 +52,8 @@ export class UserDeletionComponent implements OnInit {
     }, () => { this.error = "Something weird happended" })
   }
 
-  get_userlist(){
+  get_userlist() {
     this.subscriptionIn = this.us.get_userMessage(true).subscribe((elem: any) => {
-      this.getInpendinMsg()
-      console.log("InpendingMsg:")
-      console.log(elem.inPendingMessages)
       this.messageInpending = elem.inPendingMessages
 
       this.us.get_userlist().subscribe((elem: any) => {
@@ -72,21 +69,15 @@ export class UserDeletionComponent implements OnInit {
               //console.log(this.num)
             }
           })
-          console.log("Count")
-          console.log(countMsg)
-          /*
-          let sos = this.onlineUser.find((data: any) => { return data == element['username'] })
-          if (sos == element['username']) {
-            col = "#88D498"
-          } else {
-            col = "#A4A5AE"
-          }*/
           if (countMsg != 0) {
             msgHide = false
           }
-          this.userList.push({ id: element['_id'], username: element['username'], badgeNum: countMsg, badgeHidden: msgHide, /*color: col */})
+          if (element['username'] != this.us.get_username()) {
+            this.userList.push({ id: element['_id'], username: element['username'], roles: element['roles'], badgeNum: countMsg, badgeHidden: msgHide, /*color: col */ })
+          }
         })
       })
+      console.log(this.userList)
     })
   }
 
@@ -101,24 +92,24 @@ export class UserDeletionComponent implements OnInit {
     }
 
   getInpendinMsg() {
-      this.subscriptionIn = this.us.get_userMessage(true).subscribe((elem: any) => {
-        console.log("InpendingMsg:")
-        console.log(elem.inPendingMessages)
-        this.badgeAllUs = 0
-        this.messageInpending = elem.inPendingMessages
-        this.messageInpending.forEach((element: any) => {
-          if (element.receiver == this.us.get_username()) {
-            this.badgeAllUs++;
-          }
-        });
-        console.log("badge")
-        console.log(this.badgeAllUs)
-        if (this.badgeAllUs == 0) {
-          this.hideBadgeAll = true
-        } else {
-          this.hideBadgeAll = false
+    this.subscriptionIn = this.us.get_userMessage(true).subscribe((elem: any) => {
+      console.log("InpendingMsg:")
+      console.log(elem.inPendingMessages)
+      this.badgeAllUs = 0
+      this.messageInpending = elem.inPendingMessages
+      this.messageInpending.forEach((element: any) => {
+        if (element.receiver == this.us.get_username()) {
+          this.badgeAllUs++;
         }
-      })
+      });
+      console.log("badge")
+      console.log(this.badgeAllUs)
+      if (this.badgeAllUs == 0) {
+        this.hideBadgeAll = true
+      } else {
+        this.hideBadgeAll = false
+      }
+    })
   }
 
   notifyNewMsg() {
@@ -128,7 +119,7 @@ export class UserDeletionComponent implements OnInit {
       this.subscriptionMsg = this.sio.newMessage().subscribe((msg) => {
         let g = this.router.parseUrl(this.router.url).root.children.primary.segments[0].path
         let g1 = ""
-        if(this.router.parseUrl(this.router.url).root.children.primary.segments[1] != undefined){
+        if (this.router.parseUrl(this.router.url).root.children.primary.segments[1] != undefined) {
           g1 = this.router.parseUrl(this.router.url).root.children.primary.segments[1].path
         }
         //console.log("NotifyNewMsg")
@@ -137,7 +128,7 @@ export class UserDeletionComponent implements OnInit {
         let send = JSON.parse(JSON.stringify(msg)).sender
         let inpend = JSON.parse(JSON.stringify(msg)).inpending
         if ("friend-chat" != g || g1 != send) {
-        
+
           //console.log("NotifyNewMsg")
           if (inpend) {
             this.getInpendinMsg()
