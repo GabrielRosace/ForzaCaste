@@ -654,6 +654,8 @@ app.get('/move', auth, (req, res, next) => {
     user.getModel().findOne({ username: username }).then((u) => {
         if (!(u.hasModeratorRole() || u.hasUserRole()))
             return res.status(403).json({ error: true, errormessage: "You cannot do it" });
+        if (u.statistics.ranking < 100)
+            return res.status(403).json({ error: true, errormessage: "You have to improve your ranking before doing that!" });
         match.getModel().findOne({ inProgress: true, $or: [{ player1: username }, { player2: username }] }).then((m) => {
             if (match.isMatch(m)) {
                 if (m.player1.toString() == username) {
@@ -1605,6 +1607,11 @@ function makeMove(index, m, client, placehold, otherPlayer, res, username) {
                     let drawnMessage = JSON.stringify({ "winner": null });
                     client.broadcast.to(m.player1).emit('result', JSON.parse(drawnMessage));
                     client.emit('result', JSON.parse(drawnMessage));
+                    m.updateOne({ inProgress: false }).then((d) => {
+                        console.log("Winner updated".green);
+                    }).catch((reason) => {
+                        console.log(`Error: ${reason}`);
+                    });
                 }
                 return res.status(200).json({ error: false, errormessage: "added move" });
             }).catch((reason) => {
