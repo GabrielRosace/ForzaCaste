@@ -3,7 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { GameComponent } from './game/game.component';
 import { HomepageComponent } from './homepage/homepage.component';
 import { NewModeratorComponent } from './new-moderator/new-moderator.component';
-import { UserDeletionComponent } from './user-deletion/user-deletion.component';
+import { AllUserComponent } from './all-user/all-user.component';
 import { UserLoginComponent } from './user-login/user-login.component';
 import { UserLogoutComponent } from './user-logout/user-logout.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
@@ -22,7 +22,7 @@ const routes: Routes = [
   { path: 'signin', component: UserSigninComponent },
   { path: 'profile', component: UserProfileComponent },
   { path: 'new-mod', component: NewModeratorComponent },
-  { path: 'user-deletion', component: UserDeletionComponent },
+  { path: 'all-user', component: AllUserComponent },
   { path: 'game', component: GameComponent },
   { path: 'watch', component: WatchComponent },
   { path: 'cpu', component: CpuComponent },
