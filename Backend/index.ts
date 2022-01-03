@@ -1785,7 +1785,6 @@ function makeMove(index, m, client, placehold, otherPlayer, res, username) {
             winnerControl(client, m, m.player1, m.player2)
           }
         }
-
         //is playground full?
         let fullCheck = false
         for (let i = 0; i < 6; i++) {
@@ -1799,6 +1798,11 @@ function makeMove(index, m, client, placehold, otherPlayer, res, username) {
           let drawnMessage = JSON.stringify({ "winner": null })
           client.broadcast.to(m.player1).emit('result', JSON.parse(drawnMessage))
           client.emit('result', JSON.parse(drawnMessage))
+          m.updateOne({ inProgress: false }).then((d) => {
+            console.log("Winner updated".green)
+          }).catch((reason) => {
+            console.log(`Error: ${reason}`)
+          })
         }
         return res.status(200).json({ error: false, errormessage: "added move" })
       }).catch((reason) => {
