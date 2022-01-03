@@ -9,7 +9,7 @@
         <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let user of userList'>
           {{user.username}}
           <span class="align-items-right">
-          <button type="button" class="friendListBtn mr-6" [disabled]="user.roles=='MODERATOR' || user.username==myUsername" (click)="delete(user.username)" id="btnDel"><span>
+          <button type="button" class="friendListBtn mr-6" *ngIf="user.roles != 'MODERATOR' || user.username == myUsername" (click)="delete(user.username)" id="btnDel"><span>
             <mat-icon>close</mat-icon>
           </span></button>
           <button type="button" class="friendListBtn mr-6" 
