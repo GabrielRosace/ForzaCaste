@@ -4,14 +4,22 @@
  * Endpoints            Attributes              Method          Description
  *
  *  /                       -                   GET             Returns the version and a list of available endpoints
+ * 
+ * 
  *  /login                  -                   GET             Login an existing user, returning a JWT
  *
- *  /users                  -                   POST            Signin a new user
+ *  /whoami                 -                   GET             Get user information and refresh the JWT
+ * 
+ *  /users/:username        -                   GET             Return a user that has username specified
+ *  /users                  -                   GET             Return a list of available user
+ *  /users/online           -                   GET             Return a list of online player at this moment
+ *  /users                  -                   POST            Sign up a new user
+ *  /users/mod              -                   POST            Create a new moderator, only moderator can do it
  *  /users                  -                   PUT             Update user information
  *  /users/:username        -                   DELETE          Deletion of standard players from moderators
- *  /users/:username        -                   GET             Return a user that has username specified
- *
- *  /users/mod              -                   POST            Create a new moderator, only moderator can do it
+ * 
+ * 
+ * 
  * 
  *  /game                   -                   POST            Create a random or friendly match. Furthermore a user can enter in a game as observator
  *  /game                   -                   DELETE          Used by a player in order to delete a started game or to delete a game request
@@ -280,7 +288,7 @@ app.post('/users', (req, res, next) => {
   console.log(req.body)
 
   if (!req.body.password || !req.body.username || !req.body.name || !req.body.surname || !req.body.mail || !req.body.avatarImgURL) {
-    return next({ statusCode: 404, error: true, errormessage: "Some field missing, signup cannot be possible" })
+    return next({ statusCode: 400, error: true, errormessage: "Some field missing, signup cannot be possible" })
   }
 
   if (req.body.username == 'cpu') {
@@ -301,7 +309,7 @@ app.post('/users', (req, res, next) => {
   })
 });
 
-// Get online users
+// Getting all online users with a socket.io registered in the application
 app.get('/users/online', auth, (req, res, next) => {
   user.getModel().findOne({ deleted: false, username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
@@ -314,7 +322,7 @@ app.get('/users/online', auth, (req, res, next) => {
   })
 })
 
-// Get user by username
+// This request allows the user to obtain information about another user
 app.get('/users/:username', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.params.username }).then((u) => {
     return res.status(200).json({ username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList, role: u.roles })
@@ -323,6 +331,7 @@ app.get('/users/:username', auth, (req, res, next) => {
   })
 })
 
+// This request allows the user to get all the useful information about the players who are registered in the platform.
 app.get('/users', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username, deleted: false }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
@@ -356,7 +365,7 @@ app.post("/users/mod", auth, (req, res, next) => {
       console.log(req.body)
 
       if (!req.body.password || !req.body.username) {
-        return next({ statusCode: 404, error: true, errormessage: "Some field missing, signin cannot be possibile" })
+        return next({ statusCode: 400, error: true, errormessage: "Some field missing, signup cannot be possible" })
       }
 
       const doc = createNewUser(basicStats, req.body)
@@ -368,7 +377,7 @@ app.post("/users/mod", auth, (req, res, next) => {
         return res.status(200).json({ error: false, errormessage: "", id: data._id });
       }).catch((reason) => {
         if (reason.code === 11000)
-          return next({ statusCode: 404, error: true, errormessage: "User already exists" });
+          return next({ statusCode: 400, error: true, errormessage: "User already exists" });
         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
       })
     } else {
@@ -395,6 +404,7 @@ function createNewUser(statistics, bodyRequest) {
   return doc
 }
 
+// This request allows the moderator to logically delete a standard player specified within param. It also removes his friendships.
 app.delete("/users/:username", auth, (req, res, next) => {
   console.log("Deleting user with username ".blue + req.params.username)
   // Check if user who request is a moderator
@@ -430,7 +440,7 @@ app.delete("/users/:username", auth, (req, res, next) => {
             })
           }
         }).catch((reason) => {
-          return res.status(404).json({ error: true, errormessage: "DB error " + reason })
+          return res.status(401).json({ error: true, errormessage: "DB error " + reason })
         })
       } else {
         return res.status(401).json({ error: true, errormessage: "You cannot do it, you aren't a mod!" })
@@ -531,7 +541,7 @@ app.post('/game', auth, (req, res, next) => {
     // if (matchRooms[req.user.username] != client) {
     //   matchRooms[req.user.username] = {}
     //   matchRooms[req.user.username][req.user.username] = client
-      // matchWatcherRooms[req.user.username] = {}
+    // matchWatcherRooms[req.user.username] = {}
     // }
     // else {
     //   console.log("L'utente è già inserito in una room: ".red)
@@ -571,7 +581,7 @@ app.post('/game', auth, (req, res, next) => {
               console.log("ERROR: match requeste update error \nDB error: ".red + reason)
               return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
             })
-            
+
             // matchRooms[us.username.toString()] = {}
             // matchRooms[us.username.toString()][us.username.toString] = socketIOclients[us.username.toString()]
 
@@ -777,7 +787,7 @@ app.get('/move', auth, (req, res, next) => {
   user.getModel().findOne({ username: username }).then((u: User) => {
     if (!(u.hasModeratorRole() || u.hasUserRole())) return res.status(403).json({ error: true, errormessage: "You cannot do it" })
 
-    if(u.statistics.ranking < 100) return res.status(403).json({ error: true, errormessage: "You have to improve your ranking before doing that!"})
+    if (u.statistics.ranking < 100) return res.status(403).json({ error: true, errormessage: "You have to improve your ranking before doing that!" })
 
     match.getModel().findOne({ inProgress: true, $or: [{ player1: username }, { player2: username }] }).then((m) => {
       if (match.isMatch(m)) {
@@ -918,14 +928,14 @@ app.delete('/game', auth, (req, res, next) => {
           match.winner = user.username.toString() === match.player1.toString() ? match.player2.toString() : match.player1.toString()
           match.save().then((data) => {
             let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" })
-            if(data.player2.toString() != "cpu"){
-              if(socketIOclients[user.username.toString()]){
+            if (data.player2.toString() != "cpu") {
+              if (socketIOclients[user.username.toString()]) {
                 let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" })
                 socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message))
               }
             }
-            else{
-              socketIOclients[user.username.toString()].broadcast.to(match.player1+'Watchers').emit('result', JSON.parse(message))
+            else {
+              socketIOclients[user.username.toString()].broadcast.to(match.player1 + 'Watchers').emit('result', JSON.parse(message))
             }
             console.log("The match have been deleted correctely".green)
             return res.status(200).json({ error: false, message: "" })
@@ -1142,7 +1152,7 @@ app.post('/notification', auth, (req, res, next) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       if (req.body.type === "friendRequest") {
         user.getModel().findOne({ username: req.body.receiver }).then((receiver: User) => {
-          if(receiver != null){
+          if (receiver != null) {
             if (receiver.isFriend(u.username.toString())) {
               return res.status(400).json({ error: true, errormessage: "You are already friend" })
             }
@@ -1172,9 +1182,9 @@ app.post('/notification', auth, (req, res, next) => {
               })
             }
           }
-          else{
+          else {
             console.log("Specified user does not exist".red)
-            return next({ statusCode: 404, error: true, errormessage: "The specified user does not exist"})
+            return next({ statusCode: 404, error: true, errormessage: "The specified user does not exist" })
           }
         })
         // } else if (req.body.type === "friendMessage") {//Send a new message to a friend
@@ -1462,7 +1472,7 @@ app.post('/message/mod', auth, (req, res, next) => {
 app.put('/message', auth, (req, res, next) => {
 
   if (!req.body.sender) {
-    return res.status(400).json({error:true, errormessage: "You have to specify the message sender"})
+    return res.status(400).json({ error: true, errormessage: "You have to specify the message sender" })
   }
 
   let modMessage = req.body.modMessage
@@ -1475,7 +1485,7 @@ app.put('/message', auth, (req, res, next) => {
       } else if (modMessage) {
         query = message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true, isAModMessage: true })
       } else {
-        query = message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true, $or: [{ isAModMessage: false }, {isAModMessage: undefined}] })
+        query = message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true, $or: [{ isAModMessage: false }, { isAModMessage: undefined }] })
       }
 
       query.then((m) => {
@@ -1585,7 +1595,7 @@ app.delete('/friend/:username', auth, (req, res, next) => {
 })
 
 app.put('/friend', auth, (req, res, next) => {
-  console.log("CI SONO ARRIVATO SPERO")
+  // console.log("CI SONO ARRIVATO SPERO")
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       user.getModel().findOne({ username: req.body.username }).then((friend: User) => {
