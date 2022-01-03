@@ -1462,9 +1462,20 @@ app.put('/message', auth, (req, res, next) => {
     return res.status(400).json({error:true, errormessage: "You have to specify the message sender"})
   }
 
+  let modMessage = req.body.modMessage
+
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
     if (user.hasUserRole() || user.hasModeratorRole()) {
-      message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true }).then((m) => {
+      let query
+      if (modMessage == undefined) {
+        query = message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true })
+      } else if (modMessage) {
+        query = message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true, isAModMessage: true })
+      } else {
+        query = message.getModel().find({ receiver: req.user.username, sender: req.body.sender, inpending: true, $or: [{ isAModMessage: false }, {isAModMessage: undefined}] })
+      }
+
+      query.then((m) => {
         if (m) {
           m.forEach((message) => {
             message.inpending = false
