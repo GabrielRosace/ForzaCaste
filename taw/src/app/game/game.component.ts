@@ -239,7 +239,7 @@ export class GameComponent implements OnInit {
       console.log(err)
       this.title="Error suggestion"
       this.content = err.error.errormessage
-      document.getElementById("openstats")!.click();
+      document.getElementById("opensugg")!.click();
     })
   }
   
