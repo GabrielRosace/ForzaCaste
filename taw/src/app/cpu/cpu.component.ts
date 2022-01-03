@@ -29,6 +29,7 @@ export class CpuComponent implements OnInit {
   public content: string = "";
   public suggestion:string="Ask for some suggestion";
   public win:boolean=false
+  public suggestedcollum:number=-1
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
     this.us.friendGame=false
     if(this.us.lv!=undefined){
@@ -50,7 +51,7 @@ export class CpuComponent implements OnInit {
   }
   /* When component is destroyed it will unsubscribe from the sockets */
   ngOnDestroy(): void {
-    this.closeMatch()
+    this.deleteMatch()
   }
   /* Create random number - USELESS */
   randomNumber(min:number, max:number) {
@@ -77,6 +78,10 @@ export class CpuComponent implements OnInit {
   close(alert: Alert) {
     this.alerts.splice(this.alerts.indexOf(alert), 1);
   }
+    deleteMatch(){
+    this.us.delete_match().subscribe((data) => {
+    })
+  }
   closeMatch(){
     if(this.us.friendGame){
       if(this.win){
@@ -100,6 +105,16 @@ export class CpuComponent implements OnInit {
     }
     
   }
+  isTosuggest(collumn:number){
+    
+    if(collumn==this.suggestedcollum){
+      console.log(collumn)
+      return "#F56476"
+    }else{
+      return "transparent"
+    }
+  }
+
   askSuggestion(){
     if(this.win){
       this.title="Error suggestion"
@@ -112,7 +127,8 @@ export class CpuComponent implements OnInit {
         this.title="Error suggestion"
       this.content=msg.errormessage
       }else{
-        this.suggestion="AI suggest to add to column: "+(msg.move["0"]+1);
+        this.suggestion="AI suggest to add to collumn: "+(msg.move["0"]+1);
+        this.suggestedcollum=msg.move["0"]
       }
     }, (err) => {
       console.log(err)
@@ -123,6 +139,7 @@ export class CpuComponent implements OnInit {
   }
   /* make a turn, when is over, switch the player turn */
   add(c:number){
+    this.suggestedcollum=-1
     this.us.moveCPUgame(c).subscribe((msg)=>{
       let stopme=false
       let stopcpu=false
@@ -156,7 +173,7 @@ export class CpuComponent implements OnInit {
             stopcpu=true
           }
         }
-        
+      
     }
     if(msg.winner!=undefined){
       this.win=true

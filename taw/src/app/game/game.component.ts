@@ -136,7 +136,7 @@ export class GameComponent implements OnInit {
     this.result.unsubscribe();
     this.gameReady.unsubscribe();
     this.gameChat.unsubscribe();
-    this.closeMatch();
+    this.deleteMatch();
   }
   /* Create random number - USELESS */
   randomNumber(min:number, max:number) {
@@ -239,26 +239,23 @@ export class GameComponent implements OnInit {
       document.getElementById("openstats")!.click();
     })
   }
+  deleteMatch(){
+    this.us.delete_match().subscribe((data) => {
+    })
+  }
   closeMatch(){
     if(this.us.friendGame){
       if(this.rank==undefined){
-        this.us.delete_match().subscribe((data) => {
-          console.log(data)
-        })
+        this.deleteMatch()
       }
     }else{
       if(this.rank==undefined){
-        this.us.delete_match().subscribe((data) => {
-          console.log(data)
-          this.router.navigate(['/home'])
-        })
+        this.deleteMatch()
+        this.router.navigate(['/home'])
       }else{
         this.router.navigate(['/home'])
       }
     }
-    
-    
-
   }
   addFriend(){
     this.us.add_friendRequest(this.opponent).subscribe((data) => {

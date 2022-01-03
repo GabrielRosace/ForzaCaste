@@ -38,7 +38,16 @@
     clear: both;
     display: table;
   }
-
+  td:hover::after{
+    content: "";
+    position: absolute;
+    background-color: #587B7F;
+    left: 0;
+    top: -5000px;
+    height: 10000px;
+    width:100%;
+    z-index: -1;
+  }
   .gameboard{
     min-width: 400px;
       min-height: 343px;
@@ -94,7 +103,7 @@
       justify-content: center;
       align-items: center;
       height:10vh;
-      width:10vh;
+
       background-image: url('/assets/img/rvuoto.png');
       background-size: cover;
   }
@@ -106,9 +115,6 @@
       border-radius: 4%;
       }
     
-    td:hover {
-      background-color: #587B7F;
-    }
     td, tr {
       padding: 0;
       cursor: pointer;
@@ -118,16 +124,6 @@
       width:10vh;
       max-width: 10vh;
       
-    }
-    td:hover::after{
-      content: "";
-      position: absolute;
-      background-color: #587B7F;
-      left: 0;
-      top: -5000px;
-      height: 10000px;
-      width:10vh;
-      z-index: -1;
     }
 
     /* Style images */
@@ -186,7 +182,6 @@
     justify-content: center;
     align-items: center;
     height:10vw;
-    width:10vw;
     background-image: url('/assets/img/rvuoto.png');
     background-size: cover;
 }
@@ -210,16 +205,6 @@ table {
     width:10vw;
     max-width: 10vw;
     
-  }
-  td:hover::after{
-    content: "";
-    position: absolute;
-    background-color: #587B7F;
-    left: 0;
-    top: -5000px;
-    height: 10000px;
-    width:10vw;
-    z-index: -1;
   }
   /* Style images */
 .container img {
