@@ -1,7 +1,7 @@
 {
   "configVersion": 1,
-  "timestamp": 1641321272959,
-  "index": "/taw/index.html",
+  "timestamp": 1641321505780,
+  "index": "/ForzaCaste/taw/index.html",
   "assetGroups": [
     {
       "name": "app",
@@ -11,14 +11,14 @@
         "ignoreVary": true
       },
       "urls": [
-        "/taw/favicon.ico",
-        "/taw/index.html",
-        "/taw/main.5f13bfb2b4b2b1f2a19d.js",
-        "/taw/manifest.webmanifest",
-        "/taw/polyfills.b5cb80ea832a17ac663c.js",
-        "/taw/runtime.420d6aa5f46f9cb7358c.js",
-        "/taw/scripts.90ee525ce1d9b783eca9.js",
-        "/taw/styles.bf7427ac99517f8c11ee.css"
+        "/ForzaCaste/taw/favicon.ico",
+        "/ForzaCaste/taw/index.html",
+        "/ForzaCaste/taw/main.5f13bfb2b4b2b1f2a19d.js",
+        "/ForzaCaste/taw/manifest.webmanifest",
+        "/ForzaCaste/taw/polyfills.b5cb80ea832a17ac663c.js",
+        "/ForzaCaste/taw/runtime.420d6aa5f46f9cb7358c.js",
+        "/ForzaCaste/taw/scripts.90ee525ce1d9b783eca9.js",
+        "/ForzaCaste/taw/styles.bf7427ac99517f8c11ee.css"
       ],
       "patterns": []
     },
@@ -30,44 +30,44 @@
         "ignoreVary": true
       },
       "urls": [
-        "/taw/assets/icons/icon-128x128.png",
-        "/taw/assets/icons/icon-144x144.png",
-        "/taw/assets/icons/icon-152x152.png",
-        "/taw/assets/icons/icon-192x192.png",
-        "/taw/assets/icons/icon-384x384.png",
-        "/taw/assets/icons/icon-512x512.png",
-        "/taw/assets/icons/icon-72x72.png",
-        "/taw/assets/icons/icon-96x96.png",
-        "/taw/assets/img/logo.png",
-        "/taw/assets/img/rvuoto.png",
-        "/taw/bootstrap-icons.66e4109ec6241c76fdcf.woff2",
-        "/taw/bootstrap-icons.ea6f3dfe4ebb15134576.woff"
+        "/ForzaCaste/taw/assets/icons/icon-128x128.png",
+        "/ForzaCaste/taw/assets/icons/icon-144x144.png",
+        "/ForzaCaste/taw/assets/icons/icon-152x152.png",
+        "/ForzaCaste/taw/assets/icons/icon-192x192.png",
+        "/ForzaCaste/taw/assets/icons/icon-384x384.png",
+        "/ForzaCaste/taw/assets/icons/icon-512x512.png",
+        "/ForzaCaste/taw/assets/icons/icon-72x72.png",
+        "/ForzaCaste/taw/assets/icons/icon-96x96.png",
+        "/ForzaCaste/taw/assets/img/logo.png",
+        "/ForzaCaste/taw/assets/img/rvuoto.png",
+        "/ForzaCaste/taw/bootstrap-icons.66e4109ec6241c76fdcf.woff2",
+        "/ForzaCaste/taw/bootstrap-icons.ea6f3dfe4ebb15134576.woff"
       ],
       "patterns": []
     }
   ],
   "dataGroups": [],
   "hashTable": {
-    "/taw/assets/icons/icon-128x128.png": "dae3b6ed49bdaf4327b92531d4b5b4a5d30c7532",
-    "/taw/assets/icons/icon-144x144.png": "b0bd89982e08f9bd2b642928f5391915b74799a7",
-    "/taw/assets/icons/icon-152x152.png": "7479a9477815dfd9668d60f8b3b2fba709b91310",
-    "/taw/assets/icons/icon-192x192.png": "1abd80d431a237a853ce38147d8c63752f10933b",
-    "/taw/assets/icons/icon-384x384.png": "329749cd6393768d3131ed6304c136b1ca05f2fd",
-    "/taw/assets/icons/icon-512x512.png": "559d9c4318b45a1f2b10596bbb4c960fe521dbcc",
-    "/taw/assets/icons/icon-72x72.png": "c457e56089a36952cd67156f9996bc4ce54a5ed9",
-    "/taw/assets/icons/icon-96x96.png": "3914125a4b445bf111c5627875fc190f560daa41",
-    "/taw/assets/img/logo.png": "cd6b3174780030723e599c72e80572db2b1c17c9",
-    "/taw/assets/img/rvuoto.png": "2799dfffed752d0bcaa39ed0c1fde936925e3204",
-    "/taw/bootstrap-icons.66e4109ec6241c76fdcf.woff2": "e5c03fd4d0715d3a59db5fdba4a19374cf3cc9de",
-    "/taw/bootstrap-icons.ea6f3dfe4ebb15134576.woff": "d9a419a0e36c453d5bca016e11dc3b58fcf4c1c2",
-    "/taw/favicon.ico": "22f6a4a3bcaafafb0254e0f2fa4ceb89e505e8b2",
-    "/taw/index.html": "e55532b086582a96d65b1583bf29c2ca72fa0904",
-    "/taw/main.5f13bfb2b4b2b1f2a19d.js": "6e40767f37a8e112b98eaf1c62e5b4cbceb650e1",
-    "/taw/manifest.webmanifest": "553e3606a3a0c75362c567e70796b04c26189b05",
-    "/taw/polyfills.b5cb80ea832a17ac663c.js": "72d219e90c5ba9738e4bb82ad16e1e7754f7cbe3",
-    "/taw/runtime.420d6aa5f46f9cb7358c.js": "beb7e4211d151ec83b22b1281d295132b24d201e",
-    "/taw/scripts.90ee525ce1d9b783eca9.js": "090ae9647e900ab76a1987c5bb10c59a3edf8259",
-    "/taw/styles.bf7427ac99517f8c11ee.css": "69c111d8bc8f25eafc384b2ac098a954aa45e792"
+    "/ForzaCaste/taw/assets/icons/icon-128x128.png": "dae3b6ed49bdaf4327b92531d4b5b4a5d30c7532",
+    "/ForzaCaste/taw/assets/icons/icon-144x144.png": "b0bd89982e08f9bd2b642928f5391915b74799a7",
+    "/ForzaCaste/taw/assets/icons/icon-152x152.png": "7479a9477815dfd9668d60f8b3b2fba709b91310",
+    "/ForzaCaste/taw/assets/icons/icon-192x192.png": "1abd80d431a237a853ce38147d8c63752f10933b",
+    "/ForzaCaste/taw/assets/icons/icon-384x384.png": "329749cd6393768d3131ed6304c136b1ca05f2fd",
+    "/ForzaCaste/taw/assets/icons/icon-512x512.png": "559d9c4318b45a1f2b10596bbb4c960fe521dbcc",
+    "/ForzaCaste/taw/assets/icons/icon-72x72.png": "c457e56089a36952cd67156f9996bc4ce54a5ed9",
+    "/ForzaCaste/taw/assets/icons/icon-96x96.png": "3914125a4b445bf111c5627875fc190f560daa41",
+    "/ForzaCaste/taw/assets/img/logo.png": "cd6b3174780030723e599c72e80572db2b1c17c9",
+    "/ForzaCaste/taw/assets/img/rvuoto.png": "2799dfffed752d0bcaa39ed0c1fde936925e3204",
+    "/ForzaCaste/taw/bootstrap-icons.66e4109ec6241c76fdcf.woff2": "e5c03fd4d0715d3a59db5fdba4a19374cf3cc9de",
+    "/ForzaCaste/taw/bootstrap-icons.ea6f3dfe4ebb15134576.woff": "d9a419a0e36c453d5bca016e11dc3b58fcf4c1c2",
+    "/ForzaCaste/taw/favicon.ico": "22f6a4a3bcaafafb0254e0f2fa4ceb89e505e8b2",
+    "/ForzaCaste/taw/index.html": "8eb2f0725af837f663f79b438c0f67f7f7b5d7ea",
+    "/ForzaCaste/taw/main.5f13bfb2b4b2b1f2a19d.js": "6e40767f37a8e112b98eaf1c62e5b4cbceb650e1",
+    "/ForzaCaste/taw/manifest.webmanifest": "553e3606a3a0c75362c567e70796b04c26189b05",
+    "/ForzaCaste/taw/polyfills.b5cb80ea832a17ac663c.js": "72d219e90c5ba9738e4bb82ad16e1e7754f7cbe3",
+    "/ForzaCaste/taw/runtime.420d6aa5f46f9cb7358c.js": "beb7e4211d151ec83b22b1281d295132b24d201e",
+    "/ForzaCaste/taw/scripts.90ee525ce1d9b783eca9.js": "090ae9647e900ab76a1987c5bb10c59a3edf8259",
+    "/ForzaCaste/taw/styles.bf7427ac99517f8c11ee.css": "69c111d8bc8f25eafc384b2ac098a954aa45e792"
   },
   "navigationUrls": [
     {
