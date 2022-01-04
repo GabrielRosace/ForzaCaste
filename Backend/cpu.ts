@@ -30,12 +30,9 @@ function get_valid_locations(board) {
 
 function winning_move(board, piece) {
   // Check horizontal locations for win
-  // console.log(`Playground: ${board}`)
 
   for (let c = 0; c < COLUMN_COUNT - 3; c++) {
     for (let r = 0; r < ROW_COUNT; r++) {
-
-      // console.log(board[r])
 
       if (board[r][c] == piece && board[r][c + 1] == piece && board[r][c + 2] == piece && board[r][c + 3] == piece) {
         return true

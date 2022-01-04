@@ -42,7 +42,18 @@ export class GameComponent implements OnInit {
   public content: string = "";
   public suggestion:string="Ask for some suggestion";
   public suggestedcollum:number=-1
-  constructor(private app: AppComponent, private sio: SocketioService,private us: UserHttpService, private router: Router) { 
+  public isFriend:boolean=true
+  constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) {
+      this.us.get_friendlist().subscribe((u) => {
+
+        u.friendlist.forEach((element: { [x: string]: any; }) => {
+          if(element['username']==this.opponent){
+            this.isFriend= false
+          }
+
+        });
+
+      })
     this.us.friendGame=false
     this.gameChat=this.sio.gameChat().subscribe(msg => {
 
@@ -65,7 +76,7 @@ export class GameComponent implements OnInit {
           console.log('ur message parsed: ' + JSON.stringify({imgUrl:img,from:frm,text:txt,time:time}));
         });
 
-        
+
 
       }
     });
@@ -161,7 +172,7 @@ export class GameComponent implements OnInit {
       }
       this.opponent=this.sio.getP2()
     }
-    
+
   }
 
   /* remove alert from the alters list, then from the view */
@@ -246,9 +257,9 @@ export class GameComponent implements OnInit {
       document.getElementById("opensugg")!.click();
     })
   }
-  
+
   isTosuggest(collumn:number){
-    
+
     if(collumn==this.suggestedcollum){
       console.log(collumn)
       return "#F56476"

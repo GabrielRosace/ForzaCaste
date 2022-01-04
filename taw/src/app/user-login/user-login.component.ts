@@ -67,8 +67,7 @@ export class UserLoginComponent implements OnInit {
       }
 
     }, (err) => {
-      console.log(`Login error: ${JSON.stringify(err)}`)
-      this.errmessage = err.message
+      this.errmessage = "Login failed, please check your credentials"
       this.us.logout()
       this.router.navigate(['/'])
     })
