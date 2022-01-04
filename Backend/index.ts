@@ -710,8 +710,10 @@ app.post('/game', auth, (req, res, next) => {
         match.getModel().findOne({ inProgress: true, $or: [{ player1: req.body.player }, { player2: req.body.player }] }).then((m: Match) => { // Si dovrebbe usare n.username
           if (m != null && match.isMatch(m)) {
             let client = null
-            if (socketIOclients[user.username.toString()])
+            if (socketIOclients[user.username.toString()]){
               client = socketIOclients[user.username.toString()]
+              client.join(m.player1.toString()+'Watchers')
+            }
             else
               return next({ statusCode: 404, errormessage: "SocketIO client is not connected" })
 
@@ -945,7 +947,7 @@ app.post("/move", auth, (req, res, next) => {
 
       match.getModel().findOne({ inProgress: true, $or: [{ player1: username }, { player2: username }] }).then((m) => {
         if (m) {
-          if (match.isMatch(m)) {
+          if (match.isMatch(m)) {            
             let client = socketIOclients[username]
             let index = parseInt(move)
             // post move logic
@@ -1730,7 +1732,8 @@ function makeMove(index, m, client, placehold, otherPlayer, res, username) {
       let opponentMessage = JSON.stringify({ move: index })
 
       // Notify event to other player
-      socketIOclients[otherPlayer.toString()].emit('move', JSON.parse(opponentMessage))
+      if(otherPlayer.toString() != "cpu")
+        socketIOclients[otherPlayer.toString()].emit('move', JSON.parse(opponentMessage))
 
       let watchersMessage = JSON.stringify({ player: username, move: index, nextTurn: otherPlayer })
 
