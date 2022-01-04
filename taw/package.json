@@ -7,7 +7,10 @@
     "caste": "ng serve --open --host 0.0.0.0 --poll=2000",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test-pwa": "http-server -p 4200 dist/taw",
+    "predeploy": "ng build --base-href=/ForzaCaste/taw",
+    "deploy": "npx gh-pages -d dist/"
   },
   "private": true,
   "dependencies": {
@@ -22,6 +25,7 @@
     "@angular/platform-browser": "~12.2.0",
     "@angular/platform-browser-dynamic": "~12.2.0",
     "@angular/router": "~12.2.0",
+    "@angular/service-worker": "~12.2.0",
     "@fortawesome/angular-fontawesome": "^0.9.0",
     "@fortawesome/fontawesome-svg-core": "^1.2.35",
     "@fortawesome/free-solid-svg-icons": "^5.15.3",
@@ -29,9 +33,11 @@
     "bootstrap": "^5.1.3",
     "bootstrap-icons": "^1.7.1",
     "chart.js": "^3.6.1",
+    "http-server": "^14.0.0",
     "jwt-decode": "^3.1.2",
     "ng2-charts": "^3.0.2",
     "rxjs": "~6.6.0",
+    "socket.io": "^3.0.2",
     "socket.io-client": "^4.3.2",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"
