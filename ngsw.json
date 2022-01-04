@@ -1,7 +1,7 @@
 {
   "configVersion": 1,
-  "timestamp": 1641337424552,
-  "index": "/index.html",
+  "timestamp": 1641338163278,
+  "index": "https://gabrielrosace.github.io/ForzaCaste/index.html",
   "assetGroups": [
     {
       "name": "app",
@@ -11,14 +11,14 @@
         "ignoreVary": true
       },
       "urls": [
-        "/favicon.ico",
-        "/index.html",
-        "/main.862905a1e10ba1c0a582.js",
-        "/manifest.webmanifest",
-        "/polyfills.b5cb80ea832a17ac663c.js",
-        "/runtime.420d6aa5f46f9cb7358c.js",
-        "/scripts.90ee525ce1d9b783eca9.js",
-        "/styles.bf7427ac99517f8c11ee.css"
+        "https://gabrielrosace.github.io/ForzaCaste/favicon.ico",
+        "https://gabrielrosace.github.io/ForzaCaste/index.html",
+        "https://gabrielrosace.github.io/ForzaCaste/main.862905a1e10ba1c0a582.js",
+        "https://gabrielrosace.github.io/ForzaCaste/manifest.webmanifest",
+        "https://gabrielrosace.github.io/ForzaCaste/polyfills.b5cb80ea832a17ac663c.js",
+        "https://gabrielrosace.github.io/ForzaCaste/runtime.420d6aa5f46f9cb7358c.js",
+        "https://gabrielrosace.github.io/ForzaCaste/scripts.90ee525ce1d9b783eca9.js",
+        "https://gabrielrosace.github.io/ForzaCaste/styles.bf7427ac99517f8c11ee.css"
       ],
       "patterns": []
     },
@@ -30,44 +30,44 @@
         "ignoreVary": true
       },
       "urls": [
-        "/assets/icons/icon-128x128.png",
-        "/assets/icons/icon-144x144.png",
-        "/assets/icons/icon-152x152.png",
-        "/assets/icons/icon-192x192.png",
-        "/assets/icons/icon-384x384.png",
-        "/assets/icons/icon-512x512.png",
-        "/assets/icons/icon-72x72.png",
-        "/assets/icons/icon-96x96.png",
-        "/assets/img/logo.png",
-        "/assets/img/rvuoto.png",
-        "/bootstrap-icons.66e4109ec6241c76fdcf.woff2",
-        "/bootstrap-icons.ea6f3dfe4ebb15134576.woff"
+        "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-128x128.png",
+        "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-144x144.png",
+        "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-152x152.png",
+        "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-192x192.png",
+        "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-384x384.png",
+        "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-512x512.png",
+        "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-72x72.png",
+        "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-96x96.png",
+        "https://gabrielrosace.github.io/ForzaCaste/assets/img/logo.png",
+        "https://gabrielrosace.github.io/ForzaCaste/assets/img/rvuoto.png",
+        "https://gabrielrosace.github.io/ForzaCaste/bootstrap-icons.66e4109ec6241c76fdcf.woff2",
+        "https://gabrielrosace.github.io/ForzaCaste/bootstrap-icons.ea6f3dfe4ebb15134576.woff"
       ],
       "patterns": []
     }
   ],
   "dataGroups": [],
   "hashTable": {
-    "/assets/icons/icon-128x128.png": "dae3b6ed49bdaf4327b92531d4b5b4a5d30c7532",
-    "/assets/icons/icon-144x144.png": "b0bd89982e08f9bd2b642928f5391915b74799a7",
-    "/assets/icons/icon-152x152.png": "7479a9477815dfd9668d60f8b3b2fba709b91310",
-    "/assets/icons/icon-192x192.png": "1abd80d431a237a853ce38147d8c63752f10933b",
-    "/assets/icons/icon-384x384.png": "329749cd6393768d3131ed6304c136b1ca05f2fd",
-    "/assets/icons/icon-512x512.png": "559d9c4318b45a1f2b10596bbb4c960fe521dbcc",
-    "/assets/icons/icon-72x72.png": "c457e56089a36952cd67156f9996bc4ce54a5ed9",
-    "/assets/icons/icon-96x96.png": "3914125a4b445bf111c5627875fc190f560daa41",
-    "/assets/img/logo.png": "cd6b3174780030723e599c72e80572db2b1c17c9",
-    "/assets/img/rvuoto.png": "2799dfffed752d0bcaa39ed0c1fde936925e3204",
-    "/bootstrap-icons.66e4109ec6241c76fdcf.woff2": "e5c03fd4d0715d3a59db5fdba4a19374cf3cc9de",
-    "/bootstrap-icons.ea6f3dfe4ebb15134576.woff": "d9a419a0e36c453d5bca016e11dc3b58fcf4c1c2",
-    "/favicon.ico": "22f6a4a3bcaafafb0254e0f2fa4ceb89e505e8b2",
-    "/index.html": "9e5a9b3f5de0e00780aeb87884144702156b3c45",
-    "/main.862905a1e10ba1c0a582.js": "e83eedf750068496b7a0d5d0219d9760d45b27cd",
-    "/manifest.webmanifest": "553e3606a3a0c75362c567e70796b04c26189b05",
-    "/polyfills.b5cb80ea832a17ac663c.js": "72d219e90c5ba9738e4bb82ad16e1e7754f7cbe3",
-    "/runtime.420d6aa5f46f9cb7358c.js": "beb7e4211d151ec83b22b1281d295132b24d201e",
-    "/scripts.90ee525ce1d9b783eca9.js": "090ae9647e900ab76a1987c5bb10c59a3edf8259",
-    "/styles.bf7427ac99517f8c11ee.css": "69c111d8bc8f25eafc384b2ac098a954aa45e792"
+    "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-128x128.png": "dae3b6ed49bdaf4327b92531d4b5b4a5d30c7532",
+    "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-144x144.png": "b0bd89982e08f9bd2b642928f5391915b74799a7",
+    "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-152x152.png": "7479a9477815dfd9668d60f8b3b2fba709b91310",
+    "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-192x192.png": "1abd80d431a237a853ce38147d8c63752f10933b",
+    "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-384x384.png": "329749cd6393768d3131ed6304c136b1ca05f2fd",
+    "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-512x512.png": "559d9c4318b45a1f2b10596bbb4c960fe521dbcc",
+    "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-72x72.png": "c457e56089a36952cd67156f9996bc4ce54a5ed9",
+    "https://gabrielrosace.github.io/ForzaCaste/assets/icons/icon-96x96.png": "3914125a4b445bf111c5627875fc190f560daa41",
+    "https://gabrielrosace.github.io/ForzaCaste/assets/img/logo.png": "cd6b3174780030723e599c72e80572db2b1c17c9",
+    "https://gabrielrosace.github.io/ForzaCaste/assets/img/rvuoto.png": "2799dfffed752d0bcaa39ed0c1fde936925e3204",
+    "https://gabrielrosace.github.io/ForzaCaste/bootstrap-icons.66e4109ec6241c76fdcf.woff2": "e5c03fd4d0715d3a59db5fdba4a19374cf3cc9de",
+    "https://gabrielrosace.github.io/ForzaCaste/bootstrap-icons.ea6f3dfe4ebb15134576.woff": "d9a419a0e36c453d5bca016e11dc3b58fcf4c1c2",
+    "https://gabrielrosace.github.io/ForzaCaste/favicon.ico": "22f6a4a3bcaafafb0254e0f2fa4ceb89e505e8b2",
+    "https://gabrielrosace.github.io/ForzaCaste/index.html": "c682c82e2a49d105b696b7f1330f6ba9d071efc1",
+    "https://gabrielrosace.github.io/ForzaCaste/main.862905a1e10ba1c0a582.js": "e83eedf750068496b7a0d5d0219d9760d45b27cd",
+    "https://gabrielrosace.github.io/ForzaCaste/manifest.webmanifest": "553e3606a3a0c75362c567e70796b04c26189b05",
+    "https://gabrielrosace.github.io/ForzaCaste/polyfills.b5cb80ea832a17ac663c.js": "72d219e90c5ba9738e4bb82ad16e1e7754f7cbe3",
+    "https://gabrielrosace.github.io/ForzaCaste/runtime.420d6aa5f46f9cb7358c.js": "beb7e4211d151ec83b22b1281d295132b24d201e",
+    "https://gabrielrosace.github.io/ForzaCaste/scripts.90ee525ce1d9b783eca9.js": "090ae9647e900ab76a1987c5bb10c59a3edf8259",
+    "https://gabrielrosace.github.io/ForzaCaste/styles.bf7427ac99517f8c11ee.css": "69c111d8bc8f25eafc384b2ac098a954aa45e792"
   },
   "navigationUrls": [
     {
