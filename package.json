@@ -3,6 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "cd Backend && npm i && tsc && node index.js"
+    "start": "cd Backend && npm i && npm i -g typescript && tsc && echo JWT_SECRET=secret > .env && node index.js"
   }
 }
