@@ -69,10 +69,10 @@
 
 const result = require('dotenv').config()
 
-if (result.error) {
-  console.log("Unable to load '.env' file. Please provide one to store the JWT secret key");
-  process.exit(-1);
-}
+// if (result.error) {
+//   console.log("Unable to load '.env' file. Please provide one to store the JWT secret key");
+//   process.exit(-1);
+// }
 
 if (!process.env.JWT_SECRET) {
   console.log("'.env' file loaded but JWT_SECRET=<secret> key-value pair was not found");
@@ -1974,7 +1974,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 
       })
     });
-    server.listen(8080, () => console.log("HTTP Server started on port 8080".green));
+    server.listen(process.env.PORT || 8080, () => console.log(`HTTP Server started on port ${process.env.PORT || 8080}`.green));
   }
 ).catch(
   (err) => {
