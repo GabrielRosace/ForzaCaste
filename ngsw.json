@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1641338632670,
+  "timestamp": 1641338875392,
   "index": "https://gabrielrosace.github.io/ForzaCaste/index.html",
   "assetGroups": [
     {
@@ -13,7 +13,7 @@
       "urls": [
         "https://gabrielrosace.github.io/ForzaCaste/favicon.ico",
         "https://gabrielrosace.github.io/ForzaCaste/index.html",
-        "https://gabrielrosace.github.io/ForzaCaste/main.21674ec20ed6f35e6c85.js",
+        "https://gabrielrosace.github.io/ForzaCaste/main.862905a1e10ba1c0a582.js",
         "https://gabrielrosace.github.io/ForzaCaste/manifest.webmanifest",
         "https://gabrielrosace.github.io/ForzaCaste/polyfills.b5cb80ea832a17ac663c.js",
         "https://gabrielrosace.github.io/ForzaCaste/runtime.420d6aa5f46f9cb7358c.js",
@@ -61,8 +61,8 @@
     "https://gabrielrosace.github.io/ForzaCaste/bootstrap-icons.66e4109ec6241c76fdcf.woff2": "e5c03fd4d0715d3a59db5fdba4a19374cf3cc9de",
     "https://gabrielrosace.github.io/ForzaCaste/bootstrap-icons.ea6f3dfe4ebb15134576.woff": "d9a419a0e36c453d5bca016e11dc3b58fcf4c1c2",
     "https://gabrielrosace.github.io/ForzaCaste/favicon.ico": "22f6a4a3bcaafafb0254e0f2fa4ceb89e505e8b2",
-    "https://gabrielrosace.github.io/ForzaCaste/index.html": "a153c510326b5f25bdccace147d4d68819c58d1b",
-    "https://gabrielrosace.github.io/ForzaCaste/main.21674ec20ed6f35e6c85.js": "bde3b415cf6e6c2a360c53720d9adc488c9e7bf0",
+    "https://gabrielrosace.github.io/ForzaCaste/index.html": "c682c82e2a49d105b696b7f1330f6ba9d071efc1",
+    "https://gabrielrosace.github.io/ForzaCaste/main.862905a1e10ba1c0a582.js": "e83eedf750068496b7a0d5d0219d9760d45b27cd",
     "https://gabrielrosace.github.io/ForzaCaste/manifest.webmanifest": "553e3606a3a0c75362c567e70796b04c26189b05",
     "https://gabrielrosace.github.io/ForzaCaste/polyfills.b5cb80ea832a17ac663c.js": "72d219e90c5ba9738e4bb82ad16e1e7754f7cbe3",
     "https://gabrielrosace.github.io/ForzaCaste/runtime.420d6aa5f46f9cb7358c.js": "beb7e4211d151ec83b22b1281d295132b24d201e",
