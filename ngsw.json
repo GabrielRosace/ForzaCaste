@@ -1,7 +1,7 @@
 {
   "configVersion": 1,
-  "timestamp": 1641331503046,
-  "index": "/index.html",
+  "timestamp": 1641331631958,
+  "index": "/ForzaCaste/index.html",
   "assetGroups": [
     {
       "name": "app",
@@ -11,14 +11,14 @@
         "ignoreVary": true
       },
       "urls": [
-        "/favicon.ico",
-        "/index.html",
-        "/main.c261b3fcd106faebf18f.js",
-        "/manifest.webmanifest",
-        "/polyfills.b5cb80ea832a17ac663c.js",
-        "/runtime.420d6aa5f46f9cb7358c.js",
-        "/scripts.90ee525ce1d9b783eca9.js",
-        "/styles.bf7427ac99517f8c11ee.css"
+        "/ForzaCaste/favicon.ico",
+        "/ForzaCaste/index.html",
+        "/ForzaCaste/main.c261b3fcd106faebf18f.js",
+        "/ForzaCaste/manifest.webmanifest",
+        "/ForzaCaste/polyfills.b5cb80ea832a17ac663c.js",
+        "/ForzaCaste/runtime.420d6aa5f46f9cb7358c.js",
+        "/ForzaCaste/scripts.90ee525ce1d9b783eca9.js",
+        "/ForzaCaste/styles.bf7427ac99517f8c11ee.css"
       ],
       "patterns": []
     },
@@ -30,44 +30,44 @@
         "ignoreVary": true
       },
       "urls": [
-        "/assets/icons/icon-128x128.png",
-        "/assets/icons/icon-144x144.png",
-        "/assets/icons/icon-152x152.png",
-        "/assets/icons/icon-192x192.png",
-        "/assets/icons/icon-384x384.png",
-        "/assets/icons/icon-512x512.png",
-        "/assets/icons/icon-72x72.png",
-        "/assets/icons/icon-96x96.png",
-        "/assets/img/logo.png",
-        "/assets/img/rvuoto.png",
-        "/bootstrap-icons.66e4109ec6241c76fdcf.woff2",
-        "/bootstrap-icons.ea6f3dfe4ebb15134576.woff"
+        "/ForzaCaste/assets/icons/icon-128x128.png",
+        "/ForzaCaste/assets/icons/icon-144x144.png",
+        "/ForzaCaste/assets/icons/icon-152x152.png",
+        "/ForzaCaste/assets/icons/icon-192x192.png",
+        "/ForzaCaste/assets/icons/icon-384x384.png",
+        "/ForzaCaste/assets/icons/icon-512x512.png",
+        "/ForzaCaste/assets/icons/icon-72x72.png",
+        "/ForzaCaste/assets/icons/icon-96x96.png",
+        "/ForzaCaste/assets/img/logo.png",
+        "/ForzaCaste/assets/img/rvuoto.png",
+        "/ForzaCaste/bootstrap-icons.66e4109ec6241c76fdcf.woff2",
+        "/ForzaCaste/bootstrap-icons.ea6f3dfe4ebb15134576.woff"
       ],
       "patterns": []
     }
   ],
   "dataGroups": [],
   "hashTable": {
-    "/assets/icons/icon-128x128.png": "dae3b6ed49bdaf4327b92531d4b5b4a5d30c7532",
-    "/assets/icons/icon-144x144.png": "b0bd89982e08f9bd2b642928f5391915b74799a7",
-    "/assets/icons/icon-152x152.png": "7479a9477815dfd9668d60f8b3b2fba709b91310",
-    "/assets/icons/icon-192x192.png": "1abd80d431a237a853ce38147d8c63752f10933b",
-    "/assets/icons/icon-384x384.png": "329749cd6393768d3131ed6304c136b1ca05f2fd",
-    "/assets/icons/icon-512x512.png": "559d9c4318b45a1f2b10596bbb4c960fe521dbcc",
-    "/assets/icons/icon-72x72.png": "c457e56089a36952cd67156f9996bc4ce54a5ed9",
-    "/assets/icons/icon-96x96.png": "3914125a4b445bf111c5627875fc190f560daa41",
-    "/assets/img/logo.png": "cd6b3174780030723e599c72e80572db2b1c17c9",
-    "/assets/img/rvuoto.png": "2799dfffed752d0bcaa39ed0c1fde936925e3204",
-    "/bootstrap-icons.66e4109ec6241c76fdcf.woff2": "e5c03fd4d0715d3a59db5fdba4a19374cf3cc9de",
-    "/bootstrap-icons.ea6f3dfe4ebb15134576.woff": "d9a419a0e36c453d5bca016e11dc3b58fcf4c1c2",
-    "/favicon.ico": "22f6a4a3bcaafafb0254e0f2fa4ceb89e505e8b2",
-    "/index.html": "4d8a7302abfa4d0fc233a91dcab41decd158af58",
-    "/main.c261b3fcd106faebf18f.js": "6ccfca2eae22ae4b1cf0b5eeb24ada34cb75bbd8",
-    "/manifest.webmanifest": "553e3606a3a0c75362c567e70796b04c26189b05",
-    "/polyfills.b5cb80ea832a17ac663c.js": "72d219e90c5ba9738e4bb82ad16e1e7754f7cbe3",
-    "/runtime.420d6aa5f46f9cb7358c.js": "beb7e4211d151ec83b22b1281d295132b24d201e",
-    "/scripts.90ee525ce1d9b783eca9.js": "090ae9647e900ab76a1987c5bb10c59a3edf8259",
-    "/styles.bf7427ac99517f8c11ee.css": "69c111d8bc8f25eafc384b2ac098a954aa45e792"
+    "/ForzaCaste/assets/icons/icon-128x128.png": "dae3b6ed49bdaf4327b92531d4b5b4a5d30c7532",
+    "/ForzaCaste/assets/icons/icon-144x144.png": "b0bd89982e08f9bd2b642928f5391915b74799a7",
+    "/ForzaCaste/assets/icons/icon-152x152.png": "7479a9477815dfd9668d60f8b3b2fba709b91310",
+    "/ForzaCaste/assets/icons/icon-192x192.png": "1abd80d431a237a853ce38147d8c63752f10933b",
+    "/ForzaCaste/assets/icons/icon-384x384.png": "329749cd6393768d3131ed6304c136b1ca05f2fd",
+    "/ForzaCaste/assets/icons/icon-512x512.png": "559d9c4318b45a1f2b10596bbb4c960fe521dbcc",
+    "/ForzaCaste/assets/icons/icon-72x72.png": "c457e56089a36952cd67156f9996bc4ce54a5ed9",
+    "/ForzaCaste/assets/icons/icon-96x96.png": "3914125a4b445bf111c5627875fc190f560daa41",
+    "/ForzaCaste/assets/img/logo.png": "cd6b3174780030723e599c72e80572db2b1c17c9",
+    "/ForzaCaste/assets/img/rvuoto.png": "2799dfffed752d0bcaa39ed0c1fde936925e3204",
+    "/ForzaCaste/bootstrap-icons.66e4109ec6241c76fdcf.woff2": "e5c03fd4d0715d3a59db5fdba4a19374cf3cc9de",
+    "/ForzaCaste/bootstrap-icons.ea6f3dfe4ebb15134576.woff": "d9a419a0e36c453d5bca016e11dc3b58fcf4c1c2",
+    "/ForzaCaste/favicon.ico": "22f6a4a3bcaafafb0254e0f2fa4ceb89e505e8b2",
+    "/ForzaCaste/index.html": "19528fce5b7e74b1ff4c7011e52b61fb7c9510c4",
+    "/ForzaCaste/main.c261b3fcd106faebf18f.js": "6ccfca2eae22ae4b1cf0b5eeb24ada34cb75bbd8",
+    "/ForzaCaste/manifest.webmanifest": "553e3606a3a0c75362c567e70796b04c26189b05",
+    "/ForzaCaste/polyfills.b5cb80ea832a17ac663c.js": "72d219e90c5ba9738e4bb82ad16e1e7754f7cbe3",
+    "/ForzaCaste/runtime.420d6aa5f46f9cb7358c.js": "beb7e4211d151ec83b22b1281d295132b24d201e",
+    "/ForzaCaste/scripts.90ee525ce1d9b783eca9.js": "090ae9647e900ab76a1987c5bb10c59a3edf8259",
+    "/ForzaCaste/styles.bf7427ac99517f8c11ee.css": "69c111d8bc8f25eafc384b2ac098a954aa45e792"
   },
   "navigationUrls": [
     {
