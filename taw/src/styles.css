@@ -36,3 +36,9 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   );
   border-radius: 3px;
 }
+/*
+.toast {
+  position: relative;
+  /*right: 40%!important;
+  align-self: center;
+}*/

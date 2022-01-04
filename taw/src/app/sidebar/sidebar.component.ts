@@ -304,7 +304,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         if (countMsg != 0) {
           msgHide = false
         }
-        if (element['roles'] == "MODERATOR") {
+        if (element['roles'] == "MODERATOR" && element['username'] != this.us.get_username()) {
           this.modlist.push({ id: element['_id'], username: element['username'], badgeNum: countMsg, badgeHidden: msgHide, /*color: col */ })
         }
       })
