@@ -41,7 +41,18 @@ export class GameComponent implements OnInit {
   public content: string = "";
   public suggestion:string="Ask for some suggestion";
   public suggestedcollum:number=-1
+  public isFriend:boolean=true
   constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
+      this.us.get_friendlist().subscribe((u) => {
+  
+        u.friendlist.forEach((element: { [x: string]: any; }) => {
+          if(element['username']==this.opponent){
+            this.isFriend= false
+          }
+  
+        });
+  
+      })
     this.us.friendGame=false
     this.gameChat=this.sio.gameChat().subscribe(msg => {
 
