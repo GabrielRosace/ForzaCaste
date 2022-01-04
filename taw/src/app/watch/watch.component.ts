@@ -58,6 +58,9 @@ export class WatchComponent implements OnInit {
       if(msg.move!=undefined){
         this.add(msg.move)
       }
+      if(msg.nextTurn!=undefined){
+        this.txtturno=msg.nextTurn
+      }
     });
     this.gameChat=this.sio.gameChat().subscribe(msg => {
 
@@ -142,7 +145,6 @@ export class WatchComponent implements OnInit {
       for(var i:number=5;i>=0;i--){
         if(this.game[i][c]==0){
           this.game[i][c]=(this.switched)?1:2
-          this.txtturno=this.sio.getP2()
           this.urturn=1
           return;
         }
@@ -151,7 +153,6 @@ export class WatchComponent implements OnInit {
       for(var i:number=5;i>=0;i--){
         if(this.game[i][c]==0){
           this.game[i][c]=(this.switched)?2:1
-          this.txtturno=this.sio.getP1()
           this.urturn=2
           return;
         }

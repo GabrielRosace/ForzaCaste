@@ -19,7 +19,7 @@
                     </div>
                   </div>
               </div>
-              <form class="form-inline" style="padding-left: 1vw;padding-right: 1vw; padding-top: 1vw;" *ngIf="!imBlock" (submit)="sendMessage(tosend.value);tosend.value = ''">
+              <form class="form-inline" style="padding-left: 1vw;padding-right: 1vw; padding-top: 1vw;" *ngIf="!imBlock" (submit)="sendMessage(tosend.value);tosend.value = '';false">
                 <!--(submit)="sendmessage(tosend.value); tosend.value = '';false"-->
                 <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Write something" #tosend>
               
