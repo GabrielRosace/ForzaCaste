@@ -3,6 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "web": "cd Backend && tsc && node index.js"
+    "start": "cd Backend && tsc && node index.js"
   }
 }
