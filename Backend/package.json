@@ -7,7 +7,8 @@
   "scripts": {
     "compile": "tsc",
     "start": "node index.js",
-    "auto": "npm i && (tsc --watch &) && nodemon index.js"
+    "auto": "npm i && (tsc --watch &) && nodemon index.js",
+    "web": "tsc && node index.js"
   },
   "private": true,
   "license": "ISC",
@@ -29,5 +30,8 @@
     "passport": "^0.4.1",
     "passport-http": "^0.3.0",
     "socket.io": "^3.0.2"
+  },
+  "engines": {
+    "node": "12.22"
   }
 }
