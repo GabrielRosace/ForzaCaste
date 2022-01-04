@@ -5,31 +5,54 @@
  * Endpoints            Attributes              Method          Description
  *
  *  /                       -                   GET             Returns the version and a list of available endpoints
+ *
+ *
  *  /login                  -                   GET             Login an existing user, returning a JWT
  *
- *  /users                  -                   POST            Signin a new user
+ *  /whoami                 -                   GET             Get user information and refresh the JWT
+ *
+ *  /users/:username        -                   GET             Return a user that has username specified
+ *  /users                  -                   GET             Return a list of available user
+ *  /users/online           -                   GET             Return a list of online player at this moment
+ *  /users                  -                   POST            Sign up a new user
+ *  /users/mod              -                   POST            Create a new moderator, only moderator can do it
  *  /users                  -                   PUT             Update user information
  *  /users/:username        -                   DELETE          Deletion of standard players from moderators
- *  /users/:username        -                   GET             Return a user that has username specified
  *
- *  /users/mod              -                   POST            Create a new moderator, only moderator can do it
  *
- *  /game                   -                   POST            Create a random or friendly match. Furthermore a user can enter in a game as observator
+ *  /rankingstory           -                   GET             Return a list of ranking that logged user has at the time of game requests
+ *  /rankingstory/:username -                   GET             Return a list of ranking that username has at the time of game requests
+ *
+ *
+ *  /game                   -                   GET             Returns a list of game in progress
+ *  /game                   -                   POST            Create a random or friendly match. Furthermore a user can enter in a game as observer
+ *  /game/cpu               -                   POST            Create a match against CPU. Furthermore a user can enter in a game as observer
  *  /game                   -                   DELETE          Used by a player in order to delete a started game or to delete a game request
- * 	/game										-										PUT							Accept a friendly game request
+ * 	/game                   -                   PUT             Accept a friendly game request
+ *
+ *  /move                   -                   POST            Play the turn making a move, it contains the game logic and the event notifier
+ *  /move/cpu               -                   POST            Play the turn vs AI, it contains the game logic and call minmax algorithm to play the AI turn
+ *  /move                   -                   GET             Ask AI what is the best move, returns the best column in which insert the disk
+ *
  *
  *  /gameMessage            -                   POST            Send a message in the game chat
  *
+ *
+ *
  *  /notification           -                   POST            Create a new friend request
  *  /notification           -                   GET             Return all the notification of the specified user. This endpoint returns all the notification that are received and that are not read
+ *  /notification     ?inpending=true           GET             Return all the notification of the specified user. This endpoint returns all the notification that are not read
+ *  /notification  ?makeNotificationRead=true   GET             Return all the notification of the specified user. This endpoint mark all the notification as read
  *  /notification           -                   PUT             Change the status of the notification, so the indicated notification will appear as read
  *
- *  /message                -                   GET             Returns all messages and all messages inpending
- *  /message                -                   POST						Send a private message to a specific user
- *	/message								-										PUT							Update a specific message and marks it as read
+ *  /message                -                   GET             Returns all messages and all messages in pending
+ *  /message         ?modMessage=true           GET             Returns all moderator messages and all moderator messages in pending
+ *  /message                -                   POST            Send a private message to a specific user
+ *  /message/mod            -                   POST            Send a private moderator message to a specific user
+ *	/message                -                   PUT             Update a specific message and marks it as read
  *
  *  /friend                 -                   GET             Return the friendlist of the current logged user
- *  /friend                 -                   DELETE          Deletion of a friends in the friendlist of the current logged user
+ *  /friend/:username       -                   DELETE          Deletion of a friends in the friendlist of the current logged user
  *  /friend                 -                   PUT             Change the attribute isBlocked of the specified user in the friendlist
  *
  * To install the required modules:
@@ -40,9 +63,11 @@
  *
  * To run:
  * $ npm run start
+ *
+ * To compile and run in watch mode:
+ * $ npm run auto
 */
 Object.defineProperty(exports, "__esModule", { value: true });
-// TODO modifica commento sopra
 const result = require('dotenv').config();
 if (result.error) {
     console.log("Unable to load '.env' file. Please provide one to store the JWT secret key");
@@ -64,12 +89,7 @@ const passportHTTP = require("passport-http"); // Implements Basic and Digest au
 const jsonwebtoken = require("jsonwebtoken"); // JWT generation
 const jwt = require("express-jwt"); // JWT parsing middleware for express
 const cors = require("cors"); // Enable CORS middleware
-// import io = require('socket.io');                 // Socket.io websocket library
 const { Server } = require("socket.io");
-// let server = http.createServer(app);
-// const option = {
-//   allowEIO3: true
-// }
 // Declaration of variabile to store connected socket
 let ios = null;
 const user = require("./User");
@@ -77,12 +97,10 @@ const statistics = require("./Statistics");
 const notification = require("./Notification");
 const match = require("./Match");
 const message = require("./Message");
-// import { PrivateChat } from './PrivateChat'
-// import * as privateChat from './PrivateChat'
 const CPU = require("./cpu");
 //var ios = undefined;
 var app = express();
-// This dictionary contains the client that are conncted with the Socket.io server
+// This dictionary contains the client that are connected with the Socket.io server
 // Only the logged in users can connect with the server (this will be implemented with the frontend)
 var socketIOclients = {};
 // This dictionary contains the match rooms: when an user creates a game requests in order to play a game
@@ -104,7 +122,7 @@ app.use(cors());
 /*
   Install the top-level middleware "bodyparser"
   body-parser extracts the entire body portion of an incoming request stream
-  and expises it on req.body
+  and expires it on req.body
 */
 app.use(bodyparser.json());
 app.use((req, res, next) => {
@@ -135,7 +153,7 @@ passport.use(new passportHTTP.BasicStrategy(function (username, password, done) 
 }));
 // List of available endpoints in specified version
 app.get("/", (req, res) => {
-    res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/users", "/game", "/gameMessage", "/notification", "/friend", "/message", "/move", "/whoami",] }); //TODO setta gli endpoints
+    res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/whoami", "/users", "/rankingstory", "/game", "/gameMessage", "/notification", "/friend", "/message", "/move",] });
 });
 // function getToken(username, id, avatarImgURL, roles, mail, state) {  //! Remove code
 //   return {
@@ -166,7 +184,7 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
     // and return it as response
     // const tokendata = getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state) //! Remove code
     const tokendata = getToken(req.user.username, req.user.id, req.user.roles);
-    console.log("Login granted. Generating token");
+    console.log("Login granted. Generating token".green);
     var token_signed = signToken(tokendata);
     return res.status(200).json({ error: false, errormessage: "", token: token_signed });
 });
@@ -176,7 +194,7 @@ app.get("/whoami", auth, (req, res, next) => {
     next5Minutes.setMinutes(next5Minutes.getMinutes() + 5);
     let response = {
         error: false,
-        errormessage: `L'utente loggato è ${req.user.username}`
+        errormessage: `Logged in user is ${req.user.username}`
     };
     if (req.user.exp * 1000 <= next5Minutes.getTime()) {
         console.log("Your token will expires within 5 minutes, generating new one".blue);
@@ -197,10 +215,16 @@ app.post('/users', (req, res, next) => {
     console.log("Request Body".blue);
     console.log(req.body);
     if (!req.body.password || !req.body.username || !req.body.name || !req.body.surname || !req.body.mail || !req.body.avatarImgURL) {
-        return next({ statusCode: 404, error: true, errormessage: "Some field missing, signup cannot be possible" });
+        console.log("Some field missing, signup cannot be possible".red);
+        return next({ statusCode: 400, errormessage: "Some field missing, signup cannot be possible" });
     }
     if (req.body.username == 'cpu') {
-        return next({ statusCode: 400, error: true, errormessage: "You cannot register yourself as cpu" });
+        console.log("You cannot register yourself as cpu".red);
+        return next({ statusCode: 400, errormessage: "You cannot register yourself as cpu" });
+    }
+    if (checkOnlineUser(req.body.username)) {
+        console.log("You are already online...".red);
+        return next({ statusCode: 400, errormessage: "You are already online..." });
     }
     const doc = createNewUser(basicStats, req.body);
     doc.setUser();
@@ -208,46 +232,56 @@ app.post('/users', (req, res, next) => {
         console.log("New creation of user, email is ".green + data.mail);
         return res.status(200).json({ error: false, errormessage: "", id: data._id });
     }).catch((reason) => {
-        if (reason.code === 11000)
-            return next({ statusCode: 404, error: true, errormessage: "User already exists" });
-        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+        if (reason.code === 11000) {
+            console.log("User already exists".red);
+            return next({ statusCode: 404, errormessage: "User already exists" });
+        }
+        console.log(`DB error : ${reason.errmsg}`.red);
+        return next({ statusCode: 401, errormessage: "DB error: " + reason.errmsg });
     });
 });
-// Get online users
+// Getting all online users with a socket.io registered in the application
 app.get('/users/online', auth, (req, res, next) => {
     user.getModel().findOne({ deleted: false, username: req.user.username }).then((u) => {
         if (u.hasModeratorRole() || u.hasUserRole()) {
             return res.status(200).json({ error: false, errormessage: '', onlineuser: Object.keys(socketIOclients) });
         }
         else {
-            return res.status(401).json({ error: true, errormessage: 'You cannot do it' });
+            console.log(`You cannot do it`.red);
+            return next({ statusCode: 401, errormessage: `You cannot do it` });
         }
     }).catch((e) => {
-        return res.status(401).json({ error: true, errormessage: `DB Error: ${e}` });
+        console.log(`DB error: ${e}`.red);
+        return next({ statusCode: 401, errormessage: `DB error: ${e}` });
     });
 });
-// Get user by username
+// This request allows the user to obtain information about another user
 app.get('/users/:username', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.params.username }).then((u) => {
         return res.status(200).json({ username: u.username, name: u.name, surname: u.surname, avatarImgURL: u.avatarImgURL, mail: u.mail, statistics: u.statistics, friendList: u.friendList, role: u.roles });
     }).catch((reason) => {
-        return res.status(401).json({ error: true, errormessage: `DB error ${reason}` });
+        console.log(`DB error: ${reason}`.red);
+        return next({ statusCode: 401, errormessage: `DB error: ${reason}` });
     });
 });
+// This request allows the user to get all the useful information about the players who are registered in the platform.
 app.get('/users', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username, deleted: false }).then((u) => {
         if (u.hasModeratorRole() || u.hasUserRole()) {
             user.getModel().find({ deleted: false }, "username name surname roles").then((list) => {
                 return res.status(200).json({ error: false, errormessage: "", userlist: list });
             }).catch((reason) => {
-                return res.status(401).json({ error: true, errormessage: "DB error " + reason });
+                console.log(`DB error: ${reason}`.red);
+                return next({ statusCode: 401, errormessage: `DB error: ${reason}` });
             });
         }
         else {
-            return res.status(401).json({ error: true, errormessage: "You cannot get user list" });
+            console.log(`You cannot get user list`.red);
+            return next({ statusCode: 401, errormessage: `You cannot get user list` });
         }
     }).catch((reason) => {
-        return res.status(401).json({ error: true, errormessage: "DB error " + reason });
+        console.log(`DB error: ${reason}`.red);
+        return next({ statusCode: 401, errormessage: `DB error: ${reason}` });
     });
 });
 // Create a new moderator, only mod can do it
@@ -265,7 +299,8 @@ app.post("/users/mod", auth, (req, res, next) => {
             console.log("Request Body".blue);
             console.log(req.body);
             if (!req.body.password || !req.body.username) {
-                return next({ statusCode: 404, error: true, errormessage: "Some field missing, signin cannot be possibile" });
+                console.log("Some field missing, signup cannot be possible".red);
+                return next({ statusCode: 400, errormessage: "Some field missing, signup cannot be possible" });
             }
             const doc = createNewUser(basicStats, req.body);
             doc.setNonRegisteredMod();
@@ -273,16 +308,21 @@ app.post("/users/mod", auth, (req, res, next) => {
                 console.log("New creation of non registered moderator attempt from ".green + req.user.username);
                 return res.status(200).json({ error: false, errormessage: "", id: data._id });
             }).catch((reason) => {
-                if (reason.code === 11000)
-                    return next({ statusCode: 404, error: true, errormessage: "User already exists" });
-                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
+                if (reason.code === 11000) {
+                    console.log("User already exists".red);
+                    return next({ statusCode: 400, errormessage: "User already exists" });
+                }
+                console.log(`DB error: ${reason}`.red);
+                return next({ statusCode: 401, errormessage: "DB error: " + reason.errmsg });
             });
         }
         else {
-            return res.status(401).json({ error: true, errormessage: "Operation not permitted" });
+            console.log(`Operation not permitted`.red);
+            return next({ statusCode: 401, errormessage: `Operation not permitted` });
         }
     }).catch((reason) => {
-        return res.status(401).json({ error: true, errormessage: "DB error: " + reason.errmsg });
+        console.log(`DB error: ${reason}`.red);
+        return next({ statusCode: 401, errormessage: `DB error: ${reason}` });
     });
 });
 function createNewUser(statistics, bodyRequest) {
@@ -300,6 +340,7 @@ function createNewUser(statistics, bodyRequest) {
     doc.setPassword(bodyRequest.password);
     return doc;
 }
+// This request allows the moderator to logically delete a standard player specified within param. It also removes his friendships.
 app.delete("/users/:username", auth, (req, res, next) => {
     console.log("Deleting user with username ".blue + req.params.username);
     // Check if user who request is a moderator
@@ -307,7 +348,8 @@ app.delete("/users/:username", auth, (req, res, next) => {
         if (u.hasModeratorRole()) {
             user.getModel().findOne({ username: req.params.username }).then((d) => {
                 if (d.hasModeratorRole()) {
-                    return res.status(401).json({ error: true, errormessage: "You cannot delete a mod" });
+                    console.log(`You cannot delete a mod`.red);
+                    return next({ statusCode: 401, errormessage: `You cannot delete a mod` });
                 }
                 else {
                     for (let i = 0; i < d.friendList.length; i++) {
@@ -329,18 +371,22 @@ app.delete("/users/:username", auth, (req, res, next) => {
                         console.log(data.username + " deleted".blue);
                         return res.status(200).json({ error: false, errormessage: "" });
                     }).catch((reason) => {
-                        return res.status(401).json({ error: true, errormessage: "DB error " + reason });
+                        console.log(`DB error: ${reason}`.red);
+                        return next({ statusCode: 401, errormessage: `DB error: ${reason}` });
                     });
                 }
             }).catch((reason) => {
-                return res.status(404).json({ error: true, errormessage: "DB error " + reason });
+                console.log(`DB error: ${reason}`.red);
+                return next({ statusCode: 401, errormessage: `DB error: ${reason}` });
             });
         }
         else {
-            return res.status(401).json({ error: true, errormessage: "You cannot do it, you aren't a mod!" });
+            console.log(`You cannot do it, you aren't a mod!`.red);
+            return next({ statusCode: 401, errormessage: `You cannot do it, you aren't a mod!` });
         }
     }).catch((reason) => {
-        return res.status(401).json({ error: true, errormessage: "DB error " + reason });
+        console.log(`DB error: ${reason}`.red);
+        return next({ statusCode: 401, errormessage: `DB error: ${reason}` });
     });
 });
 // This request allows the user to modify his profile. This is also used by moderators who must update the profile before they can browse the API.
@@ -359,15 +405,18 @@ app.put("/users", auth, (req, res, next) => {
                     u.setPassword(req.body.password);
                 }
                 else {
-                    return res.status(401).json({ error: true, errormessage: 'Wrong password, you aren\'t allowed to do it' });
+                    console.log(`Wrong password, you aren't allowed to do it`.red);
+                    return next({ statusCode: 401, errormessage: `Wrong password, you aren't allowed to do it` });
                 }
             }
             else {
-                return res.status(400).json({ error: true, errormessage: "Old password is missing" });
+                console.log(`Old password is missing`.red);
+                return next({ statusCode: 400, errormessage: `Old password is missing` });
             }
         }
         if (u.hasNonRegisteredModRole() && !(req.body.name && req.body.surname && req.body.mail && req.body.avatarImgURL && req.body.password)) {
-            return res.status(400).json({ error: true, errormessage: "Some field are missing" });
+            console.log(`Some field are missing`.red);
+            return next({ statusCode: 400, errormessage: `Some field are missing` });
         }
         if (u.hasNonRegisteredModRole()) {
             console.log("Changing user role to moderator, now all operations are permitted".blue);
@@ -378,14 +427,16 @@ app.put("/users", auth, (req, res, next) => {
             console.log("Data saved successfully".blue);
             return res.status(200).json({ error: false, errormessage: "" });
         }).catch((reason) => {
+            console.log(`DB error: ${reason}`.red);
             return next({ statusCode: 401, error: true, errormessage: "DB error: " + reason.errmsg });
         });
     }).catch((reason) => {
-        return res.status(401).json({ error: true, errormessage: "DB error: " + reason });
+        console.log(`DB error: ${reason}`.red);
+        return next({ statusCode: 401, errormessage: `DB error: ${reason}` });
     });
 });
 // ---------------------------------------------------------------------------------------------------
-// getting ranking history associated to logged user
+// Getting the history of logged in user ranking, it is based on the ranking he had at the time of the game requests he made
 app.get('/rankingstory', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username, deleted: false }).then((u) => {
         if (u.hasModeratorRole() || u.hasUserRole()) {
@@ -394,12 +445,15 @@ app.get('/rankingstory', auth, (req, res, next) => {
             });
         }
         else {
-            return res.status(401).json({ error: true, errormessage: "You cannot do it" });
+            console.log(`You cannot do it`.red);
+            return next({ statusCode: 401, errormessage: 'You cannot do it' });
         }
     }).catch((err) => {
-        return res.status(401).json({ error: true, errormessage: `DB error: ${err}` });
+        console.log(`DB error: ${err}`.red);
+        return next({ statusCode: 401, errormessage: `DB error: ${err}` });
     });
 });
+// Getting the ranking history of the specified user 
 app.get('/rankingstory/:username', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username, deleted: false }).then((u) => {
         if (u.hasModeratorRole() || u.hasUserRole()) {
@@ -408,29 +462,18 @@ app.get('/rankingstory/:username', auth, (req, res, next) => {
             });
         }
         else {
-            return res.status(401).json({ error: true, errormessage: "You cannot do it" });
+            console.log(`You cannot do it`.red);
+            return next({ statusCode: 401, errormessage: 'You cannot do it' });
         }
-    }).catch((e) => {
-        return res.status(401).json({ error: true, errormessage: `DB error: ${e}` });
+    }).catch((err) => {
+        console.log(`DB error: ${err}`.red);
+        return next({ statusCode: 401, errormessage: `DB error: ${err}` });
     });
 });
 function getRankingList(username) {
     return notification.getModel().find({ deleted: true, sender: username, $or: [{ type: "randomMatchmaking" }, { type: "friendlyMatchmaking" }] }, 'ranking');
 }
 app.post('/game', auth, (req, res, next) => {
-    // if (req.body.type != 'watchGame') {
-    // let client = socketIOclients[req.user.username]
-    // if (matchRooms[req.user.username] != client) {
-    //   matchRooms[req.user.username] = {}
-    //   matchRooms[req.user.username][req.user.username] = client
-    // matchWatcherRooms[req.user.username] = {}
-    // }
-    // else {
-    //   console.log("L'utente è già inserito in una room: ".red)
-    // }
-    // client.join(req.user.username)
-    // console.log("Client joined the room ".green + req.user.username);
-    // }
     if (req.body.type == 'randomMatchmaking') {
         user.getModel().findOne({ username: req.user.username }).then((us) => {
             notification.getModel().find({ type: "randomMatchmaking", receiver: null, deleted: false }).then((nList) => {
@@ -453,7 +496,7 @@ app.post('/game', auth, (req, res, next) => {
                             console.log("Match have been created correctely".green);
                         }).catch((reason) => {
                             console.log("ERROR: match creation error \nDB error: ".red + reason);
-                            return next({ statusCode: 404, error: true, errormessage: "ERROR: match creation error" });
+                            return next({ statusCode: 404, errormessage: "Match creation error" });
                         });
                         n.deleted = true;
                         n.inpending = false;
@@ -461,22 +504,14 @@ app.post('/game', auth, (req, res, next) => {
                             console.log("Game request have been updated correctely".green);
                         }).catch((reason) => {
                             console.log("ERROR: match request update error \nDB error: ".red + reason);
-                            return next({ statusCode: 404, error: true, errormessage: "ERROR: match request update error" });
+                            return next({ statusCode: 404, errormessage: "Match request update error" });
                         });
-                        // matchRooms[us.username.toString()] = {}
-                        // matchRooms[us.username.toString()][us.username.toString] = socketIOclients[us.username.toString()]
                         let player1 = randomMatch.player1.toString();
                         let player2 = randomMatch.player2.toString();
                         let client1 = socketIOclients[player1];
                         let client2 = socketIOclients[player2];
-                        // matchRooms[player1][player2] = client2
                         client1.join(player1);
                         client2.join(player1);
-                        // delete matchRooms[player2]
-                        // matchWatcherRooms[randomMatch.player1.toString()] = {}
-                        // When the clients receive this message they will redirect by himself to the match route
-                        // client1.emit('gameReady', 'true')
-                        // client2.emit('gameReady', 'true')
                         client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 });
                         client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 });
                         if (randomMatch.player1.toString() == player1.toString()) {
@@ -500,7 +535,7 @@ app.post('/game', auth, (req, res, next) => {
                     }
                     else {
                         console.log("Match request already exists".red);
-                        return next({ statusCode: 404, error: true, errormessage: "ERROR: match request already exists" });
+                        return next({ statusCode: 404, errormessage: "Match request already exists" });
                     }
                 }
                 else {
@@ -512,7 +547,7 @@ app.post('/game', auth, (req, res, next) => {
                         }
                     }).catch((reason) => {
                         console.log("ERROR: random game request creation error \nDB error: ".red + reason);
-                        return next({ statusCode: 404, error: true, errormessage: "ERROR: random game request creation error" });
+                        return next({ statusCode: 404, errormessage: "Random game request creation error" });
                     });
                 }
             });
@@ -526,12 +561,12 @@ app.post('/game', auth, (req, res, next) => {
                     user.getModel().findOne({ username: req.body.oppositePlayer }).then((friend) => {
                         if (!us.isFriend(friend.username.toString())) {
                             console.log("ERROR: opposite player is not a friend".red);
-                            return next({ statusCode: 404, error: true, errormessage: "The opposite player is not a friend" });
+                            return next({ statusCode: 404, errormessage: "The opposite player is not a friend" });
                         }
                         // Check if the opposite player is online
                         if (!checkOnlineUser(friend.username)) {
                             console.log("ERROR: opposite player is not online".red);
-                            return next({ statusCode: 404, error: true, errormessage: "The opposite player is not online" });
+                            return next({ statusCode: 404, errormessage: "The opposite player is not online" });
                         }
                         const doc = createNewGameRequest(req.body, us.username, us.statistics.ranking, friend.username);
                         doc.save().then((data) => {
@@ -550,12 +585,13 @@ app.post('/game', auth, (req, res, next) => {
                             }
                         }).catch((reason) => {
                             console.log("ERROR: friendly game request creation error \nDB error: ".red + reason);
-                            return next({ statusCode: 404, error: true, errormessage: "Friendly game request creation error" });
+                            return next({ statusCode: 404, errormessage: "Friendly game request creation error" });
                         });
                     });
                 }
                 else {
-                    //TODO La richiesta esiste già
+                    console.log("ERROR: friendly game request already exist".red);
+                    return next({ statusCode: 404, error: true, errormessage: "Friendly game request already exist" });
                 }
             });
         });
@@ -566,22 +602,12 @@ app.post('/game', auth, (req, res, next) => {
                 match.getModel().findOne({ inProgress: true, $or: [{ player1: req.body.player }, { player2: req.body.player }] }).then((m) => {
                     if (m != null && match.isMatch(m)) {
                         let client = null;
-                        if (socketIOclients[user.username.toString()])
+                        if (socketIOclients[user.username.toString()]) {
                             client = socketIOclients[user.username.toString()];
+                            client.join(m.player1.toString() + 'Watchers');
+                        }
                         else
-                            return next({ statusCode: 404, error: true, errormessage: "SocketIO client is not connected" });
-                        // console.log(m.player1.toString());
-                        // console.log(matchRooms[m.player1.toString()]);
-                        // console.log(user.username.toString());
-                        // console.log(matchRooms[m.player1.toString()][user.username.toString()]);            
-                        // if (!matchRooms[m.player1.toString()][user.username.toString()]) {
-                        //   matchRooms[m.player1.toString()][user.username.toString()] = client
-                        //   client.join(m.player1.toString())
-                        // }
-                        // if (!matchWatcherRooms[m.player1.toString()][user.username.toString()]) {
-                        //   matchWatcherRooms[m.player1.toString()][user.username.toString()] = client
-                        //   client.join(m.player1.toString() + 'Watchers')
-                        // }
+                            return next({ statusCode: 404, errormessage: "SocketIO client is not connected" });
                         let watcherMessage = m.nTurns % 2 ? JSON.stringify({ playerTurn: m.player1.toString(), playground: m.playground }) : JSON.stringify({ playerTurn: m.player2.toString(), playground: m.playground });
                         client.emit('enterGameWatchMode', JSON.parse(watcherMessage));
                         return res.status(200).json({ error: false, message: "Match joined as observator" });
@@ -589,20 +615,20 @@ app.post('/game', auth, (req, res, next) => {
                     else {
                         // ! Errore: il match non esiste
                         console.log("ERROR: the specified match does not exist".red);
-                        return next({ statusCode: 404, error: true, errormessage: "The specified match does not exist" });
+                        return next({ statusCode: 404, errormessage: "The specified match does not exist" });
                     }
                 });
             }
             else {
                 // ! Errore: l'utente non ha ruolo utente o moderatore
                 console.log("ERROR: the user hasn't the necessary roles".red);
-                return next({ statusCode: 404, error: true, errormessage: "User hasn't the necessary roles" });
+                return next({ statusCode: 404, errormessage: "User hasn't the necessary roles" });
             }
         });
     }
     else {
-        console.log("ERROR: invalid request");
-        return next({ statusCode: 400, error: true, errormessage: "Invalid request" });
+        console.log("ERROR: invalid request".red);
+        return next({ statusCode: 400, errormessage: "Invalid request" });
     }
 });
 function checkOnlineUser(username) {
@@ -610,27 +636,10 @@ function checkOnlineUser(username) {
 }
 // Create game against AI
 app.post('/game/cpu', auth, (req, res, next) => {
-    try {
-        let client = socketIOclients[req.user.username];
-        // if (matchRooms[req.user.username] != client) {
-        //   matchRooms[req.user.username] = {}
-        //   matchRooms[req.user.username][req.user.username] = client
-        //   matchWatcherRooms[req.user.username] = {}
-        // }
-        // else {
-        //   console.log("L'utente è già inserito in una room: ".red)
-        // }
-        client.join(req.user.username);
-        console.log("Client joined the room ".green + req.user.username);
-    }
-    catch (error) {
-        console.log("error");
-        return next({ statusCode: 404, error: true, errormessage: "Socket.IO error" });
-    }
     let player = req.user.username;
     user.getModel().findOne({ username: player }).then((u) => {
         if (!(u.hasModeratorRole() || u.hasUserRole())) {
-            return next({ statusCode: 403, error: true, errormessage: "Unauthorized" });
+            return next({ statusCode: 403, errormessage: "Unauthorized" });
         }
         const model = match.getModel();
         const doc = new model({
@@ -643,6 +652,15 @@ app.post('/game/cpu', auth, (req, res, next) => {
             nTurns: 1
         });
         doc.save().then((m) => {
+            try {
+                let client = socketIOclients[u.username.toString()];
+                client.join(u.username.toString());
+                console.log("Client joined the room ".green + u.username.toString());
+            }
+            catch (error) {
+                console.log("error");
+                return next({ statusCode: 404, errormessage: "Socket.IO error" });
+            }
             console.log(`Single player match has been created`.green);
             return res.status(200).json({ error: false, errormessage: "Single player match has been created" });
         });
@@ -652,10 +670,14 @@ app.post('/game/cpu', auth, (req, res, next) => {
 app.get('/move', auth, (req, res, next) => {
     let username = req.user.username;
     user.getModel().findOne({ username: username }).then((u) => {
-        if (!(u.hasModeratorRole() || u.hasUserRole()))
-            return res.status(403).json({ error: true, errormessage: "You cannot do it" });
-        if (u.statistics.ranking < 100)
-            return res.status(403).json({ error: true, errormessage: "You have to improve your ranking before doing that!" });
+        if (!(u.hasModeratorRole() || u.hasUserRole())) {
+            console.log(`You cannot do it`.red);
+            return next({ statusCode: 403, errormessage: "You cannot do it" });
+        }
+        if (u.statistics.ranking < 100) {
+            console.log(`You have to improve your ranking before doing that!`.red);
+            return next({ statusCode: 403, errormessage: "You have to improve your ranking before doing that!" });
+        }
         match.getModel().findOne({ inProgress: true, $or: [{ player1: username }, { player2: username }] }).then((m) => {
             if (match.isMatch(m)) {
                 if (m.player1.toString() == username) {
@@ -666,21 +688,27 @@ app.get('/move', auth, (req, res, next) => {
                 }
             }
             else {
-                return res.status(404).json({ error: true, errormessage: `Match not found` });
+                console.log(`Match not found`.red);
+                return next({ statusCode: 404, errormessage: `Match not found` });
             }
         });
     }).catch((err) => {
-        return res.status(401).json({ error: true, errormessage: `DB error: ${err}` });
+        console.log(`DB error: ${err}`.red);
+        return next({ statusCode: 401, errormessage: `DB error: ${err}` });
     });
 });
 // Playing against AI
 app.post('/move/cpu', auth, (req, res, next) => {
     let move = req.body.move;
     user.getModel().findOne({ username: req.user.username }).then((u) => {
-        if (!(u.hasModeratorRole() || u.hasUserRole()))
-            return res.status(403).json({ error: true, errormessage: "Unauthorized" });
-        if (move == undefined)
-            return res.status(401).json({ error: true, errormessage: "Incorrectly formed request" });
+        if (!(u.hasModeratorRole() || u.hasUserRole())) {
+            console.log(`You cannot do it`.red);
+            return next({ statusCode: 403, errormessage: "Unauthorized" });
+        }
+        if (move == undefined) {
+            console.log(`Incorrectly formed request`.red);
+            return next({ statusCode: 401, errormessage: "Incorrectly formed request" });
+        }
         match.getModel().findOne({ player1: req.user.username, player2: "cpu", inProgress: true }).then((m) => {
             if (match.isMatch(m)) {
                 let client = socketIOclients[req.user.username];
@@ -751,19 +779,65 @@ app.post('/move/cpu', auth, (req, res, next) => {
                         });
                     }
                     else {
-                        return res.status(400).json({ error: true, errormessage: "You cannot insert in a full column" });
+                        console.log(`You cannot insert in a full column`.red);
+                        return next({ statusCode: 400, errormessage: "You cannot insert in a full column" });
                     }
                 }
                 else {
-                    return res.status(400).json({ error: true, errormessage: "You cannot insert out of the playground" });
+                    console.log(`You cannot insert out of the playground`.red);
+                    return next({ statusCode: 400, errormessage: "You cannot insert out of the playground" });
                 }
             }
             else {
-                return res.status(404).json({ error: true, errormessage: "Match cannot found, please start a new one" });
+                console.log(`Match cannot found, please start a new one`.red);
+                return next({ statusCode: 404, errormessage: "Match cannot found, please start a new one" });
             }
         }).catch((err) => {
-            return res.status(401).json({ error: true, errormessage: `DB error: ${err}` });
+            console.log(`DB error: ${err}`.red);
+            return next({ statusCode: 401, errormessage: `DB error: ${err}` });
         });
+    });
+});
+// Play the turn making a move 
+app.post("/move", auth, (req, res, next) => {
+    let username = req.user.username;
+    let move = req.body.move;
+    user.getModel().findOne({ username: username }).then((u) => {
+        if (u.hasModeratorRole() || u.hasUserRole()) {
+            if (!move) {
+                console.log(`Bad request, you should pass your move`.red);
+                return next({ statusCode: 400, errormessage: "Bad request, you should pass your move" });
+            }
+            match.getModel().findOne({ inProgress: true, $or: [{ player1: username }, { player2: username }] }).then((m) => {
+                if (m) {
+                    if (match.isMatch(m)) {
+                        let client = socketIOclients[username];
+                        let index = parseInt(move);
+                        // post move logic
+                        if (m.nTurns % 2 == 1 && m.player1 == username) {
+                            return makeMove(index, m, client, 'X', m.player2, res, username);
+                        }
+                        else if (m.nTurns % 2 == 0 && m.player2 == username) { //  player2's turns
+                            return makeMove(index, m, client, 'O', m.player1, res, username);
+                        }
+                        else { // trying to post move out of right turn
+                            let errorMessage = JSON.stringify({ "error": true, "codeError": 3, "errorMessage": "Wrong turn" });
+                            client.emit('move', JSON.parse(errorMessage));
+                            console.log(`Wrong turn`.red);
+                            return next({ statusCode: 400, errormessage: "Wrong turn" });
+                        }
+                    }
+                }
+                else {
+                    console.log("Match does not exists".red);
+                    return next({ statusCode: 404, errormessage: "Match does not exists" });
+                }
+            });
+        }
+        else {
+            console.log(`You cannot do it`.red);
+            return next({ statusCode: 403, errormessage: "You cannot do it" });
+        }
     });
 });
 app.delete('/game', auth, (req, res, next) => {
@@ -777,7 +851,7 @@ app.delete('/game', auth, (req, res, next) => {
                         let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" });
                         if (data.player2.toString() != "cpu") {
                             if (socketIOclients[user.username.toString()]) {
-                                let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" });
+                                // let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" })
                                 socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message));
                             }
                         }
@@ -788,7 +862,7 @@ app.delete('/game', auth, (req, res, next) => {
                         return res.status(200).json({ error: false, message: "The match have been deleted correctely" });
                     }).catch((reason) => {
                         console.log("ERROR: match cancellation error \nDB error: ".red + reason);
-                        return next({ statusCode: 404, error: true, errormessage: "Match cancellation error" });
+                        return next({ statusCode: 404, errormessage: "Match cancellation error" });
                     });
                 }
                 else {
@@ -797,27 +871,24 @@ app.delete('/game', auth, (req, res, next) => {
                         if (notification != null) {
                             notification.deleted = true;
                             notification.save().then((data) => {
-                                // delete matchRooms[notification.sender.toString()]
                                 console.log("The match request have been deleted correctely".green);
                                 return res.status(200).json({ error: false, message: "The match request have been deleted correctely" });
                             }).catch((reason) => {
                                 console.log("ERROR: notification cancellation error \nDB error: ".red + reason);
-                                return next({ statusCode: 404, error: true, errormessage: "Notification cancellation error" });
+                                return next({ statusCode: 404, errormessage: "Notification cancellation error" });
                             });
                         }
                         else {
-                            // ! Non esiste alcuna notification
-                            console.log("Match request does not exist".red);
-                            return next({ statusCode: 404, error: true, errormessage: "Match request does not exists" });
+                            console.log("ERROR: Match request does not exist".red);
+                            return next({ statusCode: 404, errormessage: "Match request does not exists" });
                         }
                     });
                 }
             });
         }
         else {
-            // ! Errore: l'utente non ha ruolo utente o moderatore
             console.log("ERROR: the user hasn't the necessary roles".red);
-            return next({ statusCode: 404, error: true, errormessage: "User hasn't the necessary roles" });
+            return next({ statusCode: 404, errormessage: "User hasn't the necessary roles" });
         }
     });
 });
@@ -831,7 +902,7 @@ app.put('/game', auth, (req, res, next) => {
                         console.log("Match have been created correctely".green);
                     }).catch((reason) => {
                         console.log("ERROR: match creation error \nDB error: ".red + reason);
-                        next({ statusCode: 404, error: true, errormessage: "ERROR: match creation error" });
+                        next({ statusCode: 404, errormessage: "Match creation error" });
                     });
                     n.deleted = true;
                     n.inpending = false;
@@ -839,28 +910,14 @@ app.put('/game', auth, (req, res, next) => {
                         console.log("Game request have been updated correctely".green);
                     }).catch((reason) => {
                         console.log("ERROR: match request update error \nDB error: ".red + reason);
-                        return next({ statusCode: 404, error: true, errormessage: "ERROR: match request update error" });
+                        return next({ statusCode: 404, errormessage: "Match request update error" });
                     });
-                    // matchRooms[user.username.toString()] = {}
-                    // matchRooms[user.username.toString()][user.username.toString] = socketIOclients[user.username.toString()]
                     let player1 = randomMatch.player1.toString();
                     let player2 = randomMatch.player2.toString();
                     let client1 = socketIOclients[player1];
                     let client2 = socketIOclients[player2];
-                    // matchRooms[player1][player2] = client2
                     client1.join(player1);
                     client2.join(player1);
-                    // delete matchRooms[player2]
-                    // matchWatcherRooms[randomMatch.player1.toString()] = {}
-                    // let player1 = n.sender
-                    // let player2 = user.username
-                    // let client1 = socketIOclients[player1]
-                    // let client2 = socketIOclients[player2]
-                    // matchRooms[player1][player2] = client2
-                    // client2.join(player1)
-                    // When the clients receive this message they will redirect by himself to the match route
-                    // client1.emit('gameReady', 'true')
-                    // client2.emit('gameReady', 'true')
                     client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 });
                     client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 });
                     if (randomMatch.player1.toString() == player1.toString()) {
@@ -877,6 +934,8 @@ app.put('/game', auth, (req, res, next) => {
                         let pl1Turn = JSON.stringify({ yourTurn: false });
                         client1.emit('move', JSON.parse(pl1Turn));
                     }
+                    let watchersMessage = JSON.stringify({ playerTurn: randomMatch.player1.toString() });
+                    ios.to(randomMatch.player1.toString() + 'Watchers').emit('gameStatus', JSON.parse(watchersMessage));
                     console.log("Match creation and game request update done".green);
                     return res.status(200).json({ error: false, message: "Match have been created correctely" });
                 }
@@ -891,13 +950,13 @@ app.put('/game', auth, (req, res, next) => {
                         return res.status(200).json({ error: false, message: "Request refused" });
                     }).catch((reason) => {
                         console.log("ERROR: match request update error \nDB error: ".red + reason);
-                        return next({ statusCode: 404, error: true, errormessage: "match request update error" });
+                        return next({ statusCode: 404, errormessage: "Match request update error" });
                     });
                 }
             }
             else {
                 console.log("ERROR: Match request does not exists".red);
-                return next({ statusCode: 404, error: true, errormessage: "Match request does not exists" });
+                return next({ statusCode: 404, errormessage: "Match request does not exists" });
             }
         });
     });
@@ -910,13 +969,13 @@ app.get('/game', auth, (req, res, next) => {
                 return res.status(200).json({ error: false, matches: matches });
             }).catch((reason) => {
                 console.log("ERROR: error getting matches \nDB error: ".red + reason);
-                return next({ statusCode: 404, error: true, errormessage: "error getting matches" });
+                return next({ statusCode: 404, errormessage: "Error getting matches" });
             });
         }
         else {
             // ! Errore: l'utente non ha ruolo utente o moderatore
             console.log("ERROR: the user hasn't the necessary roles".red);
-            return next({ statusCode: 404, error: true, errormessage: "User hasn't the necessary roles" });
+            return next({ statusCode: 404, errormessage: "User hasn't the necessary roles" });
         }
     });
 });
@@ -924,18 +983,14 @@ app.post('/gameMessage', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((u) => {
         if (u.hasUserRole() || u.hasModeratorRole()) {
             user.getModel().findOne({ username: req.body.player }).then((player) => {
-                console.log(player.username.toString());
                 match.getModel().findOne({ inProgress: true, $or: [{ player1: player.username.toString() }, { player2: player.username.toString() }] }).then((m) => {
-                    console.log(m);
                     if (m != null && match.isMatch(m)) {
-                        console.log(socketIOclients[u.username]);
-                        console.log(socketIOclients[u.username].rooms);
                         if (((u.username.toString() == m.player1.toString() || u.username.toString() == m.player2.toString()) && socketIOclients[u.username.toString()].rooms.has(m.player1.toString())) || ((u.username.toString() != m.player1.toString() && u.username.toString() != m.player2.toString()) && (socketIOclients[u.username.toString()].rooms.has(m.player1.toString()) && socketIOclients[u.username.toString()].rooms.has(m.player1.toString() + 'Watchers')))) {
                             let client = null;
                             if (socketIOclients[u.username.toString()])
                                 client = socketIOclients[u.username.toString()];
                             else
-                                return next({ statusCode: 404, error: true, errormessage: "SocketIO client is not connected" });
+                                return next({ statusCode: 404, errormessage: "SocketIO client is not connected" });
                             let newMessage = createChatMessage(u.username.toString(), req.body.message);
                             if (u.username == m.player1.toString() || u.username == m.player2.toString()) {
                                 client.broadcast.to(m.player1).emit('gameChat', newMessage);
@@ -948,19 +1003,19 @@ app.post('/gameMessage', auth, (req, res, next) => {
                                 return res.status(200).json({ error: false, message: "Message have been send and saved correctely" });
                             }).catch((reason) => {
                                 console.log("ERROR: send message error\nDB error: ".red + reason);
-                                return next({ statusCode: 404, error: true, errormessage: "Send message error" });
+                                return next({ statusCode: 404, errormessage: "Send message error" });
                             });
                         }
                         else {
                             // ! Errore : il socket del client deve essere dentro alla room della partita
                             console.log("ERROR: SocketIO client is not in the match room".red);
-                            return next({ statusCode: 404, error: true, errormessage: "SocketIO client is not in the match room" });
+                            return next({ statusCode: 404, errormessage: "SocketIO client is not in the match room" });
                         }
                     }
                     else {
                         // ! Partita non trovata
                         console.log("ERROR: match not found".red);
-                        return next({ statusCode: 404, error: true, errormessage: "Match not found" });
+                        return next({ statusCode: 404, errormessage: "Match not found" });
                     }
                 });
             });
@@ -968,7 +1023,7 @@ app.post('/gameMessage', auth, (req, res, next) => {
         else {
             // ! Errore: l'utente non ha ruolo utente o moderatore
             console.log("ERROR: the user hasn't the necessary roles".red);
-            return next({ statusCode: 404, error: true, errormessage: "User hasn't the necessary roles" });
+            return next({ statusCode: 404, errormessage: "User hasn't the necessary roles" });
         }
     });
 });
@@ -1327,40 +1382,6 @@ app.put('/message', auth, (req, res, next) => {
         }
     });
 });
-// app.post('/friend', auth, (req, res, next) => {
-//   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
-//     if (u.hasModeratorRole() || u.hasUserRole()) {
-//       user.getModel().findOne({username : req.body.sender}).then((sender: User) => {
-//         if((sender.hasModeratorRole() || sender.hasUserRole()) && !sender.isFriend(u.username.toString())){
-//           notification.getModel().findOne({ type: "friendRequest", sender: sender.username.toString(), receiver: u.username.toString(), state: false, deleted: false }).then((n) => {
-//             if(req.body.accepted)
-//               u.addFriend(n.sender, false)
-//             u.save().then((data) => {
-//               sender.addFriend(u.username, false)    
-//               sender.save().then((data) => {
-//                 console.log("Friend added.".blue)
-//                 return res.status(200).json({ error: false, errormessage: "", message: "Friend " + req.body.sender + " added." })
-//               }).catch((reason) => {
-//                 u.deleteFriend(n.sender)
-//                 u.save()
-//                 return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-//               })
-//             })
-//           }).catch((reason) => {
-//             return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-//           })
-//         }
-//       }).catch((reason) => {
-//         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-//       })
-//     }
-//     else{
-//       // ! Il sender non ha ruolo utente o moderatore oppure è già amico dell'utente
-//     }
-//   }).catch((reason) => {
-//     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-//   })
-// })
 app.get('/friend', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((u) => {
         if (u.hasModeratorRole() || u.hasUserRole()) {
@@ -1406,7 +1427,7 @@ app.delete('/friend/:username', auth, (req, res, next) => {
     });
 });
 app.put('/friend', auth, (req, res, next) => {
-    console.log("CI SONO ARRIVATO SPERO");
+    // console.log("CI SONO ARRIVATO SPERO")
     user.getModel().findOne({ username: req.user.username }).then((u) => {
         if (u.hasModeratorRole() || u.hasUserRole()) {
             user.getModel().findOne({ username: req.body.username }).then((friend) => {
@@ -1526,45 +1547,8 @@ function createNewFriendRequest(type, username, receiver) {
 //   })
 //   return doc
 // }
-app.post("/move", auth, (req, res, next) => {
-    let username = req.user.username;
-    let move = req.body.move;
-    user.getModel().findOne({ username: username }).then((u) => {
-        if (u.hasModeratorRole() || u.hasUserRole()) {
-            if (!move) {
-                return res.status(400).json({ error: true, errormessage: "Bad request, you should pass your move" });
-            }
-            match.getModel().findOne({ inProgress: true, $or: [{ player1: username }, { player2: username }] }).then((m) => {
-                if (m) {
-                    if (match.isMatch(m)) {
-                        let client = socketIOclients[username];
-                        let index = parseInt(move);
-                        // post move logic
-                        if (m.nTurns % 2 == 1 && m.player1 == username) {
-                            return makeMove(index, m, client, 'X', m.player2, res, username);
-                        }
-                        else if (m.nTurns % 2 == 0 && m.player2 == username) { //  player2's turns
-                            return makeMove(index, m, client, 'O', m.player1, res, username);
-                        }
-                        else { // trying to post move out of right turn
-                            let errorMessage = JSON.stringify({ "error": true, "codeError": 3, "errorMessage": "Wrong turn" });
-                            client.emit('move', JSON.parse(errorMessage));
-                            return res.status(400).json({ error: true, errormessage: "Wrong turn" });
-                        }
-                    }
-                }
-                else {
-                    console.log("Match does not exists".red);
-                    return res.status(404).json({ error: true, errormessage: "Match does not exists" });
-                }
-            });
-        }
-        else {
-            return res.status(403).json({ error: true, errormessage: "You cannot do it" });
-        }
-    });
-});
 //* END of API routes
+// Game logic, notify event to listener, save move into game match
 function makeMove(index, m, client, placehold, otherPlayer, res, username) {
     if (index >= 0 && index <= 6) {
         if (m.playground[5][index] == '/') {
@@ -1573,7 +1557,8 @@ function makeMove(index, m, client, placehold, otherPlayer, res, username) {
             client.emit('move', JSON.parse(moveMessage));
             let opponentMessage = JSON.stringify({ move: index });
             // Notify event to other player
-            socketIOclients[otherPlayer.toString()].emit('move', JSON.parse(opponentMessage));
+            if (otherPlayer.toString() != "cpu")
+                socketIOclients[otherPlayer.toString()].emit('move', JSON.parse(opponentMessage));
             let watchersMessage = JSON.stringify({ player: username, move: index, nextTurn: otherPlayer });
             // Notify event to watchers
             client.broadcast.to(`${m.player1}Watchers`).emit('gameStatus', JSON.parse(watchersMessage));
@@ -1619,15 +1604,18 @@ function makeMove(index, m, client, placehold, otherPlayer, res, username) {
             // Column not empty
             let errorMessage = JSON.stringify({ "error": true, "codeError": 1, "errorMessage": "The column is full" });
             client.emit('move', JSON.parse(errorMessage));
+            console.log(`This column is full, choose another one`.red);
             return res.status(400).json({ error: true, errormessage: "This column is full, choose another one" });
         }
     }
     else { // move not allowed exit from playground dimension
         let errorMessage = JSON.stringify({ "error": true, "codeError": 2, "errorMessage": "Move not allowed, out of playground" });
         client.emit('move', JSON.parse(errorMessage));
+        console.log(`Move not allowed, out of playground, choose another one`.red);
         return res.status(400).json({ error: true, errormessage: "Move not allowed, out of playground, choose another one" });
     }
 }
+// Notify listener that game has finished and send who is winner, then update stats
 function winnerControl(client, m, loser, winner) {
     let winnerMessage = JSON.stringify({ winner: true });
     client.emit('result', JSON.parse(winnerMessage));
@@ -1883,11 +1871,12 @@ function getRandomInt(min, max) {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
 }
+// Inserting method of player move in AI algorithm, that return a new playground
 function insertMove(playground, index, player) {
     let added = false;
-    // Copio la matrice salvata nel db
+    // Deep copy of playground because minmax algorithm modify it
     let pl = copyPlayground(playground);
-    // Aggiungo la mossa
+    // Adding player move
     for (let k = 0; k < 6 && !added; k++) {
         if (pl[k][index] == '/') {
             pl[k][index] = player;
@@ -1896,6 +1885,7 @@ function insertMove(playground, index, player) {
     }
     return pl;
 }
+// Deep copy
 function copyPlayground(playground) {
     let pl = new Array(6);
     for (let k = 0; k < 6; k++) {
@@ -1907,6 +1897,7 @@ function copyPlayground(playground) {
     return pl;
 }
 // TODO ottimizzare codice
+// Check if player win this match
 function checkWinner(playground, player) {
     let winCheck = false;
     for (let j = 0; j < 4; j++) {
