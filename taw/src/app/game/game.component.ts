@@ -43,7 +43,7 @@ export class GameComponent implements OnInit {
   public suggestion:string="Ask for some suggestion";
   public suggestedcollum:number=-1
   public isFriend:boolean=true
-  constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) {
+  constructor(private app:AppComponent, private sio: SocketioService,private us: UserHttpService, private router: Router) {
       this.us.get_friendlist().subscribe((u) => {
 
         u.friendlist.forEach((element: { [x: string]: any; }) => {
