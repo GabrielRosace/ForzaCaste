@@ -27,21 +27,23 @@
           <!--Open the modal(modalNot)  <span mat-raised-button >Notification</span>-->
           <button class="nav-link text-white w-100 text-start" (click)="getNotification(true, undefined)"
             id="notification" data-bs-toggle="modal" data-bs-target="#modalNot">
-            <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeContent" matBadgePosition="above before"
-            matBadgeOverlap="true" [matBadgeHidden]="hideMatBadge" matBadgeSize="medium" [ngStyle]="{'color':'white'}">notifications
-          </mat-icon>
-          <span mat-raised-button> Notification</span>
+            <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeContent"
+              matBadgePosition="above before" matBadgeOverlap="true" [matBadgeHidden]="hideMatBadge"
+              matBadgeSize="medium" [ngStyle]="{'color':'white'}">notifications
+            </mat-icon>
+            <span mat-raised-button> Notification</span>
           </button>
         </li>
         <!--Allow the user to dipslay the message from all moderator-->
         <li class="nav-item" *ngIf="username">
           <!--Open the modal(modalNot)  <span mat-raised-button >Notification</span>-->
-          <button class="nav-link text-white w-100 text-start" style="text-overflow: ellipsis;" (click)="getModeratorList()" id="notification"
-            data-bs-toggle="modal" data-bs-target="#modalMod">
-            <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeContMod" matBadgePosition="above before"
-            matBadgeOverlap="true" [matBadgeHidden]="hideBadgeMod" matBadgeSize="medium" [ngStyle]="{'color':'white'}">chat
-          </mat-icon>
-          <span mat-raised-button> Moderator sms</span>
+          <button class="nav-link text-white w-100 text-start" style="text-overflow: ellipsis;"
+            (click)="getModeratorList()" id="notification" data-bs-toggle="modal" data-bs-target="#modalMod">
+            <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeContMod"
+              matBadgePosition="above before" matBadgeOverlap="true" [matBadgeHidden]="hideBadgeMod"
+              matBadgeSize="medium" [ngStyle]="{'color':'white'}">chat
+            </mat-icon>
+            <span mat-raised-button> Moderator sms</span>
           </button>
         </li>
 
@@ -54,10 +56,11 @@
 
         <li class="nav-item" *ngIf="has_moderator_role()">
           <button class="nav-link text-white w-100 text-start" (click)="navigate('all-user')" id="allUs">
-            <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeAllUs" matBadgePosition="above before"
-            matBadgeOverlap="true" [matBadgeHidden]="hideBadgeAll" matBadgeSize="medium" [ngStyle]="{'color':'white'}">people
-          </mat-icon>
-          <span mat-raised-button> All User</span>
+            <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeAllUs"
+              matBadgePosition="above before" matBadgeOverlap="true" [matBadgeHidden]="hideBadgeAll"
+              matBadgeSize="medium" [ngStyle]="{'color':'white'}">people
+            </mat-icon>
+            <span mat-raised-button> All User</span>
           </button>
         </li>
       </ul>
@@ -170,7 +173,8 @@
                   *ngFor='let mod of modlist'>
                   {{mod.username}}
                   <span class="align-items-right">
-                    <button type="button" class="friendListBtn mr-6" data-bs-dismiss="modal" (click)="readMessage(username,mod.username,true);getInpendingMsgMod();navigate('mod-chat/'+mod.username+'')">
+                    <button type="button" class="friendListBtn mr-6" data-bs-dismiss="modal"
+                      (click)="readMessage(username,mod.username,true);getInpendingMsgMod();navigate('mod-chat/'+mod.username+'')">
                       <span>
                         <!--matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"-->
                         <mat-icon [matBadge]="mod.badgeNum" matBadgeColor="accent" matBadgeSize="small"
@@ -198,11 +202,15 @@
           <strong>{{username}}</strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-          <li><button class="dropdown-item" (click)="navigate('profile')"><mat-icon [ngStyle]="{'color':'white'} ">account_circle</mat-icon> Profile</button></li>
+          <li><button class="dropdown-item" (click)="navigate('profile')">
+              <mat-icon [ngStyle]="{'color':'white'} ">account_circle</mat-icon> Profile
+            </button></li>
           <li>
             <hr class="dropdown-divider">
           </li>
-          <li><button class="dropdown-item" (click)="navigate('logout')"><mat-icon>exit_to_app</mat-icon> Sign out</button></li>
+          <li><button class="dropdown-item" (click)="navigate('logout')">
+              <mat-icon>exit_to_app</mat-icon> Sign out
+            </button></li>
         </ul>
       </div>
     </div>
@@ -226,14 +234,14 @@
   <div class="offcanvas-body">
     <div class="list-group">
       <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lfriend of friendlist'>
-        {{lfriend.username}}
+        <span style="right: -2%;position: relative;">{{lfriend.username}}</span>
+
         <!--
         <span class="align-items-bottom">
         <span class="dot bg-dark" ></span>
       </span> (click)="readMessage(username,lfriend.username);navigate('friend-chat/'+lfriend.username+'')" routerLink="/friend-chat/{{lfriend.username}}" routerLinkActive="active-link"-->
         <span class="align-items-right">
-          <button type="button" class="friendListBtn mr-2" 
-            (click)="deleteFriend(lfriend.username)" id="btnDel"><span>
+          <button type="button" class="friendListBtn mr-2" (click)="deleteFriend(lfriend.username)" id="btnDel"><span>
               <mat-icon>close</mat-icon>
             </span></button>
           <button type="button" class="friendListBtn mr-6" data-bs-dismiss="offcanvas"
@@ -249,9 +257,8 @@
             (click)="navigate('user-stats/'+lfriend.username+'')"><span>
               <mat-icon>equalizer</mat-icon>
             </span></button>
-          <button type="button" class="friendListBtn" 
-            (click)="blockUnblock(lfriend.username,lfriend.isBlocked)" id="btnBlock"><span><i
-                class="{{lfriend.isBlocked}}"></i></span></button>
+          <button type="button" class="friendListBtn" (click)="blockUnblock(lfriend.username,lfriend.isBlocked)"
+            id="btnBlock"><span><i class="{{lfriend.isBlocked}}"></i></span></button>
         </span>
         <span class="on-off position-absolute translate-middle border border-light rounded-circle"
           [ngStyle]="{'background-color': lfriend.color}">
@@ -295,7 +302,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="setErr()">Close</button>
         <button type="button" (click)="addFriend(usernameAdd.value, 'friendRequest')" (click)="usernameAdd.value = ''"
-          class="btn btn-primary" >Send
+          class="btn btn-primary">Send
           the request</button>
       </div>
     </div>

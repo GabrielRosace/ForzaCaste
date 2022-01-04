@@ -112,3 +112,17 @@
     float: left;
     color: #999;
   }
+
+  .toast  {
+    position: fixed;
+    top: auto!important;
+    bottom: 0!important;
+    right: auto!important;
+    left: 0!important;
+    margin: 0.5em;
+    z-index: 1200;
+  }
+  .toast-custom {
+    top: 80px;
+    right: 0px;
+}

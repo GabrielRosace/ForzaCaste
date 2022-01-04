@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { UserHttpService } from '../user-http.service';
 import { SocketioService } from '../socketio.service';
 import { Subscription } from 'rxjs';
+import { AppComponent } from '../app.component';
 
 interface Alert {
   type: string;
@@ -41,14 +42,15 @@ export class GameComponent implements OnInit {
   public content: string = "";
   public suggestion:string="Ask for some suggestion";
   public suggestedcollum:number=-1
-  constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
+  constructor(private app: AppComponent, private sio: SocketioService,private us: UserHttpService, private router: Router) { 
     this.us.friendGame=false
     this.gameChat=this.sio.gameChat().subscribe(msg => {
 
       console.log('got a msg gameChat: ' + JSON.stringify(msg));
 
       if(msg.error){
-        this.alerts.push({message:msg.errorMessage});
+        this.app.toastCust(msg.errorMessage)
+        //this.alerts.push({message:msg.errorMessage});
       }
 
       if(msg.sender.length>0){
@@ -108,7 +110,8 @@ export class GameComponent implements OnInit {
       }
       this.alerts=[];
       if(response.error==true){
-        this.alerts.push({message:response.errorMessage})
+        this.app.toastCust(response.errorMessage)
+        //this.alerts.push({message:response.errorMessage})
       }
       if(response.move>=0||response.move<=6){
         if(!this.urturn){
@@ -207,7 +210,8 @@ export class GameComponent implements OnInit {
   sendmessage(text:string){
     if(text==""){
       this.alerts=[];
-      this.alerts.push({message:"you have to write something for send it"});
+      this.app.toastCust("You have to write something for send it")
+      //this.alerts.push({message:"you have to write something for send it"});
     }else{
       this.us.sendMessage(text).subscribe((msg)=>{
         console.log("ricevuto da sendMessage: ",msg);
