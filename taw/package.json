@@ -9,8 +9,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test-pwa": "http-server -p 4200 dist/taw",
-    "predeploy": "ng build --base-href=/ForzaCaste/taw",
-    "deploy": "npx gh-pages -d dist/"
+    "predeploy": "ng build --base-href=/ForzaCaste",
+    "deploy": "npx gh-pages -d dist/taw"
   },
   "private": true,
   "dependencies": {
