@@ -1890,7 +1890,6 @@ function winnerControl(client, m, loser, winner) {
   })
 }
 
-
 function saveClient(client) {
   let token = client.handshake.query['jwt']
 
@@ -2067,7 +2066,6 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 function createChatMessage(sender, text) {
   const model = message.getModel()
   const doc = new model({
-    type: "gameMessage",
     content: text,
     sender: sender,
     receiver: null,
@@ -2079,7 +2077,6 @@ function createChatMessage(sender, text) {
 function createMessage(sender, receiver, text) {
   const model = message.getModel()
   const doc = new model({
-    type: "message",
     content: text,
     sender: sender,
     receiver: receiver,
