@@ -78,7 +78,7 @@ if (!process.env.JWT_SECRET) {
     process.exit(-1);
 }
 const http = require("http"); // HTTP module
-//import https = require('https'); // HTTPS module
+// import https = require('https'); // HTTPS module
 const colors = require("colors"); // Module to color output string
 colors.enabled = true;
 const mongoose = require("mongoose");
@@ -1775,7 +1775,6 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
             password: "admin"
         };
         const doc = createNewUser(basicStats, d);
-        // doc.setAdmin() //! Sicuri che serva?
         doc.setModerator();
         doc.save();
     }
@@ -1785,13 +1784,14 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 }).then(() => {
     let server = http.createServer(app);
     const option = {
-        allowEIO3: true,
+        // allowEIO3: true,
         cors: {
-            origin: ["http://localhost:4200", "http://localhost:4201", "http://0.0.0.0:4200"],
+            // origin: ["http://localhost:4200", "http://0.0.0.0:4200", "https://gabrielrosace.github.io"],
+            origin: true,
             methods: ["GET", "POST"],
             allowedHeaders: ["enableCORS"],
-            credentials: true
-        }
+            credentials: true,
+        },
     };
     ios = new Server(server, option);
     ios.on("connection", function (client) {

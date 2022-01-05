@@ -38,15 +38,15 @@ export class ModChatComponent implements OnInit {
   public role: string = ""
   public type: string = ""
 
-  constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router, private activeRoute: ActivatedRoute, private cdRef: ChangeDetectorRef) { }
-  
+  constructor(private app: AppComponent, private sio: SocketioService, private us: UserHttpService, private router: Router, private activeRoute: ActivatedRoute, private cdRef: ChangeDetectorRef) { }
+
   ngOnInit(): void {
     this.tok = this.us.get_token()
     console.log("Sono ngInit Friend")
     if (!this.tok) {
       // TODO aggiungi un messaggio, magari con una funzione nel servizio per non replicare codice
-      this.router.navigate(['/']) 
-    }else{
+      this.router.navigate(['/'])
+    } else {
       this.username = this.us.get_username()
       this.avatarImgURL = this.us.get_avatarImgURL()
       this.role = this.us.get_role()
@@ -60,22 +60,26 @@ export class ModChatComponent implements OnInit {
   }
 
   ngOnDestroy(): void {
-    if(this.tok){
+    if (this.tok) {
       this.subscriptionName.unsubscribe()
       this.subscriptionMsg.unsubscribe()
     }
   }
-  
-  ngAfterViewChecked(){
+
+  ngAfterViewChecked() {
     this.cdRef.detectChanges()
   }
 
   sendMessage(message: string) {
-    console.log("Mesg inviato")
-    this.us.send_ModMsg(this.activeRoute.snapshot.params['user'], message).subscribe((data) => {
-      let date = new Date();
-      this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: message, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}` });
-    })
+    if (message == "") {
+      this.app.toastCust("You have to write something for send it")
+    } else {
+      console.log("Mesg inviato")
+      this.us.send_ModMsg(this.activeRoute.snapshot.params['user'], message).subscribe((data) => {
+        let date = new Date();
+        this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: message, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth() + 1}/${date.getFullYear()}` });
+      })
+    }
   }
 
 
@@ -91,9 +95,9 @@ export class ModChatComponent implements OnInit {
           let date = new Date(element.timestamp);
           if (element.sender == username) {
             //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
-            this.singleChat.push({ imgUrl: user.avatarImgURL, from: user.username, text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}` });
+            this.singleChat.push({ imgUrl: user.avatarImgURL, from: user.username, text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth() + 1}/${date.getFullYear()}` });
           } else if (element.receiver == username) {
-            this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}` });
+            this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth() + 1}/${date.getFullYear()}` });
           }
         })
       })
@@ -116,7 +120,7 @@ export class ModChatComponent implements OnInit {
   }
 
   readMessage(myus: string, username: string) {
-    this.us.readMessage(myus, username,true).subscribe(() => {
+    this.us.readMessage(myus, username, true).subscribe(() => {
       console.log("Read Message")
       this.us.update_badge("read mod-chat")
     })
@@ -131,10 +135,10 @@ export class ModChatComponent implements OnInit {
           let date = new Date(element.timestamp);
           if (element.sender == username) {
             //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
-            this.singleChat.push({ imgUrl: user.avatarImgURL, from: user.username, text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth()+1}/${date.getFullYear()}` });
+            this.singleChat.push({ imgUrl: user.avatarImgURL, from: user.username, text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth() + 1}/${date.getFullYear()}` });
           }
         })
-        this.us.readMessage(this.us.get_username(), username,true).subscribe()
+        this.us.readMessage(this.us.get_username(), username, true).subscribe()
       })
     })
   }

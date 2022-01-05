@@ -69,10 +69,10 @@
 
 const result = require('dotenv').config()
 
-if (result.error) {
-  console.log("Unable to load '.env' file. Please provide one to store the JWT secret key");
-  process.exit(-1);
-}
+// if (result.error) {
+//   console.log("Unable to load '.env' file. Please provide one to store the JWT secret key");
+//   process.exit(-1);
+// }
 
 if (!process.env.JWT_SECRET) {
   console.log("'.env' file loaded but JWT_SECRET=<secret> key-value pair was not found");
@@ -81,7 +81,7 @@ if (!process.env.JWT_SECRET) {
 
 import fs = require('fs'); // Filesystem Module
 import http = require('http'); // HTTP module
-//import https = require('https'); // HTTPS module
+// import https = require('https'); // HTTPS module
 import colors = require('colors'); // Module to color output string
 colors.enabled = true;
 
@@ -1954,7 +1954,6 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
         password: "admin"
       }
       const doc = createNewUser(basicStats, d)
-      // doc.setAdmin() //! Sicuri che serva?
       doc.setModerator()
       doc.save()
     } else {
@@ -1965,13 +1964,15 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
   () => {
     let server = http.createServer(app);
     const option = {
-      allowEIO3: true,
+      // allowEIO3: true,
       cors: {
-        origin: ["http://localhost:4200", "http://localhost:4201", "http://0.0.0.0:4200"],
+        // origin: ["http://localhost:4200", "http://0.0.0.0:4200", "https://gabrielrosace.github.io"],
+        origin: true,
         methods: ["GET", "POST"],
         allowedHeaders: ["enableCORS"],
-        credentials: true
-      }
+        credentials: true,
+        
+      },
     }
     ios = new Server(server, option)
 
@@ -2045,7 +2046,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 
       })
     });
-    server.listen(8080, () => console.log("HTTP Server started on port 8080".green));
+    server.listen(process.env.PORT || 8080, () => console.log(`HTTP Server started on port ${process.env.PORT || 8080}`.green));
   }
 ).catch(
   (err) => {

@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserHttpService } from '../user-http.service';
 import { SocketioService } from '../socketio.service';
+import { AppComponent } from '../app.component';
 
 interface Alert {
   type: string;
@@ -30,7 +31,7 @@ export class CpuComponent implements OnInit {
   public suggestion:string="Ask for some suggestion";
   public win:boolean=false
   public suggestedcollum:number=-1
-  constructor(private sio: SocketioService,private us: UserHttpService, private router: Router) { 
+  constructor(private app: AppComponent, private sio: SocketioService,private us: UserHttpService, private router: Router) { 
     this.us.friendGame=false
     if(this.us.lv!=undefined){
 
@@ -146,7 +147,8 @@ export class CpuComponent implements OnInit {
       console.log(JSON.stringify(msg))
       if(msg.error!=undefined){
         if(msg.error){
-          this.alerts.push({message:msg.errormessage});
+          this.app.toastCust(msg.errormessage)
+          //this.alerts.push({message:msg.errormessage});
         }else{
         }
       }

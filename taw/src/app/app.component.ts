@@ -60,10 +60,12 @@ export class AppComponent{
   }
 
   toastCust(customTpl: string) {
+    let constoptions= { positionClass:'toast-custom' };
     this.toastService.show(customTpl, {
       classname: 'bg-info text-light',
       delay: 3000,
-      autohide: true
+      autohide: true,
+      positionClass:'toast-custom'
     });
   }
 }

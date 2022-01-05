@@ -7,26 +7,21 @@ import * as statistics from './Statistics'
 
 
 export interface User extends mongoose.Document {
-  // readonly _id: mongoose.Schema.Types.ObjectId,
   username: string,
   name?: string,
   surname?: string,
   mail?: string,
   state?: string,
   avatarImgURL?: string,
-  roles: string, //? Perchè ruolo è un'array di stringhe??
-  inbox?: Notification[], //? Non è più giusto che sia facoltativo? Oppure Si mette array vuoto?
+  roles: string,
+  inbox?: Notification[],
   statistics?: Statistics,
-  // friendList:  string[],
   friendList: [{username: string, isBlocked: boolean}],
   salt?: string,    // salt is a random string that will be mixed with the actual password before hashing
   digest?: string,  // this is the hashed password (digest of the password)
   deleted?: boolean,
   setPassword: (pwd: string) => void,
   validatePassword: (pwd: string) => boolean,
-  // Role management
-  // hasAdminRole: () => boolean, //! Serve?
-  // setAdmin: () => void, //! Serve?
   hasModeratorRole: () => boolean,
   setModerator: () => void,
   hasNonRegisteredModRole: () => boolean,

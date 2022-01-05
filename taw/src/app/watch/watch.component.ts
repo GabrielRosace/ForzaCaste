@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { AppComponent } from '../app.component';
 import { SocketioService } from '../socketio.service';
 import { UserHttpService } from '../user-http.service';
 
@@ -41,7 +42,7 @@ export class WatchComponent implements OnInit {
   private gameStatus: Subscription;
   private result: Subscription;
   private gameChat: Subscription;
-  constructor(private sio: SocketioService, private us: UserHttpService, private router: Router) {
+  constructor(private app: AppComponent, private sio: SocketioService, private us: UserHttpService, private router: Router) {
     if (this.sio.turn == 1) {
       this.txtturno = this.sio.getP1()
       this.urturn=1
@@ -56,6 +57,9 @@ export class WatchComponent implements OnInit {
       console.log('got a msg gameStatus: ' + JSON.stringify(msg));
       if(msg.move!=undefined){
         this.add(msg.move)
+      }
+      if(msg.nextTurn!=undefined){
+        this.txtturno=msg.nextTurn
       }
     });
     this.gameChat=this.sio.gameChat().subscribe(msg => {
@@ -120,7 +124,8 @@ export class WatchComponent implements OnInit {
   sendmessage(text: string) {
     if (text == "") {
       this.alerts = [];
-      this.alerts.push({ message: "you have to write something for send it" });
+      this.app.toastCust("You have to write something for send it")
+      //this.alerts.push({ message: "you have to write something for send it" });
     } else {
       this.us.sendMessageSpect(text,(this.p1=="cpu")?this.p2:this.p1).subscribe((msg) => {
         console.log("ricevuto da sendMessage: ", msg);
@@ -140,7 +145,6 @@ export class WatchComponent implements OnInit {
       for(var i:number=5;i>=0;i--){
         if(this.game[i][c]==0){
           this.game[i][c]=(this.switched)?1:2
-          this.txtturno=this.sio.getP2()
           this.urturn=1
           return;
         }
@@ -149,7 +153,6 @@ export class WatchComponent implements OnInit {
       for(var i:number=5;i>=0;i--){
         if(this.game[i][c]==0){
           this.game[i][c]=(this.switched)?2:1
-          this.txtturno=this.sio.getP1()
           this.urturn=2
           return;
         }
