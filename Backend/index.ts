@@ -1912,6 +1912,7 @@ function saveClient(client) {
 // Add error handling middleware
 app.use(function (err, req, res, next) {
   console.log("Request error: ".red + JSON.stringify(err));
+  console.log(err)
   res.status(err.statusCode || 500).json(err);
 });
 
