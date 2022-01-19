@@ -2085,7 +2085,7 @@ function createMessage(sender, receiver, text) {
     timestamp: new Date().toLocaleString('it-IT'),
     inpending: true
   })
-  console.log(`Data:  ${new Date()}`)
+  console.log(`Data:  ${new Date().toISOString()}`)
   console.log(`Data italiana:  ${new Date().toLocaleString('it-IT')}`)
   return doc
 }
