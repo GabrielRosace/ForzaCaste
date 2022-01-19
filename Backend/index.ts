@@ -1372,8 +1372,7 @@ app.get('/notification', auth, (req, res, next) => {
 // read and it must be updated in the server
 app.put('/notification', auth, (req, res, next) => {
   //The user accept or decline a friendRequest
-  console.log(req.body.aaaa)
-  if(!req.body.accepted || !req.body.sender){
+  if(req.body.accepted == undefined || !req.body.sender){
     console.log("ERROR: Bad Request".red)
     return next({statusCode: 400, errormessage: "Bad Request"})
   }
