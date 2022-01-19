@@ -2082,11 +2082,11 @@ function createMessage(sender, receiver, text) {
     content: text,
     sender: sender,
     receiver: receiver,
-    timestamp: new Date().toLocaleString('it-IT'),
+    timestamp: new Date().toISOString(),
     inpending: true
   })
-  console.log(`Data:  ${new Date().toISOString()}`)
-  console.log(`Data italiana:  ${new Date().toLocaleString('it-IT')}`)
+  // console.log(`Data:  ${new Date().toISOString()}`)
+  // console.log(`Data italiana:  ${new Date().toLocaleString('it-IT')}`)
   return doc
 }
 
