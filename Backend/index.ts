@@ -1268,7 +1268,7 @@ app.post('/gameMessage', auth, (req, res, next) => {
 
 // Create a new request of different type
 app.post('/notification', auth, (req, res, next) => {
-  if(!req.body.receiver || !req.type.type){
+  if(!req.body.receiver || !req.body.type){
     console.log("ERROR: Bad Request")
     return next({statusCode: 400, errormessage: "Bad Request"})
   }
