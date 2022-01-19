@@ -2078,15 +2078,15 @@ function createChatMessage(sender, text) {
 
 function createMessage(sender, receiver, text) {
   const model = message.getModel()
+  let timestamp = new Date()
+  timestamp.setTime(timestamp.getTime()+60*60*1000)
   const doc = new model({
     content: text,
     sender: sender,
     receiver: receiver,
-    timestamp: new Date().toISOString(),
+    timestamp: timestamp.toISOString(),
     inpending: true
   })
-  // console.log(`Data:  ${new Date().toISOString()}`)
-  // console.log(`Data italiana:  ${new Date().toLocaleString('it-IT')}`)
   return doc
 }
 
