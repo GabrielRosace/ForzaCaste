@@ -1286,21 +1286,19 @@ app.post('/notification', auth, (req, res, next) => {
 app.get('/notification', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
-      let inpending: boolean = req.query.inpending // if filter is present, i've to modify query introducing that filter
+      let inpending: boolean = req.query.inpending
       let makeNotificationRead = req.query.makeNotificationRead
-      //console.log("makeNotificationRead: "+makeNotificationRead)
       let query = notification.getModel().find({ receiver: u.username.toString(), deleted: false, inpending: inpending })
       if (inpending == undefined) {
         query = notification.getModel().find({ receiver: u.username.toString(), deleted: false })
       }
       query.then((n) => {
-        //console.log("makeNotificationRead: "+makeNotificationRead)
-        //let second = Boolean().valueOf()
         console.log(typeof (makeNotificationRead))
         if (makeNotificationRead == "true") {
           notification.getModel().updateMany({ receiver: u.username.toString(), deleted: false }, { inpending: false }, {}, (err, result) => {
             if (err) {
               console.log(`Error updating inpending notification: ${err}`.red)
+              return next({ statusCode: 404, errormessage: `DB error: ${err}`})
             } else {
               console.log(`Mark notification as read`.green)
             }
@@ -1308,11 +1306,13 @@ app.get('/notification', auth, (req, res, next) => {
         }
         return res.status(200).json({ error: false, errormessage: "", notification: n });
       }).catch((reason) => {
-        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+        console.log(`DB error: ${reason}`.red)
+        return next({ statusCode: 404, errormessage: "DB error: " + reason });
       })
     }
   }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+    console.log(`DB error: ${reason}`.red)
+    return next({ statusCode: 404, errormessage: "DB error: " + reason });
   })
 })
 
@@ -1468,7 +1468,7 @@ app.post('/message', auth, (req, res, next) => {
 // Send a message to a specif user, receiver or sender must be moderator
 app.post('/message/mod', auth, (req, res, next) => {
   if (req.body.receiver == undefined || req.body.message == undefined) {
-    return res.status(400).json({ error: true, errormessage: 'You should send receiver and message' })
+    return next({ statusCode: 400, errormessage: 'You should send receiver and message body' })
   }
   let rec = req.body.receiver
   let message = req.body.message
@@ -1485,16 +1485,16 @@ app.post('/message/mod', auth, (req, res, next) => {
           return res.status(200).json({ error: false, errormessage: "" })
         }).catch((e) => {
           console.log("DB error : " + e)
-          return res.status(404).json({ error: true, errormessage: "DB error: " + e.errmsg })
+          return next({statusCode: 404, errormessage: "DB error: " + e.errmsg })
         })
       } else {
-        return res.status(401).json({ error: true, errormessage: "You cannot do it" })
+        return next({ statusCode: 401, errormessage: "You cannot do it" })
       }
     }).catch((e) => {
-      return res.status(401).json({ error: true, errormessage: "You cannot do it" })
+      return next({ statusCode: 401, errormessage: "You cannot do it" })
     })
   }).catch((e) => {
-    return res.status(401).json({ error: true, errormessage: "You cannot do it" })
+    return next({ statusCode: 401, errormessage: "You cannot do it" })
   })
 })
 
