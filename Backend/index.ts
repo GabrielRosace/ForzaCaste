@@ -1092,7 +1092,7 @@ app.delete('/game', auth, (req, res, next) => {
 })
 
 app.put('/game', auth, (req, res, next) => {
-  if(!req.body.accept || !req.body.sender){
+  if(req.body.accept === undefined || !req.body.sender){
     console.log("ERROR: Bad Request")
     return next({statusCode: 400, errormessage: "Bad Request"})
   }
