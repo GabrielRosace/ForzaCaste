@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core'
+import { Router } from '@angular/router';
 import { SocketioService } from './socketio.service'
 import { UserHttpService } from './user-http.service'
 // import { SocketioService } from './socketio.service';
@@ -12,7 +13,7 @@ import { ToastService } from './_services/toast.service';
 export class AppComponent{
   title = 'taw'
 
-  constructor(private us: UserHttpService, private socket: SocketioService, public toastService: ToastService) {
+  constructor(private us: UserHttpService, private socket: SocketioService, public toastService: ToastService, public router: Router) {
     
   }
 
@@ -32,6 +33,20 @@ export class AppComponent{
     }
   }
 
+  updateFriendListVS(){
+    console.log("ROUTING")
+    console.log(this.router.url)
+    if(this.router.url == "/game"){
+      this.us.update_visibleFriendList(false)
+    }else{
+      this.us.update_visibleFriendList(true)
+    }
+  }
+
+  check(){
+    this.updateFriendListVS()
+    this.checkCurrentSession()
+  }
   // ! DA TOGLIERE
 
   showStandard() {
