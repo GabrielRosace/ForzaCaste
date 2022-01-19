@@ -124,6 +124,7 @@ import * as message from './Message'
 
 
 import * as CPU from './cpu'
+import { timeStamp } from 'console';
 
 declare global {
   namespace Express {
@@ -1004,10 +1005,8 @@ app.post("/move", auth, (req, res, next) => {
             let index = parseInt(move)
             // post move logic
             if (m.nTurns % 2 == 1 && m.player1 == username) {
-
               return makeMove(index, m, client, 'X', m.player2, res, username)
-            } else if (m.nTurns % 2 == 0 && m.player2 == username) { //  player2's turns
-
+            } else if (m.nTurns % 2 == 0 && m.player2 == username) {
               return makeMove(index, m, client, 'O', m.player1, res, username)
             } else { // trying to post move out of right turn
               let errorMessage = JSON.stringify({ "error": true, "codeError": 3, "errorMessage": "Wrong turn" })
@@ -1093,7 +1092,7 @@ app.delete('/game', auth, (req, res, next) => {
 })
 
 app.put('/game', auth, (req, res, next) => {
-  if(!req.body.accept || !req.body.sender){
+  if(req.body.accept === undefined || !req.body.sender){
     console.log("ERROR: Bad Request")
     return next({statusCode: 400, errormessage: "Bad Request"})
   }
@@ -1239,13 +1238,11 @@ app.post('/gameMessage', auth, (req, res, next) => {
               })
             }
             else {
-              // ! Errore : il socket del client deve essere dentro alla room della partita
               console.log("ERROR: SocketIO client is not in the match room".red)
               return next({ statusCode: 404, errormessage: "SocketIO client is not in the match room" })
             }
           }
           else {
-            // ! Partita non trovata
             console.log("ERROR: match not found".red)
             return next({ statusCode: 404, errormessage: "Match not found" })
           }
@@ -1271,7 +1268,7 @@ app.post('/gameMessage', auth, (req, res, next) => {
 
 // Create a new request of different type
 app.post('/notification', auth, (req, res, next) => {
-  if(!req.body.receiver || !req.type.type){
+  if(!req.body.receiver || !req.body.type){
     console.log("ERROR: Bad Request")
     return next({statusCode: 400, errormessage: "Bad Request"})
   }
@@ -1286,7 +1283,7 @@ app.post('/notification', auth, (req, res, next) => {
             }
             else {
               // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
-              notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: receiver.username.toString(), deleted: false }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
+              notification.getModel().findOne({ type: "friendRequest", $or: [{sender: u.username, receiver: receiver.username.toString()}, {sender: receiver.username.toString(), receiver: u.username}], deleted: false }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
                 if (n !== null) {
                   console.log("ERROR: Request already exist".red)
                   return next({ statusCode: 404, errormessage: "Request already exist" })
@@ -1375,7 +1372,7 @@ app.get('/notification', auth, (req, res, next) => {
 // read and it must be updated in the server
 app.put('/notification', auth, (req, res, next) => {
   //The user accept or decline a friendRequest
-  if(!req.body.accepted || !req.body.sender){
+  if(req.body.accepted == undefined || !req.body.sender){
     console.log("ERROR: Bad Request".red)
     return next({statusCode: 400, errormessage: "Bad Request"})
   }
@@ -1681,7 +1678,7 @@ app.delete('/friend/:username', auth, (req, res, next) => {
 })
 
 app.put('/friend', auth, (req, res, next) => {
-  if(!req.body.username || !req.body.isBlocked){
+  if(!req.body.username || req.body.isBlocked == undefined){
     console.log("ERROR: Bad Request".red)
     return next({statusCode: 400, errormessage: "Bad Request"})
   }
@@ -1915,6 +1912,7 @@ function saveClient(client) {
 // Add error handling middleware
 app.use(function (err, req, res, next) {
   console.log("Request error: ".red + JSON.stringify(err));
+  console.log(err)
   res.status(err.statusCode || 500).json(err);
 });
 
@@ -2067,11 +2065,13 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 
 function createChatMessage(sender, text) {
   const model = message.getModel()
+  let timestamp = new Date()
+  timestamp.setTime(timestamp.getTime()+60*60*1000)
   const doc = new model({
     content: text,
     sender: sender,
     receiver: null,
-    timestamp: new Date().toLocaleString('it-IT')
+    timestamp: timestamp.toISOString()
   })
   return doc
 }

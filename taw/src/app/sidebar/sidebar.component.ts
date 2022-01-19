@@ -32,6 +32,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private subscriptionMsg!: Subscription
   private subscriptionIn!: Subscription
   private subscriptionChat!: Subscription
+  private subscriptionRoute!: Subscription
 
   public errMsg: string = ""
 
@@ -52,6 +53,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   public messageInMod?: any
   public modlist: any[] = []
+
+  public friendListVis: boolean = true
 
   public onlineUser?: any
   //private subsctiptionNot: Subscription
@@ -106,6 +109,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.getInpendingMsgMod()
       }
     })
+    this.subscriptionRoute = this.us.get_visibleFriendList().subscribe((msg) => {
+      console.log("Visible FriendList")
+      console.log(msg.value)
+      this.friendListVis = msg.value
+    })
+
     /*
         this.us.get_friendlist().subscribe((u) => {
           this.friendlist = []
@@ -463,7 +472,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   addFriendToFriendlist(sender: string, accepted: boolean) {
     console.log("sender: ", sender)
     this.us.add_friend(sender, accepted).subscribe((data) => {
-      this.app.toastCust("Request Accepted")
+      if(accepted){
+        this.app.toastCust("Request Accepted")
+      }else{
+        this.app.toastCust("Request Rejected")
+      }
       //this.toastN("Request Accepted")
       this.getFriendlist()
     })
