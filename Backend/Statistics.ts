@@ -24,7 +24,6 @@ const validatorSchema = {
 const validate = ajv.compile(validatorSchema)
 // ----------------------------------------------------
 
-// ? Forse non serve che venga salvato sul db perchè è già dentro a User
 
 export interface Statistics extends mongoose.Document {
   nGamesWon: number,
