@@ -1283,7 +1283,7 @@ app.post('/notification', auth, (req, res, next) => {
             }
             else {
               // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
-              notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: receiver.username.toString(), deleted: false }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
+              notification.getModel().findOne({ type: "friendRequest", $or: [{sender: u.username, receiver: receiver.username.toString()}, {sender: receiver.username.toString(), receiver: u.username}], deleted: false }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
                 if (n !== null) {
                   console.log("ERROR: Request already exist".red)
                   return next({ statusCode: 404, errormessage: "Request already exist" })
