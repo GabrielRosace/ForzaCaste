@@ -124,6 +124,7 @@ import * as message from './Message'
 
 
 import * as CPU from './cpu'
+import { timeStamp } from 'console';
 
 declare global {
   namespace Express {
@@ -1004,10 +1005,8 @@ app.post("/move", auth, (req, res, next) => {
             let index = parseInt(move)
             // post move logic
             if (m.nTurns % 2 == 1 && m.player1 == username) {
-
               return makeMove(index, m, client, 'X', m.player2, res, username)
-            } else if (m.nTurns % 2 == 0 && m.player2 == username) { //  player2's turns
-
+            } else if (m.nTurns % 2 == 0 && m.player2 == username) {
               return makeMove(index, m, client, 'O', m.player1, res, username)
             } else { // trying to post move out of right turn
               let errorMessage = JSON.stringify({ "error": true, "codeError": 3, "errorMessage": "Wrong turn" })
@@ -1239,13 +1238,11 @@ app.post('/gameMessage', auth, (req, res, next) => {
               })
             }
             else {
-              // ! Errore : il socket del client deve essere dentro alla room della partita
               console.log("ERROR: SocketIO client is not in the match room".red)
               return next({ statusCode: 404, errormessage: "SocketIO client is not in the match room" })
             }
           }
           else {
-            // ! Partita non trovata
             console.log("ERROR: match not found".red)
             return next({ statusCode: 404, errormessage: "Match not found" })
           }
@@ -2067,11 +2064,13 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 
 function createChatMessage(sender, text) {
   const model = message.getModel()
+  let timestamp = new Date()
+  timestamp.setTime(timestamp.getTime()+60*60*1000)
   const doc = new model({
     content: text,
     sender: sender,
     receiver: null,
-    timestamp: new Date().toLocaleString('it-IT')
+    timestamp: timestamp.toISOString()
   })
   return doc
 }

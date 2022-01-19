@@ -69,10 +69,10 @@
 */
 Object.defineProperty(exports, "__esModule", { value: true });
 const result = require('dotenv').config();
-if (result.error) {
-    console.log("Unable to load '.env' file. Please provide one to store the JWT secret key");
-    process.exit(-1);
-}
+// if (result.error) {
+//   console.log("Unable to load '.env' file. Please provide one to store the JWT secret key");
+//   process.exit(-1);
+// }
 if (!process.env.JWT_SECRET) {
     console.log("'.env' file loaded but JWT_SECRET=<secret> key-value pair was not found");
     process.exit(-1);
@@ -874,7 +874,7 @@ app.post("/move", auth, (req, res, next) => {
                         if (m.nTurns % 2 == 1 && m.player1 == username) {
                             return makeMove(index, m, client, 'X', m.player2, res, username);
                         }
-                        else if (m.nTurns % 2 == 0 && m.player2 == username) { //  player2's turns
+                        else if (m.nTurns % 2 == 0 && m.player2 == username) {
                             return makeMove(index, m, client, 'O', m.player1, res, username);
                         }
                         else { // trying to post move out of right turn
@@ -1098,13 +1098,11 @@ app.post('/gameMessage', auth, (req, res, next) => {
                             });
                         }
                         else {
-                            // ! Errore : il socket del client deve essere dentro alla room della partita
                             console.log("ERROR: SocketIO client is not in the match room".red);
                             return next({ statusCode: 404, errormessage: "SocketIO client is not in the match room" });
                         }
                     }
                     else {
-                        // ! Partita non trovata
                         console.log("ERROR: match not found".red);
                         return next({ statusCode: 404, errormessage: "Match not found" });
                     }
@@ -1196,7 +1194,7 @@ app.post('/notification', auth, (req, res, next) => {
 app.get('/notification', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username }).then((u) => {
         if (u.hasModeratorRole() || u.hasUserRole()) {
-            let inpending = req.query.inpending; // if filter is present, i've to modify query introducing that filter
+            let inpending = req.query.inpending;
             let makeNotificationRead = req.query.makeNotificationRead;
             let query = notification.getModel().find({ receiver: u.username.toString(), deleted: false, inpending: inpending });
             if (inpending == undefined) {
@@ -1207,6 +1205,7 @@ app.get('/notification', auth, (req, res, next) => {
                     notification.getModel().updateMany({ receiver: u.username.toString(), deleted: false }, { inpending: false }, {}, (err, result) => {
                         if (err) {
                             console.log(`Error updating inpending notification: ${err}`.red);
+                            return next({ statusCode: 404, errormessage: `DB error: ${err}` });
                         }
                         else {
                             console.log(`Mark notification as read`.green);
@@ -1215,7 +1214,8 @@ app.get('/notification', auth, (req, res, next) => {
                 }
                 return res.status(200).json({ error: false, errormessage: "", notification: n });
             }).catch((reason) => {
-                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                console.log(`DB error: ${reason}`.red);
+                return next({ statusCode: 404, errormessage: "DB error: " + reason });
             });
         }
         else {
@@ -1384,7 +1384,7 @@ app.post('/message', auth, (req, res, next) => {
 // Send a message to a specif user, receiver or sender must be moderator
 app.post('/message/mod', auth, (req, res, next) => {
     if (req.body.receiver == undefined || req.body.message == undefined) {
-        return next({ statusCode: 400, errormessage: "Bad Request" });
+        return next({ statusCode: 400, errormessage: 'You should send receiver and message body' });
     }
     let rec = req.body.receiver;
     let message = req.body.message;
@@ -1858,7 +1858,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
             console.log("Socket.io client disconnected".red);
         });
     });
-    server.listen(8080, () => console.log("HTTP Server started on port 8080".green));
+    server.listen(process.env.PORT || 8080, () => console.log(`HTTP Server started on port ${process.env.PORT || 8080}`.green));
 }).catch((err) => {
     console.log("Error Occurred during initialization".red);
     console.log(err);
@@ -1873,23 +1873,25 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 // }
 function createChatMessage(sender, text) {
     const model = message.getModel();
+    let timestamp = new Date();
+    timestamp.setTime(timestamp.getTime() + 60 * 60 * 1000);
     const doc = new model({
-        type: "gameMessage",
         content: text,
         sender: sender,
         receiver: null,
-        timestamp: new Date().toLocaleString('it-IT')
+        timestamp: timestamp.toISOString()
     });
     return doc;
 }
 function createMessage(sender, receiver, text) {
     const model = message.getModel();
+    let timestamp = new Date();
+    timestamp.setTime(timestamp.getTime() + 60 * 60 * 1000);
     const doc = new model({
-        type: "message",
         content: text,
         sender: sender,
         receiver: receiver,
-        timestamp: new Date().toLocaleString('it-IT'),
+        timestamp: timestamp.toISOString(),
         inpending: true
     });
     return doc;
