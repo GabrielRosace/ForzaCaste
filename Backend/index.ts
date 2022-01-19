@@ -1678,7 +1678,7 @@ app.delete('/friend/:username', auth, (req, res, next) => {
 })
 
 app.put('/friend', auth, (req, res, next) => {
-  if(!req.body.username || !req.body.isBlocked){
+  if(!req.body.username || req.body.isBlocked == undefined){
     console.log("ERROR: Bad Request".red)
     return next({statusCode: 400, errormessage: "Bad Request"})
   }
