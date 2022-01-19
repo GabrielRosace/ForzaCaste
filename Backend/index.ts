@@ -535,7 +535,7 @@ app.put("/users", auth, (req, res, next) => {
 
 
 // ---------------------------------------------------------------------------------------------------
-
+// TODO controllare error:true
 
 // Getting the history of logged in user ranking, it is based on the ranking he had at the time of the game requests he made
 app.get('/rankingstory', auth, (req, res, next) => {
@@ -577,108 +577,128 @@ function getRankingList(username: string) {
 }
 
 app.post('/game', auth, (req, res, next) => {
+  if(!req.body.type){
+    console.log("ERROR: Bad Request")
+    return next({statusCode: 400, errormessage: "Bad Request"})
+  }
   if (req.body.type == 'randomMatchmaking') {
     user.getModel().findOne({ username: req.user.username }).then((us: User) => {
-      notification.getModel().find({ type: "randomMatchmaking", receiver: null, deleted: false }).then((nList) => {
-        let n: Notification | undefined = undefined
-        for (let i = 0; i < nList.length; i++) {
-          let iter: Notification = nList[i]
-          if (iter.ranking - us.statistics.ranking < 80) {
-            n = iter
-          } else { // prevent deadlock of user with high ranking
-            iter.ranking -= 80
-            iter.save()
-          }
-        }
-        if (notification.isNotification(n)) {
-          if (n != null && n.sender != us.username) {
-            const randomMatch = createNewRandomMatch(n.sender, us.username)
-            n.receiver = us.username
-            randomMatch.save().then((data) => {
-              console.log("Match have been created correctely".green);
-            }).catch((reason) => {
-              console.log("ERROR: match creation error \nDB error: ".red + reason)
-              return next({ statusCode: 404, errormessage: "Match creation error"});
-            })
-            n.deleted = true
-            n.inpending = false
-            n.save().then((data) => {
-              console.log("Game request have been updated correctely".green)
-            }).catch((reason) => {
-              console.log("ERROR: match request update error \nDB error: ".red + reason)
-              return next({ statusCode: 404, errormessage: "Match request update error" });
-            })
-
-            let player1 = randomMatch.player1.toString()
-            let player2 = randomMatch.player2.toString()
-            let client1 = socketIOclients[player1]
-            let client2 = socketIOclients[player2]
-            client1.join(player1)
-            client2.join(player1)
-
-            client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 })
-            client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 })
-
-            if (randomMatch.player1.toString() == player1.toString()) {
-              console.log("starts player1")
-              let pl1Turn = JSON.stringify({ yourTurn: true })
-              client1.emit('move', JSON.parse(pl1Turn))
-              let pl2Turn = JSON.stringify({ yourTurn: false })
-              client2.emit('move', JSON.parse(pl2Turn))
-            } else {
-              console.log("starts player2")
-              let pl2Turn = JSON.stringify({ yourTurn: true })
-              client2.emit('move', JSON.parse(pl2Turn))
-              let pl1Turn = JSON.stringify({ yourTurn: false })
-              client1.emit('move', JSON.parse(pl1Turn))
+      if(us.hasModeratorRole() || us.hasUserRole()){
+        notification.getModel().find({ type: "randomMatchmaking", receiver: null, deleted: false }).then((nList) => {
+          let n: Notification | undefined = undefined
+          for (let i = 0; i < nList.length; i++) {
+            let iter: Notification = nList[i]
+            if (iter.ranking - us.statistics.ranking < 80) {
+              n = iter
+            } else { // prevent deadlock of user with high ranking
+              iter.ranking -= 80
+              iter.save()
             }
-            let watchersMessage = JSON.stringify({ playerTurn: randomMatch.player1.toString() })
-            ios.to(randomMatch.player1.toString() + 'Watchers').emit('gameStatus', JSON.parse(watchersMessage))
-
-            console.log("Match creation and game request update done".green)
-            return res.status(200).json({ error: false, errormessage: "Match have been created correctely" })
           }
-          else {
-            console.log("Match request already exists".red);
-            return next({ statusCode: 404, errormessage: "Match request already exists" });
-          }
-        } else {
-          const doc = createNewGameRequest(req.body, us.username, us.statistics.ranking)
-
-          doc.save().then((data) => {
-            if (notification.isNotification(data)) {
-              console.log("Notification creation done")
-              return res.status(200).json({ error: false, message: "Match request have been created correctely" });
+          if (notification.isNotification(n)) {
+            if (n != null && n.sender != us.username) {
+              const randomMatch = createNewRandomMatch(n.sender, us.username)
+              n.receiver = us.username
+              randomMatch.save().then((data) => {
+                console.log("Match have been created correctely".green);
+              }).catch((reason) => {
+                console.log("ERROR: match creation error \nDB error: ".red + reason)
+                return next({ statusCode: 404, errormessage: "Match creation error"});
+              })
+              n.deleted = true
+              n.inpending = false
+              n.save().then((data) => {
+                console.log("Game request have been updated correctely".green)
+              }).catch((reason) => {
+                console.log("ERROR: match request update error \nDB error: ".red + reason)
+                return next({ statusCode: 404, errormessage: "Match request update error" });
+              })
+  
+              let player1 = randomMatch.player1.toString()
+              let player2 = randomMatch.player2.toString()
+              let client1 = socketIOclients[player1]
+              let client2 = socketIOclients[player2]
+              client1.join(player1)
+              client2.join(player1)
+  
+              client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 })
+              client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 })
+  
+              if (randomMatch.player1.toString() == player1.toString()) {
+                console.log("starts player1")
+                let pl1Turn = JSON.stringify({ yourTurn: true })
+                client1.emit('move', JSON.parse(pl1Turn))
+                let pl2Turn = JSON.stringify({ yourTurn: false })
+                client2.emit('move', JSON.parse(pl2Turn))
+              } else {
+                console.log("starts player2")
+                let pl2Turn = JSON.stringify({ yourTurn: true })
+                client2.emit('move', JSON.parse(pl2Turn))
+                let pl1Turn = JSON.stringify({ yourTurn: false })
+                client1.emit('move', JSON.parse(pl1Turn))
+              }
+              let watchersMessage = JSON.stringify({ playerTurn: randomMatch.player1.toString() })
+              ios.to(randomMatch.player1.toString() + 'Watchers').emit('gameStatus', JSON.parse(watchersMessage))
+  
+              console.log("Match creation and game request update done".green)
+              return res.status(200).json({ error: false, errormessage: "Match have been created correctely" })
             }
-          }).catch((reason) => {
-            console.log("ERROR: random game request creation error \nDB error: ".red + reason)
-            return next({ statusCode: 404, errormessage: "Random game request creation error" });
-          })
-        }
-      })
+            else {
+              console.log("Match request already exists".red);
+              return next({ statusCode: 404, errormessage: "Match request already exists" });
+            }
+          } else {
+            const doc = createNewGameRequest(req.body, us.username, us.statistics.ranking)
+  
+            doc.save().then((data) => {
+              if (notification.isNotification(data)) {
+                console.log("Notification creation done")
+                return res.status(200).json({ error: false, message: "Match request have been created correctely" });
+              }
+            }).catch((reason) => {
+              console.log("ERROR: random game request creation error \nDB error: ".red + reason)
+              return next({ statusCode: 404, errormessage: "Random game request creation error" });
+            })
+          }
+        }).catch((error) => {
+          console.log("ERROR: DB error1\n".red + error)
+          return next({statusCode: 404, errormessage: "DB error"})          
+        })
+      }
+      else{
+        console.log("ERROR: Unauthorized".red)
+        return next({ statusCode: 401, errormessage: "Unauthorized" })
+      }
+    }).catch((error) => {
+      console.log("ERROR: DB error2\n".red + error)
+      return next({statusCode: 404, errormessage: "DB error"}) 
     })
   }
   else if (req.body.type == 'friendlyMatchmaking') {
+    if(!req.body.oppositePlayer){
+      console.log("ERROR: Bad Request")
+      return next({statusCode: 400, errormessage: "Bad Request"})
+    }
     user.getModel().findOne({ username: req.user.username }).then((us: User) => {
-      notification.getModel().findOne({ type: "friendlyMatchmaking", sender: us.username, deleted: false }).then((n) => {
-        if (!notification.isNotification(n)) {
-          // Check if the opposite player is a friend
-          user.getModel().findOne({ username: req.body.oppositePlayer }).then((friend) => {
-            if (!us.isFriend(friend.username.toString())) {
-              console.log("ERROR: opposite player is not a friend".red);
-              return next({ statusCode: 404, errormessage: "The opposite player is not a friend" })
-            }
-
-            // Check if the opposite player is online
-            if (!checkOnlineUser(friend.username)) {
-              console.log("ERROR: opposite player is not online".red);
-              return next({ statusCode: 404, errormessage: "The opposite player is not online" })
-            }
-
-            const doc = createNewGameRequest(req.body, us.username, us.statistics.ranking, friend.username)
-
-            doc.save().then((data) => {
-              if (notification.isNotification(data)) {
+      if(us.hasModeratorRole() || us.hasUserRole()){
+        notification.getModel().findOne({ type: "friendlyMatchmaking", sender: us.username, deleted: false }).then((n) => {
+          if (!notification.isNotification(n)) {
+            // Check if the opposite player is a friend
+            user.getModel().findOne({ username: req.body.oppositePlayer }).then((friend) => {
+              if (!us.isFriend(friend.username.toString())) {
+                console.log("ERROR: opposite player is not a friend".red);
+                return next({ statusCode: 404, errormessage: "The opposite player is not a friend" })
+              }
+  
+              // Check if the opposite player is online
+              if (!checkOnlineUser(friend.username)) {
+                console.log("ERROR: opposite player is not online".red);
+                return next({ statusCode: 404, errormessage: "The opposite player is not online" })
+              }
+  
+              const doc = createNewGameRequest(req.body, us.username, us.statistics.ranking, friend.username)
+  
+              doc.save().then((data) => {
                 // Check if friend is online
                 if (socketIOclients[friend.username]) {
                   let friendMessage = JSON.stringify({ type: "friendlyGame", player: us.username.toString() })
@@ -688,23 +708,40 @@ app.post('/game', auth, (req, res, next) => {
                 }
                 else {
                   console.log("Opposite player is not online".green + data.sender)
-                  return next({ statusCode: 404, error: true, errormessage: "The opposite player is not online" })
+                  return next({ statusCode: 404, errormessage: "The opposite player is not online" })
                 }
-              }
-            }).catch((reason) => {
-              console.log("ERROR: friendly game request creation error \nDB error: ".red + reason)
-              return next({ statusCode: 404, errormessage: "Friendly game request creation error" });
+              }).catch((reason) => {
+                console.log("ERROR: friendly game request creation error \nDB error: ".red + reason)
+                return next({ statusCode: 404, errormessage: "Friendly game request creation error" });
+              })
+            }).catch((error) => {
+              console.log("ERROR: DB error\n".red + error);
+              return next({statusCode: 404, errormessage: "DB error"})
             })
-          })
-        }
-        else {
-          console.log("ERROR: friendly game request already exist".red);
-          return next({statusCode:404, error: true, errormessage: "Friendly game request already exist"})
-        }
-      })
+          }
+          else {
+            console.log("ERROR: friendly game request already exist".red);
+            return next({statusCode:404, errormessage: "Friendly game request already exist"})
+          }
+        }).catch((error) => {
+          console.log("ERROR: DB error\n" + error)
+          return next({statusCode: 404, errormessage: "DB error"})
+        })
+      }
+      else{
+        console.log("ERROR: Unauthorized".red)
+        return next({ statusCode: 401, errormessage: "Unauthorized" })
+      }
+    }).catch((error) => {
+      console.log("ERROR: DB error\n".red + error)
+      return next({statusCode: 404, errormessage: "DB error"}) 
     })
   }
   else if (req.body.type == 'watchGame') {
+    if(!req.body.player){
+      console.log("ERROR: Bad Request")
+      return next({statusCode: 400, errormessage: "Bad Request"})
+    }
     user.getModel().findOne({ username: req.user.username }).then((user: User) => {
       if (user.hasUserRole() || user.hasModeratorRole()) {
         match.getModel().findOne({ inProgress: true, $or: [{ player1: req.body.player }, { player2: req.body.player }] }).then((m: Match) => { // Si dovrebbe usare n.username
@@ -713,6 +750,7 @@ app.post('/game', auth, (req, res, next) => {
             if (socketIOclients[user.username.toString()]){
               client = socketIOclients[user.username.toString()]
               client.join(m.player1.toString()+'Watchers')
+              client.join(m.player1.toString())
             }
             else
               return next({ statusCode: 404, errormessage: "SocketIO client is not connected" })
@@ -726,13 +764,19 @@ app.post('/game', auth, (req, res, next) => {
             console.log("ERROR: the specified match does not exist".red)
             return next({ statusCode: 404, errormessage: "The specified match does not exist" })
           }
+        }).catch((error) => {
+          console.log("ERROR: DB error\n".red + error)
+          return next({ statusCode: 404, errormessage: "DB error" })
         })
       }
       else {
         // ! Errore: l'utente non ha ruolo utente o moderatore
-        console.log("ERROR: the user hasn't the necessary roles".red)
-        return next({ statusCode: 404, errormessage: "User hasn't the necessary roles" })
+        console.log("ERROR: Unauthorized".red)
+        return next({ statusCode: 401, errormessage: "Unauthorized" })
       }
+    }).catch((error) => {
+      console.log("ERROR: DB error\n".red + error)
+      return next({ statusCode: 404, errormessage: "DB error" })
     })
   }
   else {
@@ -750,7 +794,7 @@ app.post('/game/cpu', auth, (req, res, next) => {
   let player = req.user.username
   user.getModel().findOne({ username: player }).then((u: User) => {
     if (!(u.hasModeratorRole() || u.hasUserRole())) {
-      return next({ statusCode: 403, errormessage: "Unauthorized" })
+      return next({ statusCode: 401, errormessage: "Unauthorized" })
     }
     const model = match.getModel()
     const doc = new model({
@@ -770,12 +814,18 @@ app.post('/game/cpu', auth, (req, res, next) => {
         console.log("Client joined the room ".green + u.username.toString());
       }
       catch (error) {
-        console.log("error")
+        console.log("Socket.Io error".red + error)
         return next({ statusCode: 404, errormessage: "Socket.IO error" })
       }
       console.log(`Single player match has been created`.green)
       return res.status(200).json({ error: false, errormessage: "Single player match has been created" })
+    }).catch((error) => {
+      console.log("ERROR: Match saving error\nDB ERROR: ".red + error)
+      return next({ statusCode: 404, errormessage: "Match saving error" })
     })
+  }).catch((error) => {
+    console.log("ERROR: DB error\n".red + error)
+    return next({ statusCode: 401, errormessage: "DB error" })
   })
 })
 
@@ -804,6 +854,9 @@ app.get('/move', auth, (req, res, next) => {
         console.log(`Match not found`.red)
         return next({statusCode: 404, errormessage: `Match not found` })
       }
+    }).catch((error) => {
+      console.log("ERROR: DB error\n".red + error)
+      return next({ statusCode: 401, errormessage: "DB error" })
     })
   }).catch((err) => {
     console.log(`DB error: ${err}`.red)
@@ -821,15 +874,12 @@ app.post('/move/cpu', auth, (req, res, next) => {
       return next({ statusCode: 403, errormessage: "Unauthorized" })
     }
 
-
     if (move == undefined) {
       console.log(`Incorrectly formed request`.red)
       return next({ statusCode: 401, errormessage: "Incorrectly formed request" })
     }
 
-
     match.getModel().findOne({ player1: req.user.username, player2: "cpu", inProgress: true }).then((m) => {
-
       if (match.isMatch(m)) {
         let client = socketIOclients[req.user.username]
         let index = parseInt(move)
@@ -929,8 +979,10 @@ app.post('/move/cpu', auth, (req, res, next) => {
       console.log(`DB error: ${err}`.red)
       return next({statusCode: 401, errormessage: `DB error: ${err}` })
     })
+  }).catch((error) => {
+    console.log("ERROR: DB error\n".red + error)
+    return next({ statusCode: 401, errormessage: "DB error" })
   })
-
 })
 
 // Play the turn making a move 
@@ -973,6 +1025,9 @@ app.post("/move", auth, (req, res, next) => {
       console.log(`You cannot do it`.red)
       return next({ statusCode: 403, errormessage: "You cannot do it" })
     }
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
 
@@ -987,7 +1042,6 @@ app.delete('/game', auth, (req, res, next) => {
             let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" })
             if (data.player2.toString() != "cpu") {
               if (socketIOclients[user.username.toString()]) {
-                // let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" })
                 socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message))
               }
             }
@@ -1018,89 +1072,114 @@ app.delete('/game', auth, (req, res, next) => {
               console.log("ERROR: Match request does not exist".red)
               return next({ statusCode: 404, errormessage: "Match request does not exists" })
             }
+          }).catch((error) => {
+            console.log("ERROR: DB error".red + error)
+            return next({statusCode: 404, errormessage: "DB error"})
           })
         }
+      }).catch((error) => {
+        console.log("ERROR: DB error".red + error)
+        return next({statusCode: 404, errormessage: "DB error"})
       })
     }
     else {
-      console.log("ERROR: the user hasn't the necessary roles".red)
-      return next({ statusCode: 404, errormessage: "User hasn't the necessary roles" })
+      console.log("ERROR: Unauthorized".red)
+      return next({ statusCode: 401, errormessage: "Unauthorized" })
     }
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
 
 app.put('/game', auth, (req, res, next) => {
+  if(!req.body.accept || !req.body.sender){
+    console.log("ERROR: Bad Request")
+    return next({statusCode: 400, errormessage: "Bad Request"})
+  }
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
-    notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: user.username.toString(), deleted: false, sender: req.body.sender }).then((n) => {
-      if (n != null && n.sender != user.username) {
-        if (req.body.accept === true) {
-          const randomMatch = createNewRandomMatch(n.sender, n.receiver)
-          randomMatch.save().then((data) => {
-            console.log("Match have been created correctely".green)
-          }).catch((reason) => {
-            console.log("ERROR: match creation error \nDB error: ".red + reason)
-            next({ statusCode: 404, errormessage: "Match creation error" });
-          })
-          n.deleted = true
-          n.inpending = false
-          n.save().then((data) => {
-            console.log("Game request have been updated correctely".green)
-          }).catch((reason) => {
-            console.log("ERROR: match request update error \nDB error: ".red + reason)
-            return next({ statusCode: 404, errormessage: "Match request update error" });
-          })
-
-          let player1 = randomMatch.player1.toString()
-          let player2 = randomMatch.player2.toString()
-          let client1 = socketIOclients[player1]
-          let client2 = socketIOclients[player2]
-          client1.join(player1)
-          client2.join(player1)
-
-          client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 })
-          client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 })
-
-
-          if (randomMatch.player1.toString() == player1.toString()) {
-            console.log("starts player1")
-            let pl1Turn = JSON.stringify({ yourTurn: true })
-            client1.emit('move', JSON.parse(pl1Turn))
-            let pl2Turn = JSON.stringify({ yourTurn: false })
-            client2.emit('move', JSON.parse(pl2Turn))
-          } else {
-            console.log("starts player2")
-            let pl2Turn = JSON.stringify({ yourTurn: true })
-            client2.emit('move', JSON.parse(pl2Turn))
-            let pl1Turn = JSON.stringify({ yourTurn: false })
-            client1.emit('move', JSON.parse(pl1Turn))
+    if(user.hasModeratorRole() || user.hasUserRole()){
+      notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: user.username.toString(), deleted: false, sender: req.body.sender }).then((n) => {
+        if (n != null && n.sender != user.username) {
+          if (req.body.accept === true) {
+            const randomMatch = createNewRandomMatch(n.sender, n.receiver)
+            randomMatch.save().then((data) => {
+              console.log("Match have been created correctely".green)
+            }).catch((reason) => {
+              console.log("ERROR: match creation error \nDB error: ".red + reason)
+              next({ statusCode: 404, errormessage: "Match creation error" });
+            })
+            n.deleted = true
+            n.inpending = false
+            n.save().then((data) => {
+              console.log("Game request have been updated correctely".green)
+            }).catch((reason) => {
+              console.log("ERROR: match request update error \nDB error: ".red + reason)
+              return next({ statusCode: 404, errormessage: "Match request update error" });
+            })
+  
+            let player1 = randomMatch.player1.toString()
+            let player2 = randomMatch.player2.toString()
+            let client1 = socketIOclients[player1]
+            let client2 = socketIOclients[player2]
+            client1.join(player1)
+            client2.join(player1)
+  
+            client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 })
+            client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 })
+  
+  
+            if (randomMatch.player1.toString() == player1.toString()) {
+              console.log("starts player1")
+              let pl1Turn = JSON.stringify({ yourTurn: true })
+              client1.emit('move', JSON.parse(pl1Turn))
+              let pl2Turn = JSON.stringify({ yourTurn: false })
+              client2.emit('move', JSON.parse(pl2Turn))
+            } else {
+              console.log("starts player2")
+              let pl2Turn = JSON.stringify({ yourTurn: true })
+              client2.emit('move', JSON.parse(pl2Turn))
+              let pl1Turn = JSON.stringify({ yourTurn: false })
+              client1.emit('move', JSON.parse(pl1Turn))
+            }
+  
+            let watchersMessage = JSON.stringify({ playerTurn: randomMatch.player1.toString() })
+            ios.to(randomMatch.player1.toString() + 'Watchers').emit('gameStatus', JSON.parse(watchersMessage))
+  
+            console.log("Match creation and game request update done".green)
+            return res.status(200).json({ error: false, message: "Match have been created correctely" })
           }
-
-          let watchersMessage = JSON.stringify({ playerTurn: randomMatch.player1.toString() })
-          ios.to(randomMatch.player1.toString() + 'Watchers').emit('gameStatus', JSON.parse(watchersMessage))
-
-          console.log("Match creation and game request update done".green)
-          return res.status(200).json({ error: false, message: "Match have been created correctely" })
+          else {
+            n.inpending = false
+            n.deleted = true
+            n.save().then((data) => {
+              console.log("Game request have been updated correctely".green)
+              if (socketIOclients[n.sender.toString()]) {
+                socketIOclients[n.sender.toString()].emit("gameReady", { "gameReady": false, "message": "Request refused" })
+              }
+              return res.status(200).json({ error: false, message: "Request refused" })
+            }).catch((reason) => {
+              console.log("ERROR: match request update error \nDB error: ".red + reason)
+              return next({ statusCode: 404, errormessage: "Match request update error" });
+            })
+          }
         }
         else {
-          n.inpending = false
-          n.deleted = true
-          n.save().then((data) => {
-            console.log("Game request have been updated correctely".green)
-            if (socketIOclients[n.sender.toString()]) {
-              socketIOclients[n.sender.toString()].emit("gameReady", { "gameReady": false, "message": "Request refused" })
-            }
-            return res.status(200).json({ error: false, message: "Request refused" })
-          }).catch((reason) => {
-            console.log("ERROR: match request update error \nDB error: ".red + reason)
-            return next({ statusCode: 404, errormessage: "Match request update error" });
-          })
+          console.log("ERROR: Match request does not exists".red);
+          return next({ statusCode: 404, errormessage: "Match request does not exists" });
         }
-      }
-      else {
-        console.log("ERROR: Match request does not exists".red);
-        return next({ statusCode: 404, errormessage: "Match request does not exists" });
-      }
-    })
+      }).catch((error) => {
+        console.log("ERROR: DB error".red + error)
+        return next({statusCode: 404, errormessage: "DB error"})
+      })
+    }
+    else{
+      console.log("ERROR: Unauthorized".red)
+      return next({ statusCode: 401, errormessage: "Unauthorized" })
+    }
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
 
@@ -1117,13 +1196,20 @@ app.get('/game', auth, (req, res, next) => {
     }
     else {
       // ! Errore: l'utente non ha ruolo utente o moderatore
-      console.log("ERROR: the user hasn't the necessary roles".red)
-      return next({ statusCode: 404, errormessage: "User hasn't the necessary roles" })
+      console.log("ERROR: Unauthorized".red)
+      return next({ statusCode: 404, errormessage: "Unauthorized" })
     }
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
 
 app.post('/gameMessage', auth, (req, res, next) => {
+  if(!req.body.player || !req.body.message){
+    console.log("ERROR: Bad Request")
+    return next({statusCode: 400, errormessage: "Bad Request"})
+  }
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasUserRole() || u.hasModeratorRole()) {
       user.getModel().findOne({ username: req.body.player }).then((player: User) => {
@@ -1163,121 +1249,87 @@ app.post('/gameMessage', auth, (req, res, next) => {
             console.log("ERROR: match not found".red)
             return next({ statusCode: 404, errormessage: "Match not found" })
           }
+        }).catch((error) => {
+          console.log("ERROR: DB error".red + error)
+          return next({statusCode: 404, errormessage: "DB error"})
         })
+      }).catch((error) => {
+        console.log("ERROR: DB error".red + error)
+        return next({statusCode: 404, errormessage: "DB error"})
       })
     }
     else {
       // ! Errore: l'utente non ha ruolo utente o moderatore
-      console.log("ERROR: the user hasn't the necessary roles".red)
-      return next({ statusCode: 404, errormessage: "User hasn't the necessary roles" })
+      console.log("ERROR: Unauthorized".red)
+      return next({ statusCode: 404, errormessage: "Unauthorized" })
     }
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
 
 // Create a new request of different type
 app.post('/notification', auth, (req, res, next) => {
-  // console.log("Entrato")
-  // console.log("Receiver:", req.body.receiver);
+  if(!req.body.receiver || !req.type.type){
+    console.log("ERROR: Bad Request")
+    return next({statusCode: 400, errormessage: "Bad Request"})
+  }
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       if (req.body.type === "friendRequest") {
         user.getModel().findOne({ username: req.body.receiver }).then((receiver: User) => {
           if (receiver != null) {
             if (receiver.isFriend(u.username.toString())) {
-              return res.status(400).json({ error: true, errormessage: "You are already friend" })
+              console.log("ERROR: You are already friend".red)
+              return next({ statusCode: 404, errormessage: "You are already friend" })
             }
             else {
               // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
               notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: receiver.username.toString(), deleted: false }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
                 if (n !== null) {
-                  console.log("You have already sent a request to this user.");
-                  return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
+                  console.log("ERROR: Request already exist".red)
+                  return next({ statusCode: 404, errormessage: "Request already exist" })
                 } else {
                   const fr = createNewFriendRequest("friendRequest", u.username, receiver.username.toString())
                   fr.save().then((data) => {
-                    console.log("Request forwarded")
                     if (socketIOclients[receiver.username.toString()]) {
-                      // console.log("eccomi:", receiver.username.toString())
                       let receiverMessage = JSON.stringify({ sender: u.username.toString(), type: "friendRequest" })
-                      //console.log("Messaggio inviato:"+)
                       socketIOclients[receiver.username.toString()].emit('newNotification', JSON.parse(receiverMessage))
                     }
-                    return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver })
+                    return res.status(200).json({ error: false, message: "Request forwarded" })
                   }).catch((reason) => {
-                    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+                    console.log("ERROR: Notification creation error\nDB ERROR: ".red + reason)
+                    return next({ statusCode: 404, errormessage: "Notification creation error" });
                   })
                 }
-              }).catch((reason) => {
-                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+              }).catch((error) => {
+                console.log("ERROR: DB error".red + error)
+                return next({statusCode: 404, errormessage: "DB error"})
               })
             }
           }
           else {
-            console.log("Specified user does not exist".red)
-            return next({ statusCode: 404, error: true, errormessage: "The specified user does not exist" })
+            console.log("ERROR: Specified user does not exist".red)
+            return next({ statusCode: 404, errormessage: "Specified user does not exist" })
           }
+        }).catch((error) => {
+          console.log("ERROR: DB error".red + error)
+          return next({statusCode: 404, errormessage: "DB error"})
         })
-        // } else if (req.body.type === "friendMessage") {//Send a new message to a friend
-        //   //TODO WEBSOCKET
-        //   if (u.isFriend(req.body.receiver) || u.hasModeratorRole()) {//Check if the receiver is a friend, in case i am a regular user
-
-        //     if (!req.body.text || !req.body.receiver) {
-        //       return next({ statusCode: 404, error: true, errormessage: "Something is missing" });
-        //     }
-
-        //     const msg = createNewFriendMessage(req.body, req.user.username);
-        //     u.addNotification(msg);
-
-        //     u.save().then((data) => {
-        //       const rec = user.getModel().findOne({ username: msg.receiver }).then((rec: User) => {
-        //         rec.addNotification(msg);
-        //         rec.save().then((data) => {
-        //           console.log("Message sent successfully to: ".green + req.body.receiver);
-        //           return res.status(200).json({ error: false, errormessage: "", id: data._id });
-        //         }).catch((reason) => {
-        //           return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
-        //         })
-        //       })
-        //     }).catch((reason) => {
-        //       return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg });
-        //     })
-        //   } else {
-        //     return next({ statusCode: 404, error: true, errormessage: "Friend not found. " });
-        //   }
-        // } else if (req.body.type === "friendlyMatchmaking") {
-        //TODO WEBSOCKET(esempio della chat data dal sito di socket.io)
-        // if (u.isFriend(req.body.receiver) || u.hasModeratorRole()) {//Check if the receiver is a friend, in case i am a regular user
-
-        //   const doc = notification.getModel().findOne({ type: "friendlyMatchmaking", sender: req.user.username, receiver: req.body.receiver, $or: [{ deleted: false }, { deleted: true, state: true }] }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
-        //     if (n !== null) {
-        //       console.log("You have already sent a request to this user.");
-        //       return res.status(400).json({ error: true, errormessage: "You have already sent a request to this user." });
-        //     } else {
-        //       const fr = createNewFriendlyMatchmaking(req.body, u.username);
-
-        //       fr.save().then((data) => {
-        //         if (notification.isNotification(data)) {
-        //           console.log("Request forwarded.")
-        //           return res.status(200).json({ error: false, message: "Request forwarded to " + req.body.receiver });
-        //         }
-        //       }).catch((reason) => {
-        //         return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-        //       })
-        //     }
-        //   }).catch((reason) => {
-        //     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-        //   })
-        // } else {
-        //   return next({ statusCode: 404, error: true, errormessage: "Friend not found. " });
-        // }
-      } else {
-        return next({ statusCode: 404, error: true, errormessage: "Type of the notification not accepted. " });
       }
-    } else {
-      return next({ statusCode: 404, error: true, errormessage: "You are not registered yet. " });
+      else {
+        console.log("ERROR: Type of the notification not accepted")
+        return next({ statusCode: 404, errormessage: "Type of the notification not accepted" });
+      }
     }
-  }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+    else {
+      console.log("ERROR: Unauthorized".red)
+      return next({ statusCode: 404, errormessage: "Unauthorized" })
+    }
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
 
@@ -1293,7 +1345,6 @@ app.get('/notification', auth, (req, res, next) => {
         query = notification.getModel().find({ receiver: u.username.toString(), deleted: false })
       }
       query.then((n) => {
-        console.log(typeof (makeNotificationRead))
         if (makeNotificationRead == "true") {
           notification.getModel().updateMany({ receiver: u.username.toString(), deleted: false }, { inpending: false }, {}, (err, result) => {
             if (err) {
@@ -1310,58 +1361,53 @@ app.get('/notification', auth, (req, res, next) => {
         return next({ statusCode: 404, errormessage: "DB error: " + reason });
       })
     }
-  }).catch((reason) => {
-    console.log(`DB error: ${reason}`.red)
-    return next({ statusCode: 404, errormessage: "DB error: " + reason });
+    else{
+      console.log("ERROR: Unauthorized".red)
+      return next({statusCode: 401, errormessage: "Unauthorized"})
+    }
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
-
-// Return the inbox of the current logged user
-// app.get('/notification/inbox', auth, (req, res, next) => {
-//   const u = user.getModel().findOne({ username: req.user.username }).then((u: User) => {
-//     //Verify if the user is register
-//     if (u.hasModeratorRole() || u.hasUserRole()) {
-//       console.log("Questo è l'id della notifica: ", mongoose.Types.ObjectId().toString());
-//       console.log("Chat di:" + req.user.username);
-//       return res.status(200).json({ inbox: u.inbox });
-//     }
-//   }).catch((reason) => {
-//     return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
-//   })
-// })
 
 // When a client read a notification, when he open it then it send this request in order to inform the server that the notification has been
 // read and it must be updated in the server
 app.put('/notification', auth, (req, res, next) => {
   //The user accept or decline a friendRequest
+  if(!req.body.accepted || !req.body.sender){
+    console.log("ERROR: Bad Request".red)
+    return next({statusCode: 400, errormessage: "Bad Request"})
+  }
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       user.getModel().findOne({ username: req.body.sender }).then((sender) => {
         if (sender.hasModeratorRole() || sender.hasUserRole()) {
           notification.getModel().findOne({ type: "friendRequest", sender: sender.username, deleted: false }).then((n) => {
             if (n === null) {
-              return res.status(404).json({ error: true, errormessage: "Notification not found." });
+              console.log("ERROR: Notification does not exist".red)
+              return next({ statusCode: 404, errormessage: "Notification does not exist" })
             } else {
               n.inpending = false
               n.deleted = true
               if (req.body.accepted === true) {
                 u.addFriend(sender.username.toString(), false)
                 u.save().then((data) => {
-                  ios.emit('friend', { user: [req.user.username, req.body.sender], deleted: false })
-                  console.log("New friend saved".green)
-
+                  //? ios.emit('friend', { user: [req.user.username, req.body.sender], deleted: false })
                   sender.addFriend(u.username.toString(), false)
                   sender.save().then((data) => {
                     console.log("New friend saved".green);
                   }).catch((reason) => {
-                    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+                    console.log("ERROR: Friend addition error\nDB ERROR: " + reason)
+                    return next({ statusCode: 404, errormessage: "Friend addition error" })
                   })
                   if (socketIOclients[sender.username.toString()]) {
                     let senderMessage = JSON.stringify({ newFriend: u.username.toString() })
                     socketIOclients[sender.username.toString()].emit('request', JSON.parse(senderMessage))
                   }
                 }).catch((reason) => {
-                  return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+                  console.log("ERROR: Friend addition error\nDB ERROR: " + reason)
+                  return next({ statusCode: 404, errormessage: "Friend addition error" })
                 })
               }
               else {
@@ -1372,33 +1418,37 @@ app.put('/notification', auth, (req, res, next) => {
               }
               n.save().then((data) => {
                 console.log("Data saved successfully".blue)
-                return res.status(200).json({ error: false, errormessage: "" })
+                return res.status(200).json({ error: false, errormessage: "Data saved successfully" })
               }).catch((reason) => {
-                return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+                console.log("ERROR: Notification update error\nDB ERROR: " + reason)
+                return next({ statusCode: 404, errormessage: "Notification update error" })
               })
             }
-          }).catch((reason) => {
-            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+          }).catch((error) => {
+            console.log("ERROR: DB error".red + error)
+            return next({statusCode: 404, errormessage: "DB error"})
           })
         }
         else {
           // ! Il sender non ha ruolo di utente o moderatore
+          console.log("ERROR: Unauthorized".red)
+          return next({statusCode: 404, errormessage: "Unauthorized"})
         }
-      }).catch((reason) => {
-        return next({ statuscode: 404, error: true, errormessage: "DB error: " + reason })
+      }).catch((error) => {
+        console.log("ERROR: DB error".red + error)
+        return next({statusCode: 404, errormessage: "DB error"})
       })
     }
     else {
       // ! L'utete non ha ruolo utente o moderatore
+      console.log("ERROR: Unauthorized".red)
+      return next({statusCode: 401, errormessage: "Unauthorized"})
     }
-  }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
-
-// app.delete('/notification', auth, (req, res, next) => {
-
-// })
 
 // Returns all the messages
 app.get('/message', auth, (req, res, next) => {
@@ -1412,29 +1462,34 @@ app.get('/message', auth, (req, res, next) => {
     if (user.hasModeratorRole() || user.hasUserRole()) {
       message.getModel().find({ isAModMessage: modmessage, receiver: user.username.toString(), inpending: true }).then((inPendingMessages) => {
         message.getModel().find({ isAModMessage: modmessage, $or: [{ sender: user.username.toString() }, { receiver: user.username.toString() }] }).then((allMessages) => {
-          return res.status(200).json({ error: false, message: "", inPendingMessages: inPendingMessages, allMessages: allMessages });
+          return res.status(200).json({ error: false, inPendingMessages: inPendingMessages, allMessages: allMessages });
         }).catch((reason) => {
-          console.log("DB error: " + reason)
-          return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason })
+          console.log("ERROR: Error getting messages from DB\nDB error: " + reason)
+          return next({ statusCode: 404, errormessage: "Error getting messages from DB"})
         })
       }).catch((reason) => {
-        console.log("DB error: " + reason)
-        return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason })
+        console.log("ERROR: Error getting messages from DB\nDB error: " + reason)
+        return next({ statusCode: 404, errormessage: "Error getting messages from DB"})
       })
     }
     else {
-      return res.status(401).json({ error: true, errormessage: "You cannot do it" })
+      console.log("ERROR: Unauthorized".red)
+      return next({ statusCode: 404, errormessage: "User hasn't the necessary roles" })
     }
-  }).catch((reason) => {
-    console.log("DB error: " + reason)
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason })
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
 
 // Send a message to a specif user that is in your friendlist
 app.post('/message', auth, (req, res, next) => {
+  if(!req.body.message || !req.body.receiver){
+    console.log("ERROR: Bad Request".red)
+    return next({statusCode: 400, errormessage: "Bad Request"})
+  }
   user.getModel().findOne({ username: req.user.username }).then((sender: User) => {
-    if (sender != null) {
+    if (sender.hasUserRole() || sender.hasModeratorRole()) {
       user.getModel().findOne({ username: req.body.receiver }).then((receiver: User) => {
         if (receiver != null) {
           if (sender.isFriend(receiver.username) || sender.hasModeratorRole()) {
@@ -1444,24 +1499,33 @@ app.post('/message', auth, (req, res, next) => {
               if (socketIOclients[receiver.username.toString()]) {
                 socketIOclients[receiver.username.toString()].emit('message', data)
               }
-              return res.status(200).json({ error: false, errormessage: "" })
+              return res.status(200).json({ error: false, errormessage: "Message have been saved correctely" })
             }).catch((reason) => {
-              console.log("DB error : " + reason);
-              return res.status(404).json({ error: true, errormessage: "DB error: " + reason.errmsg });
+              console.log("ERROR: message creation error\nDB ERROR: " + reason);
+              return next({ statusCode: 404, errormessage: "Message creation error" })
             })
           }
           else {
-            return res.status(401).json({ error: true, errormessage: "You cannot do it" })
+            console.log("ERROR: The user is not a friend".red)
+            return next({ statusCode: 404, errormessage: "The user is not a friend" })
           }
         }
         else {
-          return res.status(401).json({ error: true, errormessage: "You cannot do it" })
+          console.log("ERROR: The user does not exist".red)
+          return next({ statusCode: 404, errormessage: "The user does not exist" })
         }
+      }).catch((error) => {
+        console.log("ERROR: DB error".red + error)
+        return next({statusCode: 404, errormessage: "DB error"})
       })
     }
     else {
-      return res.status(401).json({ error: true, errormessage: "You cannot do it" })
+      console.log("ERROR: Unauthorized".red)
+      return next({ statusCode: 401, errormessage: "Unauthorized" })
     }
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
 
@@ -1482,19 +1546,22 @@ app.post('/message/mod', auth, (req, res, next) => {
           if (socketIOclients[receiver.username.toString()]) {
             socketIOclients[receiver.username.toString()].emit('message', savedMsg)
           }
-          return res.status(200).json({ error: false, errormessage: "" })
-        }).catch((e) => {
-          console.log("DB error : " + e)
-          return next({statusCode: 404, errormessage: "DB error: " + e.errmsg })
+          return res.status(200).json({ error: false, errormessage: "Message from admin have been saved correctely" })
+        }).catch((error) => {
+          console.log("ERROR: Message creation error\nDB error : " + error)
+          return next({ statusCode: 404, errormessage: "Message creation error" })
         })
       } else {
-        return next({ statusCode: 401, errormessage: "You cannot do it" })
+        console.log("ERROR: The user is not a friend".red)
+        return next({ statusCode: 404, errormessage: "The user is not a friend" })
       }
     }).catch((e) => {
-      return next({ statusCode: 401, errormessage: "You cannot do it" })
+      console.log("ERROR: The user does not exist".red)
+      return next({ statusCode: 404, errormessage: "The user does not exist" })
     })
   }).catch((e) => {
-    return next({ statusCode: 401, errormessage: "You cannot do it" })
+    console.log("ERROR: Unauthorized".red)
+    return next({ statusCode: 401, errormessage: "Unauthorized" })
   })
 })
 
@@ -1502,7 +1569,7 @@ app.post('/message/mod', auth, (req, res, next) => {
 app.put('/message', auth, (req, res, next) => {
 
   if (!req.body.sender) {
-    return res.status(400).json({ error: true, errormessage: "You have to specify the message sender" })
+    return next({ statusCode: 400, errormessage: "Bad Request" })
   }
 
   let modMessage = req.body.modMessage
@@ -1523,21 +1590,29 @@ app.put('/message', auth, (req, res, next) => {
           m.forEach((message) => {
             message.inpending = false
             message.save().then((data) => {
-              console.log("Message have been updated".green)
             }).catch((reason) => {
-              console.log("DB error: " + reason)
-              return res.status(404).json({ error: true, errormessage: "DB error: " + reason.errmsg });
+              console.log("ERROR: Message update error\nDB ERROR: " + reason)
+              return next({ statusCode: 404, errormessage: "Message update error" })
             })
           })
-          console.log("All messages have been updated".green)
-          return res.status(200).json({ error: false, errormessage: "" })
+          console.log("Messages have been updated".green)
+          return res.status(200).json({ error: false, errormessage: "Messages have been updated" })
         } else {
-          return res.status(404).json({ error: true, errormessage: "There are no messages to be update" })
+          console.log("ERROR: There are no messages to be update".red)          
+          return next({ statusCode: 404, errormessage: "There are no messages to be update" })
         }
+      }).catch((error) => {
+        console.log("ERROR: DB error".red + error)
+        return next({statusCode: 404, errormessage: "DB error"})
       })
-    } else {
-      return res.status(401).json({ error: true, errormessage: "You cannot do it" })
     }
+    else {
+      console.log("ERROR: Unauthorized".red)
+      return next({ statusCode: 401, errormessage: "Unauthorized" })
+    }
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
 
@@ -1546,16 +1621,21 @@ app.get('/friend', auth, (req, res, next) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       return res.status(200).json({ error: false, errormessage: "", friendlist: u.friendList });
     }
-  }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+    else{
+      console.log("ERROR: Unauthorized".red)
+      return next({statusCode: 401, errormessage: "Unauthorized"})
+    }
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
 
 app.delete('/friend/:username', auth, (req, res, next) => {
   let friend = req.params.username
-  console.log("Friend: " + friend)
   if (!friend) {
-    res.status(400).json({ error: true, errormessage: "you should pass a friend username" })
+    console.log("ERROR: Bad Request".red)
+    return next({statusCode: 400, errormessage: "Bad Request"})
   }
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
@@ -1566,58 +1646,81 @@ app.delete('/friend/:username', auth, (req, res, next) => {
             friend.deleteFriend(u.username.toString());
             friend.save().then((data) => {
               console.log("Friend deleted.".blue)
-              ios.emit('friend', { user: [req.user.username, friend], deleted: true })
+              // ios.emit('friend', { user: [req.user.username, friend], deleted: true })
               if (socketIOclients[friend.username.toString()]) {
-                //console.log("Sono riuscito a fare l'emit.")
                 let senderMessage = JSON.stringify({ deletedFriend: u.username.toString() })
                 socketIOclients[friend.username.toString()].emit('friendDeleted', JSON.parse(senderMessage))
               }
-              return res.status(200).json({ error: false, errormessage: "", message: "Friend " + friend + " removed from the friendlist." })
+              return res.status(200).json({ error: false, errormessage: "Friend removed" })
             }).catch((reason) => {
-              return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+              console.log("ERROR: DB error".red)
+              return next({statusCode: 404, errormessage: "DB error"})
             })
           }).catch((reason) => {
-            return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+            console.log("ERROR: DB error".red)
+            return next({statusCode: 404, errormessage: "DB error"})
           })
         }
+        else{
+          console.log("ERROR: The user is not friend".red)
+          return next({statusCode: 404, errormessage: "The user is not friend"})
+        }
+      }).catch((error) => {
+        console.log("ERROR: DB error".red + error)
+        return next({statusCode: 404, errormessage: "DB error"})
       })
     }
-  }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+    else{
+      console.log("ERROR: Unauthorized".red)
+      return next({statusCode: 401, errormessage: "Unauthorized"})
+    }
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
 
 app.put('/friend', auth, (req, res, next) => {
-  // console.log("CI SONO ARRIVATO SPERO")
+  if(!req.body.username || !req.body.isBlocked){
+    console.log("ERROR: Bad Request".red)
+    return next({statusCode: 400, errormessage: "Bad Request"})
+  }
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
       user.getModel().findOne({ username: req.body.username }).then((friend: User) => {
         u.setIsBlocked(friend.username.toString(), req.body.isBlocked)
         u.save().then((data) => {
           if (req.body.isBlocked) {
-            console.log("Friend blocked.".blue)
+            console.log("Friend blocked".green)
             if (socketIOclients[friend.username.toString()]) {
-              //console.log("Sono riuscito a fare l'emit.")
               let isBeingBlocked = JSON.stringify({ blocked: true })
               socketIOclients[friend.username.toString()].emit('friendBlocked', JSON.parse(isBeingBlocked))
             }
-            return res.status(200).json({ error: false, errormessage: "", message: "You blocked " + req.body.username + "." })
+            return res.status(200).json({ error: false, errormessage: "User blocked" })
           } else {
-            console.log("Friend unblocked.".blue)
+            console.log("Friend unblocked.".green)
             if (socketIOclients[friend.username.toString()]) {
-              //console.log("Sono riuscito a fare l'emit.")
               let isBeingBlocked = JSON.stringify({ blocked: false })
               socketIOclients[friend.username.toString()].emit('friendBlocked', JSON.parse(isBeingBlocked))
             }
-            return res.status(200).json({ error: false, errormessage: "", message: "You can now send a message to " + req.body.username + "." })
+            return res.status(200).json({ error: false, errormessage: "User unblocked" })
           }
-        }).catch((reason) => {
-          return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason.errmsg })
+        }).catch((error) => {
+          console.log("ERROR: DB error".red + error)
+          return next({statusCode: 404, errormessage: "DB error"})
         })
+      }).catch((error) => {
+        console.log("ERROR: DB error".red + error)
+        return next({statusCode: 404, errormessage: "DB error"})
       })
     }
-  }).catch((reason) => {
-    return next({ statusCode: 404, error: true, errormessage: "DB error: " + reason });
+    else{
+      console.log("ERROR: Unauthorized".red)
+      return next({statusCode: 401, errormessage: "Unauthorized"})
+    }
+  }).catch((error) => {
+    console.log("ERROR: DB error".red + error)
+    return next({statusCode: 404, errormessage: "DB error"})
   })
 })
 
@@ -1686,35 +1789,6 @@ function createNewFriendRequest(type, username, receiver) {
   })
   return doc
 }
-
-// function createNewFriendlyMatchmaking(bodyRequest, username) {
-//   const model = notification.getModel()
-//   const id1 = mongoose.Types.ObjectId()
-//   const doc = new model({
-//     _id: id1,
-//     type: bodyRequest.type,
-//     text: "New invitation for a friendly match from " + username + ".",
-//     sender: username,
-//     receiver: bodyRequest.receiver,
-//     inpending: false,
-//     deleted: false
-//   })
-//   return doc
-// }
-
-// function createNewFriendMessage(bodyRequest, username) {
-//   const model = notification.getModel()
-//   const id1 = mongoose.Types.ObjectId()
-//   const doc = new model({
-//     _id: id1,
-//     type: bodyRequest.type,
-//     text: bodyRequest.text,
-//     sender: username,
-//     receiver: bodyRequest.receiver,
-//     deleted: false
-//   })
-//   return doc
-// }
 
 
 //* END of API routes
@@ -1817,7 +1891,6 @@ function winnerControl(client, m, loser, winner) {
     console.log(`Error: ${reason}`)
   })
 }
-
 
 function saveClient(client) {
   let token = client.handshake.query['jwt']
@@ -1995,7 +2068,6 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 function createChatMessage(sender, text) {
   const model = message.getModel()
   const doc = new model({
-    type: "gameMessage",
     content: text,
     sender: sender,
     receiver: null,
@@ -2007,7 +2079,6 @@ function createChatMessage(sender, text) {
 function createMessage(sender, receiver, text) {
   const model = message.getModel()
   const doc = new model({
-    type: "message",
     content: text,
     sender: sender,
     receiver: receiver,
