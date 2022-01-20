@@ -15,73 +15,46 @@ export class HomepageComponent implements OnInit {
   public friendlist: any[] = []
   private enterGameWatchMode!: Subscription;
   public foundwatch: boolean = true
+  public matchmaking: boolean = false;
 
   constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router) {
-   
+
   }
 
   ngOnDestroy(): void {
   }
-  
+
 
 
   ngOnInit(): void {
-    // if (!this.us.get_token()) {
-    //   this.router.navigate(["/"])
-    //   this.us.userRole = ''
-    // } else {
-    //   this.us.get_update().subscribe((msg) => {
-    //     msg = msg.text
-    //     if (msg == "Update user") {
-    //       console.log(`Update user ${this.us.userRole}`)
-    //       if (this.us.has_nonregmod_role()) {
-    //         this.router.navigate(['/profile'])
-    //       } else {
-    //         console.log("OU")
-    //         this.username = this.us.get_username()
-    //         this.us.get_friendlist().subscribe((u) => {
-    //           this.friendlist = []
-    //           // console.log()
-    //           u.friendlist.forEach((element: { [x: string]: any; }) => {
-    //             // console.log(1)
-    //             this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
-    //             console.log(this.friendlist);
-    //           });
-    //           console.log(this.friendlist);
-    //         })
-    //         // this.router.navigate(['/'])
-    //         this.username = this.us.get_username()
-    //       }
-    //     }
-    //   }, (err) => {
-    //     console.log(err)
-    //   })
-    // }
 
     if (!this.us.get_token()) {
-      this.router.navigate(['/'])
+      this.navigate("/")
     } else if (this.us.has_nonregmod_role()) {
-      this.router.navigate(['/profile'])
+      this.navigate("/profile")
     } else {
       this.username = this.us.get_username()
       this.us.get_friendlist().subscribe((u) => {
         this.friendlist = []
-        // console.log()
         u.friendlist.forEach((element: { [x: string]: any; }) => {
-          // console.log(1)
+
           this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
-          // console.log(this.friendlist);
+
         });
-        // console.log(this.friendlist);
+
       })
     }
 
 
   }
-
-  closeMatch():void{
+  closeWatch():void{
+    this.matchmaking=false
+    this.enterGameWatchMode.unsubscribe()
+  }
+  closeMatch(): void {
     this.us.delete_match().subscribe((data) => {
       console.log(data)
+      this.matchmaking = false
     })
   }
   toastN(msg: string) {
@@ -142,51 +115,76 @@ export class HomepageComponent implements OnInit {
       } else {
         this.sio.turn = 2
       }
-      this.router.navigate(['watch']);
+      
+      this.navigate('watch');
     });
-    this.us.get_GameinProgress().subscribe(
-      (u) => {
-        console.log(JSON.stringify(u));
+    this.us.get_usersOnline().subscribe((data: any) => {
+      console.log(JSON.stringify(data))
+      let found = false
+      data.onlineuser.forEach((element: { [x: string]: any; }) => {
+        console.log(JSON.stringify(element))
+        if (JSON.parse(JSON.stringify(element)) == friend) {
+          console.log("sono dentro")
+          found = true
+          this.matchmaking = true
+          this.us.get_GameinProgress().subscribe(
+            (u) => {
+              console.log(JSON.stringify(u));
 
-        if (u.matches.length >= 1) {
-          let game = 0
-          for (var i: number = 0; i < u.matches.length; i++) {
-            if (u.matches[i].player1 == friend) {
-              this.sio.setP1(friend)
-              this.sio.setP2(u.matches[i].player2)
-              this.sio.switched = false
-              game++
+              if (u.matches.length >= 1) {
+                let game = 0
+                for (var i: number = 0; i < u.matches.length; i++) {
+                  if (u.matches[i].player1 == friend) {
+                    this.sio.setP1(friend)
+                    this.sio.setP2(u.matches[i].player2)
+                    this.sio.switched = false
+                    game++
+                  }
+                  if (u.matches[i].player2 == friend) {
+                    this.sio.setP1(u.matches[i].player2)
+                    this.sio.setP2(friend)
+                    this.sio.switched = true
+                    game++
+                  }
+                }
+                if (game < 1) {
+                  this.matchmaking = false
+                  this.foundwatch = false
+                  this.enterGameWatchMode.unsubscribe()
+                  this.toastN(friend + " is not playing with anyone")
+                } else {
+                  this.us.watchPeople(this.sio.getP1()).subscribe((msg) => {
+                    console.log(msg)
+
+                  })
+                }
+
+              } else {
+                this.matchmaking = false
+                this.foundwatch = false
+                this.enterGameWatchMode.unsubscribe()
+                this.toastN(friend + " is not playing with anyone")
+              }
             }
-            if (u.matches[i].player2 == friend) {
-              this.sio.setP1(u.matches[i].player2)
-              this.sio.setP2(friend)
-              this.sio.switched = true
-              game++
-            }
-          }
-          if (game < 1) {
-            this.foundwatch = false
-            this.enterGameWatchMode.unsubscribe()
-          } else {
-            this.us.watchPeople(this.sio.getP1()).subscribe((msg) => {
-              console.log(msg)
-
-            })
-          }
-
-        } else {
-          this.foundwatch = false
-          this.enterGameWatchMode.unsubscribe()
+          )
         }
+
+
+
+
+      });
+      if (!found) {
+        this.toastN("You can't watch " + friend + " if he is offline")
       }
-    )
+    })
+
   }
-  createCPUGame(lv:number){
-    this.us.lv=lv
-    console.log("livello difficolta: "+this.us.lv)
-    this.us.createCPUgame().subscribe((msg)=>{
+  createCPUGame(lv: number) {
+    this.us.lv = lv
+    console.log("livello difficolta: " + this.us.lv)
+    this.us.createCPUgame().subscribe((msg) => {
       console.log(JSON.stringify(msg))
-      this.router.navigate(['cpu']);
+      this.navigate('cpu');
     })
   }
   findMatchWatch() {
@@ -230,7 +228,7 @@ export class HomepageComponent implements OnInit {
       } else {
         this.sio.turn = 2
       }
-      this.router.navigate(['watch']);
+      this.navigate('watch');
     });
     this.us.get_GameinProgress().subscribe(
       (u) => {
@@ -267,14 +265,34 @@ export class HomepageComponent implements OnInit {
   }
 
   inviteFriendToMatch(username: string) {
-    console.log("Opposite Player: " + username)
-    this.us.create_friendlymatchmaking(username).subscribe((data) => {
-      this.toastN("Request Forwarded")
+    this.us.get_usersOnline().subscribe((data: any) => {
+      console.log(JSON.stringify(data))
+      let found = false
+      data.onlineuser.forEach((element: { [x: string]: any; }) => {
+        if (JSON.parse(JSON.stringify(element)) == username) {
+          found = true
+          this.matchmaking = true
+          console.log("Opposite Player: " + username)
+          this.us.create_friendlymatchmaking(username).subscribe((data) => {
+            this.toastN("Request Forwarded")
+          })
+        }
+
+      });
+      if (!found) {
+        this.matchmaking = false
+        this.toastN("You can't play with " + username + " if he is offline")
+      }
     })
+
   }
 
   /* Navigate to one route */
   navigate(route: String) {
+    document.getElementById("closepfriend")!.click();
+    document.getElementById("closepstrange")!.click();
+    document.getElementById("closewfriend")!.click();
+    document.getElementById("closewstrange")!.click();
     this.router.navigate([route])
   }
 

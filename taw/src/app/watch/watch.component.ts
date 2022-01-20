@@ -132,6 +132,7 @@ export class WatchComponent implements OnInit {
         var response = JSON.parse(JSON.stringify(msg));
         if (response.error == false && response.error != undefined) {
           var time = new Date();
+          time.setTime(time.getTime()+60*60*1000)
           this.chat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: text, time: time.toLocaleTimeString() });
         }
       });

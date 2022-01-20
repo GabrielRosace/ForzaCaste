@@ -403,6 +403,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.router.navigate(['game']);
       }
       if (msg.gameReady != undefined && !msg.gameReady) {
+        document.getElementById("closepfriend")!.click();
+        document.getElementById("closepstrange")!.click();
+        document.getElementById("closewfriend")!.click();
+        document.getElementById("closewstrange")!.click();
         //chiudere il modal
         Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
           item.parentElement?.removeChild(item);
