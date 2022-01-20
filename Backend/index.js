@@ -961,7 +961,7 @@ app.delete('/game', auth, (req, res, next) => {
     });
 });
 app.put('/game', auth, (req, res, next) => {
-    if (!req.body.accept || !req.body.sender) {
+    if (req.body.accept === undefined || !req.body.sender) {
         console.log("ERROR: Bad Request");
         return next({ statusCode: 400, errormessage: "Bad Request" });
     }
@@ -1127,7 +1127,7 @@ app.post('/gameMessage', auth, (req, res, next) => {
 });
 // Create a new request of different type
 app.post('/notification', auth, (req, res, next) => {
-    if (!req.body.receiver || !req.type.type) {
+    if (!req.body.receiver || !req.body.type) {
         console.log("ERROR: Bad Request");
         return next({ statusCode: 400, errormessage: "Bad Request" });
     }
@@ -1142,7 +1142,7 @@ app.post('/notification', auth, (req, res, next) => {
                         }
                         else {
                             // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
-                            notification.getModel().findOne({ type: "friendRequest", sender: u.username, receiver: receiver.username.toString(), deleted: false }).then((n) => {
+                            notification.getModel().findOne({ type: "friendRequest", $or: [{ sender: u.username, receiver: receiver.username.toString() }, { sender: receiver.username.toString(), receiver: u.username }], deleted: false }).then((n) => {
                                 if (n !== null) {
                                     console.log("ERROR: Request already exist".red);
                                     return next({ statusCode: 404, errormessage: "Request already exist" });
@@ -1231,7 +1231,7 @@ app.get('/notification', auth, (req, res, next) => {
 // read and it must be updated in the server
 app.put('/notification', auth, (req, res, next) => {
     //The user accept or decline a friendRequest
-    if (!req.body.accepted || !req.body.sender) {
+    if (req.body.accepted == undefined || !req.body.sender) {
         console.log("ERROR: Bad Request".red);
         return next({ statusCode: 400, errormessage: "Bad Request" });
     }
@@ -1529,7 +1529,7 @@ app.delete('/friend/:username', auth, (req, res, next) => {
     });
 });
 app.put('/friend', auth, (req, res, next) => {
-    if (!req.body.username || !req.body.isBlocked) {
+    if (!req.body.username || req.body.isBlocked == undefined) {
         console.log("ERROR: Bad Request".red);
         return next({ statusCode: 400, errormessage: "Bad Request" });
     }
@@ -1742,6 +1742,7 @@ function saveClient(client) {
 // Add error handling middleware
 app.use(function (err, req, res, next) {
     console.log("Request error: ".red + JSON.stringify(err));
+    console.log(err);
     res.status(err.statusCode || 500).json(err);
 });
 /*
