@@ -247,7 +247,3 @@ export function newUser(data): User {
 
   return user;
 }
-
-
-
-//* Qui può servire una funzione per cambiare lo stato dello User e che salvi il cambiamento

@@ -24,6 +24,7 @@ export class UserHttpService {
   public url = 'http://forzacaste.herokuapp.com' //TODO cambiare indirizzo
   private subjectName = new Subject<any>()
   private subjBadge = new Subject<any>()
+  private subjFS = new Subject<any>()
   // public userRole: string = ''
   private img: string = ''
   private mail: string = ''
@@ -31,6 +32,7 @@ export class UserHttpService {
   private rememberToken: boolean = false
   public lv!:any
   public friendGame:boolean=false
+  public visFriendList: boolean = true
 
 
   send_update(message: string) {
@@ -50,6 +52,14 @@ export class UserHttpService {
     return this.subjBadge.asObservable()
   }
 
+  update_visibleFriendList(visible: boolean){
+    this.subjFS.next({ value: visible})
+  }
+
+  get_visibleFriendList(){
+    return this.subjFS.asObservable()
+  }
+  
   constructor(private http: HttpClient, private router: Router) {
     console.log("User service instantiated")
 

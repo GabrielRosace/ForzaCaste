@@ -218,7 +218,7 @@
 </div>
 
 <!-- OFFCANVAS -->
-<button *ngIf="username" class="btn btn-primary" (click)="getFriendlist()" id="friendList" type="button"
+<button *ngIf="username && friendListVis" class="btn btn-primary" (click)="getFriendlist()" id="friendList" type="button"
   data-bs-toggle="offcanvas" data-bs-target="#friendListCanvas" aria-controls="friendListCanvas" width="32" height="32">
   <mat-icon color="primary" matBadgeColor="accent" [matBadge]="badgeContentMsg" matBadgePosition="above after"
     matBadgeOverlap="true" [matBadgeHidden]="hideMatBadgeMsg" [ngStyle]="{'color':'white'}">notifications

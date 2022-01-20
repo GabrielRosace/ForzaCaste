@@ -8,10 +8,9 @@ const ajv = new Ajv() // options can be passed, e.g. {allErrors: true}
 
 addFormats(ajv)
 
-const validatorSchema = { //TODO aggiungere altri nullable se ce ne sono
+const validatorSchema = {
   type: "object",
   properties: {
-    //id: { type: "any" },
     type: { type: "string" },
     text: { type: "string", nullable: true },
     sender: { type: "string" },
