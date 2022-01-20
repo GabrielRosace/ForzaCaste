@@ -1056,7 +1056,7 @@ app.delete('/game', auth, (req, res, next) => {
         }
         else {
           // Se non esiste un match, allora si annulla la richiesta del match
-          notification.getModel().findOne({ type: 'randomMatchmaking', sender: user.username.toString(), receiver: null, deleted: false }).then((notification) => {
+          notification.getModel().findOne({ $or: [{type: 'randomMatchmaking'}, {type: 'friendlyMatchmaking'}], sender: user.username.toString(), deleted: false }).then((notification) => {
             if (notification != null) {
               notification.deleted = true
               notification.save().then((data) => {
