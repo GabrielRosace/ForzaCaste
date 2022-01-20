@@ -123,6 +123,7 @@ export class FriendChatComponent implements OnInit {
     } else {
       this.us.send_chatMsg(this.activeRoute.snapshot.params['friend'], message).subscribe((data) => {
         let date = new Date();
+        date.setTime(date.getTime()+60*60*1000)
         this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: message, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth() + 1}/${date.getFullYear()}` })
       })
     }

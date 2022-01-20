@@ -193,5 +193,4 @@ function newUser(data) {
     return user;
 }
 exports.newUser = newUser;
-//* Qui può servire una funzione per cambiare lo stato dello User e che salvi il cambiamento
 //# sourceMappingURL=User.js.map

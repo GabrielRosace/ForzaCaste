@@ -77,6 +77,7 @@ export class ModChatComponent implements OnInit {
       console.log("Mesg inviato")
       this.us.send_ModMsg(this.activeRoute.snapshot.params['user'], message).subscribe((data) => {
         let date = new Date();
+        date.setTime(date.getTime()+60*60*1000)
         this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: message, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth() + 1}/${date.getFullYear()}` });
       })
     }

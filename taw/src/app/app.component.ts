@@ -36,7 +36,7 @@ export class AppComponent{
   updateFriendListVS(){
     console.log("ROUTING")
     console.log(this.router.url)
-    if(this.router.url == "/game"){
+    if(this.router.url == "/game" || this.router.url == "/cpu"){
       this.us.update_visibleFriendList(false)
     }else{
       this.us.update_visibleFriendList(true)
