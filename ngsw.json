@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1642762040464,
+  "timestamp": 1642762322588,
   "index": "http://forzacaste.live/index.html",
   "assetGroups": [
     {
@@ -60,7 +60,7 @@
     "http://forzacaste.live/assets/img/rvuoto.png": "2799dfffed752d0bcaa39ed0c1fde936925e3204",
     "http://forzacaste.live/bootstrap-icons.66e4109ec6241c76fdcf.woff2": "e5c03fd4d0715d3a59db5fdba4a19374cf3cc9de",
     "http://forzacaste.live/bootstrap-icons.ea6f3dfe4ebb15134576.woff": "d9a419a0e36c453d5bca016e11dc3b58fcf4c1c2",
-    "http://forzacaste.live/favicon.ico": "22f6a4a3bcaafafb0254e0f2fa4ceb89e505e8b2",
+    "http://forzacaste.live/favicon.ico": "5a2caa71c177abc1e421470d1763940b05c5d431",
     "http://forzacaste.live/index.html": "d9bbc28beab268230d432d0924f56eadf220e5f9",
     "http://forzacaste.live/main.74fb055e16d88350d7c7.js": "82959467763d64d1fd096b325c7a142b631034e9",
     "http://forzacaste.live/manifest.webmanifest": "553e3606a3a0c75362c567e70796b04c26189b05",
