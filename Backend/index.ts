@@ -191,7 +191,8 @@ passport.use(new passportHTTP.BasicStrategy(
 
     if (checkOnlineUser(username)) {
       console.log(`${username} is already logged in...`.red)
-      return done(null,false, {statusCode: 500, error:true, errormessage: 'You are already logged in'})
+      // return done(null,false, {statusCode: 500, error:true, errormessage: 'You are already logged in'})
+      return done(null,false, { message: 'You are already logged in'})
     }
 
     user.getModel().findOne({ username: username }, (err, user) => {
@@ -201,7 +202,8 @@ passport.use(new passportHTTP.BasicStrategy(
 
       if (!user) {
         console.log(`${username} -> Invalid user`.red)
-        return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid user" });
+        // return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid user" });
+        return done(null, false, { message: "Invalid user" });
       }
       
       if (user.validatePassword(password)) {
@@ -209,7 +211,8 @@ passport.use(new passportHTTP.BasicStrategy(
       }
       
       console.log(`${username} -> Invalid password`.red)
-      return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid password" });
+      // return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid password" });
+      return done(null, false, { message: "Invalid password" });
     })
   }
 ));
