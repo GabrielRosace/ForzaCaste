@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1642764735109,
+  "timestamp": 1642775135088,
   "index": "http://forzacaste.live/index.html",
   "assetGroups": [
     {
@@ -13,7 +13,7 @@
       "urls": [
         "http://forzacaste.live/favicon.ico",
         "http://forzacaste.live/index.html",
-        "http://forzacaste.live/main.c681d4988356101dfe3d.js",
+        "http://forzacaste.live/main.693028b2ca7faaeca23f.js",
         "http://forzacaste.live/manifest.webmanifest",
         "http://forzacaste.live/polyfills.b5cb80ea832a17ac663c.js",
         "http://forzacaste.live/runtime.420d6aa5f46f9cb7358c.js",
@@ -61,8 +61,8 @@
     "http://forzacaste.live/bootstrap-icons.66e4109ec6241c76fdcf.woff2": "e5c03fd4d0715d3a59db5fdba4a19374cf3cc9de",
     "http://forzacaste.live/bootstrap-icons.ea6f3dfe4ebb15134576.woff": "d9a419a0e36c453d5bca016e11dc3b58fcf4c1c2",
     "http://forzacaste.live/favicon.ico": "5a2caa71c177abc1e421470d1763940b05c5d431",
-    "http://forzacaste.live/index.html": "18ec9c0507beda4f08fa4bba514c80d24a1247ab",
-    "http://forzacaste.live/main.c681d4988356101dfe3d.js": "fd813f0d5e400a66b5a084ce8302947880430edd",
+    "http://forzacaste.live/index.html": "d9a25be455cd4029808b2ee5f842f13244699374",
+    "http://forzacaste.live/main.693028b2ca7faaeca23f.js": "8d789c5e5e7ba854218de29b8c458a76198533e3",
     "http://forzacaste.live/manifest.webmanifest": "7be18c34c7cde968bab7c3fdf34520a0ba923e54",
     "http://forzacaste.live/polyfills.b5cb80ea832a17ac663c.js": "72d219e90c5ba9738e4bb82ad16e1e7754f7cbe3",
     "http://forzacaste.live/runtime.420d6aa5f46f9cb7358c.js": "beb7e4211d151ec83b22b1281d295132b24d201e",
