@@ -22,6 +22,13 @@
 .mybtn{
     margin-top: 5px;
 }
+.gettone{
+  height: 1.75vh;
+  width: 1.75vh;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
 /**
  * ==============================================
  * Dot Flashing

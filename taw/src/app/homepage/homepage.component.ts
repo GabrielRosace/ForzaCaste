@@ -11,17 +11,26 @@ import { ToastService } from '../_services/toast.service';
   styleUrls: ['./homepage.component.css']
 })
 export class HomepageComponent implements OnInit {
-  public username: string = ''
-  public friendlist: any[] = []
+  private subscriptionMsg!: Subscription;
   private enterGameWatchMode!: Subscription;
+
+  public onlineUser?: any
+
+  public friendlist: any[] = []
+  public friendPlaying: any[] = []
+  public username: string = ''
   public foundwatch: boolean = true
   public matchmaking: boolean = false;
 
   constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router) {
-
+    this.notifyOnline()
   }
 
   ngOnDestroy(): void {
+    if(this.subscriptionMsg!=undefined){
+      this.subscriptionMsg.unsubscribe()
+    }
+    
   }
 
 
@@ -34,18 +43,31 @@ export class HomepageComponent implements OnInit {
       this.navigate("/profile")
     } else {
       this.username = this.us.get_username()
-      this.us.get_friendlist().subscribe((u) => {
-        this.friendlist = []
-        u.friendlist.forEach((element: { [x: string]: any; }) => {
-
-          this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
-
-        });
-
-      })
+      this.getUsOnline()
+      this.updateFriendList()
     }
 
 
+  }
+  updateFriendList(){
+    this.us.get_friendlist().subscribe((u) => {
+      this.friendlist = []
+      u.friendlist.forEach((element: { [x: string]: any; }) => {
+        let sos = this.onlineUser.find((data: any) => { return data == element['username'] })
+        var col
+        var online
+        if (sos == element['username']) {
+          col = "#88D498"
+          online=true
+        } else {
+          col = "#A4A5AE"
+          online=false
+        }
+        this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'],online:online,color: col })
+      });
+
+    })
+    
   }
   closeWatch():void{
     this.matchmaking=false
@@ -179,6 +201,41 @@ export class HomepageComponent implements OnInit {
     })
 
   }
+  getFriendplaying(){
+    this.friendPlaying=[]
+    this.updateFriendList()
+    this.us.get_GameinProgress().subscribe((u)=>{
+      //u.matches[i].player1
+      
+      for (var i: number = 0; i < u.matches.length; i++){
+        console.log("sono qui dentro")
+        this.friendlist.forEach((data:any)=>{
+          if(data.username == u.matches[i].player1 ){
+            this.friendPlaying.push(data['username'])
+          }
+          if(data.username == u.matches[i].player2 ){
+            this.friendPlaying.push(data['username'])
+          }
+        })
+      }
+      /*for (var i: number = 0; i < u.matches.length; i++){
+         this.friendlist.forEach((data: any) => { 
+          if(data['username'] == u.matches[i].player1 ){
+            this.friendPlaying.push(data['username'])
+          }
+          if(data['username'] == u.matches[i].player2 ){
+            this.friendPlaying.push(data['username'])
+          }
+         
+        })
+
+      }*/
+      
+    })
+    console.log(this.friendPlaying)
+
+  }
+
   createCPUGame(lv: number) {
     this.us.lv = lv
     console.log("livello difficolta: " + this.us.lv)
@@ -285,6 +342,37 @@ export class HomepageComponent implements OnInit {
       }
     })
 
+  }
+  notifyOnline() {
+    if (!this.sio.isNull()) {
+      this.subscriptionMsg = this.sio.isOnline().subscribe((msg) => {
+        this.getUsOnline()
+
+        let usern = JSON.parse(JSON.stringify(msg)).username
+        let conn = JSON.parse(JSON.stringify(msg)).isConnected
+
+        this.friendlist.forEach((element: { [x: string]: any; }) => {
+
+          if (element['username'] == usern) {
+            if (conn) {
+              element['color'] = "#88D498"
+              element['online']=true
+            } else {
+              element['online']=false
+              element['color'] = "#A4A5AE"
+            }
+          }
+        })
+       
+      })
+    }
+  }
+  getUsOnline() {
+    let online = this.us.get_usersOnline().subscribe((elem: any) => {
+      console.log("Online")
+      console.log(elem.onlineuser)
+      this.onlineUser = elem.onlineuser
+    })
   }
 
   /* Navigate to one route */

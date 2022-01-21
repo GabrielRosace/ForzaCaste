@@ -44,7 +44,7 @@
               </div>
               <div class="col-sm">
                 <button type="button" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal"
-                  data-bs-target="#p-friend">Play with friends</button>
+                  data-bs-target="#p-friend" (click)="updateFriendList()">Play with friends</button>
               </div>
             </div>
           </div>
@@ -63,7 +63,7 @@
               </div>
               <div class="col-sm">
                 <button type="button" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal"
-                  data-bs-target="#w-friend">Watch a friends</button>
+                  data-bs-target="#w-friend" (click)="getFriendplaying()">Watch a friends</button>
               </div>
             </div>
           </div>
@@ -97,9 +97,15 @@
       <ul class="list-group">
         <li class="list-group-item d-flex justify-content-between align-items-center"
           *ngFor='let lfriend of friendlist'>
-          {{lfriend.username}}
+          <div class="list-group-item d-flex align-items-center" style="border: none;">
+            <span class="gettone"[ngStyle]="{'background-color': lfriend.color}"></span>
+        {{lfriend.username}}
+          </div>
+          
           <button type="button" (click)="inviteFriendToMatch(lfriend.username)"
-            class=" btn btn-warning mybtn">Invite</button>
+            class=" btn btn-warning mybtn" *ngIf="lfriend.online">Invite</button>
+            <button type="button" (click)="inviteFriendToMatch(lfriend.username)"
+            class=" btn btn-warning mybtn" *ngIf="!lfriend.online" disabled>Invite</button>
         </li>
       </ul>
     </div>
@@ -116,11 +122,12 @@
       </div>
       <ul class="list-group">
         <li class="list-group-item d-flex justify-content-between align-items-center"
-          *ngFor='let lfriend of friendlist'>
-          {{lfriend.username}}
+          *ngFor='let lfriend of friendPlaying'>
+          {{lfriend}}
           <button type="button" class=" btn btn-warning mybtn"
-            (click)="findMatchWatchFriend(lfriend.username)">Watch</button>
+            (click)="findMatchWatchFriend(lfriend)">Watch</button>
         </li>
+        <p class="text-center fs-2" *ngIf="friendPlaying.length==0">Noone of your friend is playing</p>
       </ul>
     </div>
 
