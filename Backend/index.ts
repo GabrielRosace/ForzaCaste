@@ -370,6 +370,7 @@ app.post("/users/mod", auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username, deleted: false }).then((u: User) => {
     console.log('-------------- Prima di if ---------------')
     if (u.hasModeratorRole()) {
+      console.log('-------------- Prima di stats ---------------')
       const basicStats = new (statistics.getModel())({
         nGamesWon: 0,
         nGamesLost: 0,
