@@ -64,7 +64,7 @@ export class HomepageComponent implements OnInit {
       autohide: true
     });
   }
-  /* Call the function for creata a matchmaking */
+  /* Call the function for create a matchmaking */
   findmatch() {
     this.us.create_matchmaking().subscribe(
       (u) => {

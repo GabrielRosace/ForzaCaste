@@ -103,22 +103,10 @@ export class UserProfileComponent implements OnInit {
     this.us.updateUser(name, surname, mail, img, password, oldpassword).subscribe(() => {
       this.us.logout()
       this.app.toastCust("Please, login again")
-      /*
-      this.toast.show("Please, login again", {
-        classname: 'bg-info text-light',
-        delay: 3000,
-        autohide: true
-      })*/
       this.closeModalComponent.nativeElement.click()
       this.router.navigate(['/'])
     }, e => {
       this.app.toastCust("Wrong password, retry")
-      /*
-      this.toast.show("Wrong password, retry", {
-        classname: 'bg-info text-light',
-        delay: 3000,
-        autohide: true
-      })*/
     })
     return false
   }

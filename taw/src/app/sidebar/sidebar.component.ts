@@ -22,7 +22,7 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class SidebarComponent implements OnInit, OnDestroy {
 
-  public username: string = "" //TODO tipo user
+  public username: string = ""
   public avatarImgURL: string = ""
   private tok: string = ""
   public gameReady!: Subscription

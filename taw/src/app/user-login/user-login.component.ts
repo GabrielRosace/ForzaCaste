@@ -14,7 +14,6 @@ export class UserLoginComponent implements OnInit {
 
   public errmessage: string = ''
   public showPassword:boolean = false
-  // private connection: Socket
 
   constructor(private sio: SocketioService, private us: UserHttpService, private router: Router) {
   }
@@ -49,7 +48,6 @@ export class UserLoginComponent implements OnInit {
 
   login(username: string, password: string, remember: boolean) {
     this.us.login(username, password, remember).subscribe((d) => {
-      // console.log(`User service token: ${this.us.get_token()}`)
 
       this.errmessage = ''
 
@@ -59,17 +57,15 @@ export class UserLoginComponent implements OnInit {
       this.sio.connect()
 
       if (this.us.has_nonregmod_role()) {
-        // console.log("Bisogna bloccare le info e fargli cambiare tutto") //TODO
         this.router.navigate(['/profile'])
-        // this.modalFirstLoginComponent.nativeElement.click()
       } else {  
         this.router.navigate(['/home'])
       }
 
     }, (err) => {
+      console.log(err)
       this.errmessage = "Login failed, please check your credentials"
       this.us.logout()
-      this.router.navigate(['/'])
     })
     return false // prevent form to reload page
   }
