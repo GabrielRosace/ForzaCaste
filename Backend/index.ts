@@ -368,6 +368,7 @@ app.get('/users', auth, (req, res, next) => {
 app.post("/users/mod", auth, (req, res, next) => {
   // Check if user who request is a moderator
   user.getModel().findOne({ username: req.user.username, deleted: false }).then((u: User) => {
+    console.log('-------------- Prima di if ---------------')
     if (u.hasModeratorRole()) {
       const basicStats = new (statistics.getModel())({
         nGamesWon: 0,
@@ -376,6 +377,7 @@ app.post("/users/mod", auth, (req, res, next) => {
         nTotalMoves: 0,
         ranking: 0
       })
+      console.log('-------------- Dopo stats ---------------')
 
       console.log("Request Body".blue)
       console.log(req.body)
