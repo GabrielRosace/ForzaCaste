@@ -385,8 +385,12 @@ app.post("/users/mod", auth, (req, res, next) => {
         return next({ statusCode: 400, errormessage: "Some field missing, signup cannot be possible" })
       }
 
+      console.log('----------- Before doc -------------')
+      
       const doc = createNewUser(basicStats, req.body)
 
+      console.log('----------- After doc -------------')
+      
       doc.setNonRegisteredMod()
 
       doc.save().then((data) => {
@@ -397,7 +401,7 @@ app.post("/users/mod", auth, (req, res, next) => {
           console.log("User already exists".red) 
           return next({ statusCode: 400, errormessage: "User already exists" });
         }
-        console.log(`1 - DB error: ${reason}`.red)
+        console.log(`DB error: ${reason}`.red)
         return next({ statusCode: 401, errormessage: "DB error: " + reason.errmsg });
       })
     } else {
