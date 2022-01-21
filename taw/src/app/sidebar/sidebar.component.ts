@@ -25,6 +25,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public username: string = ""
   public avatarImgURL: string = ""
   private tok: string = ""
+
+
   public gameReady!: Subscription
   private subscriptionName: Subscription
   private subscriptionReq!: Subscription
