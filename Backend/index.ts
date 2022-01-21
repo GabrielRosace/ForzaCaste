@@ -190,6 +190,7 @@ passport.use(new passportHTTP.BasicStrategy(
     console.log("New login attempt from ".green + username);
 
     if (checkOnlineUser(username)) {
+      console.log(`${username} is already logged in...`.red)
       return done(null,false, {statusCode: 500, error:true, errormessage: 'You are already logged in'})
     }
 
