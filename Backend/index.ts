@@ -397,7 +397,7 @@ app.post("/users/mod", auth, (req, res, next) => {
           console.log("User already exists".red) 
           return next({ statusCode: 400, errormessage: "User already exists" });
         }
-        console.log(`DB error: ${reason}`.red)
+        console.log(`1 - DB error: ${reason}`.red)
         return next({ statusCode: 401, errormessage: "DB error: " + reason.errmsg });
       })
     } else {
@@ -405,7 +405,7 @@ app.post("/users/mod", auth, (req, res, next) => {
       return next({ statusCode: 401, errormessage:`Operation not permitted` })
     }
   }).catch((reason) => {
-    console.log(`DB error: ${reason}`.red)
+    console.log(`2 - DB error: ${reason}`.red)
     return next({ statusCode: 401, errormessage:`DB error: ${reason}` })
   })
 })
