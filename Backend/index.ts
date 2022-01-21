@@ -368,17 +368,16 @@ app.get('/users', auth, (req, res, next) => {
 app.post("/users/mod", auth, (req, res, next) => {
   // Check if user who request is a moderator
   user.getModel().findOne({ username: req.user.username, deleted: false }).then((u: User) => {
-    console.log('-------------- Prima di if ---------------')
     if (u.hasModeratorRole()) {
-      console.log('-------------- Prima di stats ---------------')
-      const basicStats = new (statistics.getModel())({
-        nGamesWon: 0,
-        nGamesLost: 0,
-        nGamesPlayed: 0,
-        nTotalMoves: 0,
-        ranking: 0
-      })
-      console.log('-------------- Dopo stats ---------------')
+      // const basicStats = new (statistics.getModel())({
+      //   nGamesWon: 0,
+      //   nGamesLost: 0,
+      //   nGamesPlayed: 0,
+      //   nTotalMoves: 0,
+      //   ranking: 0
+      // })
+
+      const basicStats = {}
 
       console.log("Request Body".blue)
       console.log(req.body)
@@ -387,12 +386,8 @@ app.post("/users/mod", auth, (req, res, next) => {
         console.log("Some field missing, signup cannot be possible".red)
         return next({ statusCode: 400, errormessage: "Some field missing, signup cannot be possible" })
       }
-
-      console.log('----------- Before doc -------------')
       
       const doc = createNewUser(basicStats, req.body)
-
-      console.log('----------- After doc -------------')
       
       doc.setNonRegisteredMod()
 
