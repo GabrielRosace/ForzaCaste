@@ -200,13 +200,15 @@ passport.use(new passportHTTP.BasicStrategy(
       }
 
       if (!user) {
+        console.log(`${username} -> Invalid user`.red)
         return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid user" });
       }
-
+      
       if (user.validatePassword(password)) {
         return done(null, user);
       }
-
+      
+      console.log(`${username} -> Invalid password`.red)
       return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid password" });
     })
   }
