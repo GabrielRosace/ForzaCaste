@@ -53,9 +53,8 @@ var matchSchema = new mongoose.Schema({
   winner: {
     type: mongoose.SchemaTypes.String,
   },
-  playground: { //TODO controllare dimensioni campo di gioco
-    type: [[mongoose.SchemaTypes.String]],//[mongoose.SchemaTypes.String],
-    //validate: [arrayLimit, '{PATH} exceeds the limit of 7'],
+  playground: {
+    type: [[mongoose.SchemaTypes.String]],
     required: true
   },
   chat: {
@@ -79,19 +78,11 @@ export function getModel(): mongoose.Model<Match> { // Return Model as singleton
   return matchModel;
 }
 
-export function createNewMatch(data): Match {  //TODO modificare tipo di ritorno
+export function createNewMatch(data): Match {
   var _matchmodel = getModel();
   var match = new _matchmodel(data);
-  // fillPlayground(match);
   return match;
 }
-
-// function fillPlayground(match) {
-//   var i;
-//   for (i = 0; i < 42; i++)
-//     match.playground.push("/");
-// }
-
 
 export function isMatch(arg: any): arg is Match {
   if (!validate(arg)) {
