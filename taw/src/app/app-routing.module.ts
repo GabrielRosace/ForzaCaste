@@ -29,7 +29,7 @@ const routes: Routes = [
   { path: 'user-stats/:friend',  component: FriendStatsComponent },
   { path: 'friend-chat/:friend',  component: FriendChatComponent },
   { path: 'mod-chat/:user',  component: ModChatComponent },
-  // {path: '*', redirectTo:'/login', pathMatch: 'full'}
+  {path: '**', redirectTo:'/login', pathMatch: 'full'}
 ];
 
 @NgModule({

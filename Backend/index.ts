@@ -189,20 +189,30 @@ passport.use(new passportHTTP.BasicStrategy(
     // Delegate function we provide to passport middleware to verify user credentials
     console.log("New login attempt from ".green + username);
 
+    if (checkOnlineUser(username)) {
+      console.log(`${username} is already logged in...`.red)
+      // return done(null,false, {statusCode: 500, error:true, errormessage: 'You are already logged in'})
+      return done(null,false, { message: 'You are already logged in'})
+    }
+
     user.getModel().findOne({ username: username }, (err, user) => {
       if (err) {
         return done({ statusCode: 500, error: true, errormessage: err });
       }
 
       if (!user) {
-        return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid user" });
+        console.log(`${username} -> Invalid user`.red)
+        // return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid user" });
+        return done(null, false, { message: "Invalid user" });
       }
-
+      
       if (user.validatePassword(password)) {
         return done(null, user);
       }
-
-      return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid password" });
+      
+      console.log(`${username} -> Invalid password`.red)
+      // return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid password" });
+      return done(null, false, { message: "Invalid password" });
     })
   }
 ));
@@ -211,14 +221,6 @@ passport.use(new passportHTTP.BasicStrategy(
 app.get("/", (req, res) => {
   res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/whoami", "/users","/rankingstory", "/game", "/gameMessage", "/notification", "/friend", "/message", "/move", ] })
 });
-
-// function getToken(username, id, avatarImgURL, roles, mail, state) {  //! Remove code
-//   return {
-//     username: username,
-//     id: id,
-//     roles: roles
-//   };
-// }
 
 
 
@@ -233,8 +235,6 @@ function getToken(username, id, roles) {
 }
 
 function signToken(tokendata) {
-  // return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, {expiresIn: '360s'})
-
   // Making token expiration within 1h, this method is used to make token renewal
   return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '1h' })
 }
@@ -249,7 +249,6 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
   // We now generate a JWT with the useful user data
   // and return it as response
 
-  // const tokendata = getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state) //! Remove code
   const tokendata = getToken(req.user.username, req.user.id, req.user.roles)
 
   console.log("Login granted. Generating token".green);
@@ -273,7 +272,6 @@ app.get("/whoami", auth, (req, res, next) => {
 
   if (req.user.exp * 1000 <= next5Minutes.getTime()) {
     console.log("Your token will expires within 5 minutes, generating new one".blue)
-    // response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state)) //! Remove this
     response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.roles))
   }
 
@@ -302,11 +300,6 @@ app.post('/users', (req, res, next) => {
   if (req.body.username == 'cpu') {
     console.log("You cannot register yourself as cpu".red)
     return next({ statusCode: 400, errormessage: "You cannot register yourself as cpu" })
-  }
-
-  if (checkOnlineUser(req.body.username)) {
-    console.log("You are already online...".red)
-    return next({ statusCode:400, errormessage: "You are already online..."})
   }
 
   const doc = createNewUser(basicStats, req.body)
@@ -376,13 +369,15 @@ app.post("/users/mod", auth, (req, res, next) => {
   // Check if user who request is a moderator
   user.getModel().findOne({ username: req.user.username, deleted: false }).then((u: User) => {
     if (u.hasModeratorRole()) {
-      const basicStats = new (statistics.getModel())({
-        nGamesWon: 0,
-        nGamesLost: 0,
-        nGamesPlayed: 0,
-        nTotalMoves: 0,
-        ranking: 0
-      })
+      // const basicStats = new (statistics.getModel())({
+      //   nGamesWon: 0,
+      //   nGamesLost: 0,
+      //   nGamesPlayed: 0,
+      //   nTotalMoves: 0,
+      //   ranking: 0
+      // })
+
+      const basicStats = {}
 
       console.log("Request Body".blue)
       console.log(req.body)
@@ -391,9 +386,9 @@ app.post("/users/mod", auth, (req, res, next) => {
         console.log("Some field missing, signup cannot be possible".red)
         return next({ statusCode: 400, errormessage: "Some field missing, signup cannot be possible" })
       }
-
+      
       const doc = createNewUser(basicStats, req.body)
-
+      
       doc.setNonRegisteredMod()
 
       doc.save().then((data) => {
@@ -412,7 +407,7 @@ app.post("/users/mod", auth, (req, res, next) => {
       return next({ statusCode: 401, errormessage:`Operation not permitted` })
     }
   }).catch((reason) => {
-    console.log(`DB error: ${reason}`.red)
+    console.log(`2 - DB error: ${reason}`.red)
     return next({ statusCode: 401, errormessage:`DB error: ${reason}` })
   })
 })
@@ -536,7 +531,6 @@ app.put("/users", auth, (req, res, next) => {
 
 
 // ---------------------------------------------------------------------------------------------------
-// TODO controllare error:true
 
 // Getting the history of logged in user ranking, it is based on the ranking he had at the time of the game requests he made
 app.get('/rankingstory', auth, (req, res, next) => {
@@ -1253,7 +1247,6 @@ app.post('/gameMessage', auth, (req, res, next) => {
       })
     }
     else {
-      // ! Errore: l'utente non ha ruolo utente o moderatore
       console.log("ERROR: Unauthorized".red)
       return next({ statusCode: 404, errormessage: "Unauthorized" })
     }
@@ -1279,7 +1272,6 @@ app.post('/notification', auth, (req, res, next) => {
               return next({ statusCode: 404, errormessage: "You are already friend" })
             }
             else {
-              // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
               notification.getModel().findOne({ type: "friendRequest", $or: [{sender: u.username, receiver: receiver.username.toString()}, {sender: receiver.username.toString(), receiver: u.username}], deleted: false }).then((n) => {//? Come decido se poter rimandare o no la richiesta?
                 if (n !== null) {
                   console.log("ERROR: Request already exist".red)
@@ -1387,7 +1379,6 @@ app.put('/notification', auth, (req, res, next) => {
               if (req.body.accepted === true) {
                 u.addFriend(sender.username.toString(), false)
                 u.save().then((data) => {
-                  //? ios.emit('friend', { user: [req.user.username, req.body.sender], deleted: false })
                   sender.addFriend(u.username.toString(), false)
                   sender.save().then((data) => {
                     console.log("New friend saved".green);
@@ -1716,7 +1707,6 @@ app.put('/message', auth, (req, res, next) => {
   })
 })
 
-
 function createNewGameRequest(bodyRequest, username, ranking, oppositePlayer = null) {
   const model = notification.getModel()
   const id1 = mongoose.Types.ObjectId()
@@ -1734,7 +1724,7 @@ function createNewGameRequest(bodyRequest, username, ranking, oppositePlayer = n
 }
 
 function createNewRandomMatch(player1, player2) {
-  // choose game start randomically
+  // choose game start randomly
   if (Math.random() < 0.5) {
     let t = player1
     player1 = player2
@@ -1958,9 +1948,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
   () => {
     let server = http.createServer(app);
     const option = {
-      // allowEIO3: true,
       cors: {
-        // origin: ["http://localhost:4200", "http://0.0.0.0:4200", "https://gabrielrosace.github.io"],
         origin: true,
         methods: ["GET", "POST"],
         allowedHeaders: ["enableCORS"],
@@ -1986,12 +1974,9 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
               match.getModel().findOne({ $or: [{ player1: user.username.toString() }, { player2: user.username.toString() }], inProgress: true, winner: null }).then((match) => {
                 if (match != null) {
                   match.inProgress = false
-                  // Il match esiste, deve essere interrotto e avvisato l'avversario e gli osservatori
-                  // console.log(socketIOclients[user.username.toString()])
                   if (user.username.toString() == match.player1.toString()) {
                     match.winner = match.player2.toString()
                     let message = JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" })
-                    // socketIOclients[match.player2.toString()].emit('result', JSON.parse(message))
                     ios.to(match.player1).emit('result', JSON.parse(message))
                   }
                   else {
@@ -2029,7 +2014,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
           })
         }
 
-        // Quando un client si disconette lo elimino dalla lista dei client connessi
+        // When a client disconnects, I delete it from the list of connected clients.
         for (const [k, v] of Object.entries(socketIOclients)) {
           if (v == client) {
             ios.emit('online', { username: k, isConnected: false }) // Inform that username now is disconnected
@@ -2048,15 +2033,6 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     console.log(err);
   }
 )
-
-// function createPrivateChat(user1, user2) {
-//   const model = privateChat.getModel()
-//   const doc = new model({
-//     user1: user1,
-//     user2: user2
-//   })
-//   return doc
-// }
 
 function createChatMessage(sender, text) {
   const model = message.getModel()
@@ -2176,7 +2152,6 @@ function copyPlayground(playground) {
   return pl
 }
 
-// TODO ottimizzare codice
 // Check if player win this match
 function checkWinner(playground, player) {
   let winCheck = false

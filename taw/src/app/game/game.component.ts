@@ -43,6 +43,7 @@ export class GameComponent implements OnInit {
   public suggestion:string="Ask for some suggestion";
   public suggestedcollum:number=-1
   public isFriend:boolean=true
+  public gmMsg:string=""
   constructor(private app:AppComponent, private sio: SocketioService,private us: UserHttpService, private router: Router) {
       this.us.get_friendlist().subscribe((u) => {
 
@@ -86,19 +87,21 @@ export class GameComponent implements OnInit {
       console.log('got a msg result: ' + JSON.stringify(msg));
       var response=JSON.parse(JSON.stringify(msg));
       console.log(msg.winner)
-      //console.log(JSON.parse(msg))
 
       if(msg.winner){
         console.log("Hai vinto")
         this.win="Nice! You Win!";
       }
-      if(msg.winner==null){
+      if(msg.winner!=undefined &&msg.winner==null){
         console.log("Pareggio")
         this.win="oh, it's a draw!";
       }
       if(msg.winner!=undefined && !msg.winner){
         console.log("Hai perso")
         this.win="oh you looose :(";
+      }
+      if(msg.message!=undefined ){
+        this.gmMsg=msg.message;
       }
 
       this.rank=(response.rank!=undefined)?response.rank:0
@@ -229,6 +232,7 @@ export class GameComponent implements OnInit {
         var response=JSON.parse(JSON.stringify(msg));
         if(response.error==false&&response.error!=undefined){
           var time = new Date();
+          time.setTime(time.getTime()+60*60*1000)
           this.chat.push({imgUrl:this.us.get_avatarImgURL(),from:"me",text:text,time:time.toLocaleTimeString()});
         }
       });

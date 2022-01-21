@@ -22,7 +22,7 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class SidebarComponent implements OnInit, OnDestroy {
 
-  public username: string = "" //TODO tipo user
+  public username: string = ""
   public avatarImgURL: string = ""
   private tok: string = ""
   public gameReady!: Subscription
@@ -403,6 +403,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.router.navigate(['game']);
       }
       if (msg.gameReady != undefined && !msg.gameReady) {
+        document.getElementById("closepfriend")!.click();
+        document.getElementById("closepstrange")!.click();
+        document.getElementById("closewfriend")!.click();
+        document.getElementById("closewstrange")!.click();
         //chiudere il modal
         Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
           item.parentElement?.removeChild(item);

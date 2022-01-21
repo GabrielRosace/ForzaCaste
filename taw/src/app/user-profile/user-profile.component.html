@@ -13,7 +13,6 @@
       </div>
       <span class="follow">you are a <span>{{role}}</span></span>
       <div class=" d-flex mt-2">
-        <!-- <button class="btn1 btn-dark" data-bs-toggle="modal" data-bs-target="#editModal">Edit Profile</button> -->
         <button type="button" class="btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#editModal">Edit profile</button>
       </div>
     </div>
@@ -43,11 +42,14 @@
     </div>
   </div>
 
+  <div class="card p-4 border border-1 ms-1" *ngIf='!mail'>
+    <div class="alert alert-warning mt-auto mb-auto" role="alert">
+      <p class="text-center fs-2 fw-bold"> Edit your profile to use our game! </p>
+    </div>
+  </div>
+
 </div>
 
-<div class="alert alert-warning" role="alert" *ngIf='!mail'>
-  <p class="text-center fs-2 fw-bold"> Edit your profile to use our game! </p>
-</div>
 
 <!-- Modal to update profile -->
 <div class="modal fade" id="editModal" tabindex="-1">

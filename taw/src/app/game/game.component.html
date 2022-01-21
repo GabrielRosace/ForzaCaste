@@ -92,7 +92,7 @@
   </div>
   <div style="height: 135vh;"></div>
 </div>
-<div class="modal fade" id="w-stats" tabindex="-1" data-backdrop="false">
+<div class="modal fade" id="w-stats" tabindex="-1" data-bs-keyboard="false" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -101,9 +101,11 @@
       <p class="text-center fs-2">Now you get this ranking</p>
       <p class="text-center fs-2" *ngIf="rank<0" style="color: lightcoral;">{{rank}} points</p>
       <p class="text-center fs-2" *ngIf="rank>=0" style="color: lightgreen;">+{{rank}} points</p>
-      <div class="dot-flashing" style="align-self: center;"></div>
+      <div *ngIf="gmMsg" class="alert alert-warning" role="alert">
+        Game message: {{gmMsg}}
+      </div>
       <div class="modal-footer">
-        <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal">Close</button>
+        <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal" (click)="closeMatch()">Close</button>
       </div>
     </div>
     

@@ -1,108 +1,151 @@
-
 <div class="text-center myContainer">
-    <div class="homepagecontainer">
-        <img class="mb-4" src="assets/img/logo.png" alt="Forza quattro logo" width="72" height="57">
-        <h1 class="h3 mb-3 fw-normal">Welcome to ForzaCaste!</h1>
-        <br>
-        <div class="duw">
-          <div class="card border-dark mb-3">
-              <div class="card-body text-dark">
-                  <p class="text-center fs-2 fw-bold">Can you beat the CPU?</p>
-                  <div class="container">
-                      <div class="row">
-                        <div class="col-sm">
-                          <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
-                            <button type="button" class="btn btn-primary" (click)="createCPUGame(5)">Play vs the CPU</button>
-                          
-                            <div class="btn-group" ngbDropdown role="group" aria-label="Button group with nested dropdown">
-                              <button class="btn btn-warning" ngbDropdownToggle>Levels</button>
-                              <div class="dropdown-menu" ngbDropdownMenu>
-                                <button ngbDropdownItem (click)="createCPUGame(2)">Easy</button>
-                                <button ngbDropdownItem (click)="createCPUGame(5)">Medium</button>
-                                <button ngbDropdownItem (click)="createCPUGame(7)">Hard</button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+  <button type="button" id="closepfriend" [hidden]="true" class="w-100 btn btn-warning btn-lg mybtn" data-bs-dismiss="modal" data-bs-target="#p-friend"></button>
+  <button type="button" id="closepstrange" [hidden]="true" class="w-100 btn btn-warning btn-lg mybtn" data-bs-dismiss="modal" data-bs-target="#p-strange"></button>
+  <button type="button" id="closewfriend" [hidden]="true" class="w-100 btn btn-warning btn-lg mybtn" data-bs-dismiss="modal" data-bs-target="#w-friend"></button>
+  <button type="button" id="closewstrange" [hidden]="true" class="w-100 btn btn-warning btn-lg mybtn" data-bs-dismiss="modal" data-bs-target="#w-strange"></button>
+  <div class="homepagecontainer">
+    <img class="mb-4" src="assets/img/logo.png" alt="Forza quattro logo" width="72" height="57">
+    <h1 class="h3 mb-3 fw-normal">Welcome to ForzaCaste!</h1>
+    <br>
+    <div class="duw">
+      <div class="card border-dark mb-3">
+        <div class="card-body text-dark">
+          <p class="text-center fs-2 fw-bold">Can you beat the CPU?</p>
+          <div class="container">
+            <div class="row">
+              <div class="col-sm">
+                <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+                  <button type="button" class="btn btn-primary" (click)="createCPUGame(5)">Play vs the CPU</button>
+
+                  <div class="btn-group" ngbDropdown role="group" aria-label="Button group with nested dropdown">
+                    <button class="btn btn-warning" ngbDropdownToggle>Levels</button>
+                    <div class="dropdown-menu" ngbDropdownMenu>
+                      <button ngbDropdownItem (click)="createCPUGame(2)">Easy</button>
+                      <button ngbDropdownItem (click)="createCPUGame(5)">Medium</button>
+                      <button ngbDropdownItem (click)="createCPUGame(7)">Hard</button>
                     </div>
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
       </div>
-        <div class="duw">
-            <div class="card border-dark mb-3">
-                <div class="card-body text-dark">
-                    <p class="text-center fs-2 fw-bold">Do you want to play?</p>
-                    <div class="container">
-                        <div class="row">
-                          <div class="col-sm">
-                            <button type="button" class="w-100 btn btn-primary btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#p-strange" (click)="findmatch()">Play with strange</button>
-                          </div>
-                          <div class="col-sm">
-                            <button type="button" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#p-friend">Play with friends</button>
-                          </div>
-                        </div>
-                      </div>
-                </div>
-              </div>
-        </div>
-        <div class="duw">
-            <div class="card border-dark mb-3">
-                <div class="card-body text-dark">
-                    <p class="text-center fs-2 fw-bold">Do you want to watch?</p>
-                    <div class="container">
-                        <div class="row">
-                        <div class="col-sm">
-                            <button type="button" class="w-100 btn btn-primary btn-lg mybtn" data-bs-toggle="modal"data-bs-target="#w-strange" (click)="findMatchWatch()">Watch a strange</button>
-                        </div>
-                        <div class="col-sm">
-                            <button type="button" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal" data-bs-target="#w-friend">Watch a friends</button>
-                        </div>
-                        </div>
-                    </div>
-                </div>
-              </div>
-        </div>
     </div>
+    <div class="duw">
+      <div class="card border-dark mb-3">
+        <div class="card-body text-dark">
+          <p class="text-center fs-2 fw-bold">Do you want to play?</p>
+          <div class="container">
+            <div class="row">
+              <div class="col-sm">
+                <button type="button" class="w-100 btn btn-primary btn-lg mybtn" data-bs-target="#p-strange"
+                  data-bs-toggle="modal">Play with strange</button>
+              </div>
+              <div class="col-sm">
+                <button type="button" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal"
+                  data-bs-target="#p-friend" (click)="updateFriendList()">Play with friends</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="duw">
+      <div class="card border-dark mb-3">
+        <div class="card-body text-dark">
+          <p class="text-center fs-2 fw-bold">Do you want to watch?</p>
+          <div class="container">
+            <div class="row">
+              <div class="col-sm">
+                <button type="button" class="w-100 btn btn-primary btn-lg mybtn" data-bs-toggle="modal"
+                  data-bs-target="#w-strange" (click)="findMatchWatch()">Watch a strange</button>
+              </div>
+              <div class="col-sm">
+                <button type="button" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal"
+                  data-bs-target="#w-friend" (click)="getFriendplaying()">Watch a friends</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="modal fade" id="p-friend" tabindex="-1">
+<div class="modal fade" id="p-friend" tabindex="-1" data-bs-keyboard="false" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
+
+    <div class="modal-content" *ngIf="matchmaking">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Play with a friend</h5>
+      </div>
+      <p class="text-center fs-2">I'm waiting for your friend</p>
+
+      <div class="dot-flashing" style="align-self: center;" ></div>
+      <div class="modal-footer">
+        <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal"
+          (click)="closeMatch()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="modal-content" *ngIf="!matchmaking">
       <div class="modal-header">
         <h5 class="modal-title" id="editModalLabel">Play with a friend</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <ul class="list-group">
-        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lfriend of friendlist'>
-          {{lfriend.username}}
-          <button type="button" (click)="inviteFriendToMatch(lfriend.username)" class=" btn btn-warning mybtn" data-bs-dismiss="modal">Invite</button>
+        <li class="list-group-item d-flex justify-content-between align-items-center"
+          *ngFor='let lfriend of friendlist'>
+          <div class="list-group-item d-flex align-items-center" style="border: none;">
+            <span class="gettone"[ngStyle]="{'background-color': lfriend.color}"></span>
+        {{lfriend.username}}
+          </div>
+          
+          <button type="button" (click)="inviteFriendToMatch(lfriend.username)"
+            class=" btn btn-warning mybtn" *ngIf="lfriend.online">Invite</button>
+            <button type="button" (click)="inviteFriendToMatch(lfriend.username)"
+            class=" btn btn-warning mybtn" *ngIf="!lfriend.online" disabled>Invite</button>
         </li>
       </ul>
-
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="w-friend" tabindex="-1">
+<div class="modal fade" id="w-friend" tabindex="-1" data-bs-keyboard="false" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
+
+    <div class="modal-content" *ngIf="!matchmaking">
       <div class="modal-header">
         <h5 class="modal-title" id="editModalLabel">Watch a friend</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <ul class="list-group">
-        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lfriend of friendlist'>
-          {{lfriend.username}}
-          <button type="button" class=" btn btn-warning mybtn" (click)="findMatchWatchFriend(lfriend.username)">Watch</button>
+        <li class="list-group-item d-flex justify-content-between align-items-center"
+          *ngFor='let lfriend of friendPlaying'>
+          {{lfriend}}
+          <button type="button" class=" btn btn-warning mybtn"
+            (click)="findMatchWatchFriend(lfriend)">Watch</button>
         </li>
+        <p class="text-center fs-2" *ngIf="friendPlaying.length==0">Noone of your friend is playing</p>
       </ul>
+    </div>
 
+    <div class="modal-content" *ngIf="matchmaking">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Watch a friend</h5>
+      </div>
+      <p class="text-center fs-2" *ngIf="foundwatch">I'm looking for a player</p>
+      <div class="dot-flashing" style="align-self: center;" *ngIf="foundwatch"></div>
+      <div class="modal-footer">
+        <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal"
+          (click)="closeWatch()">Cancel</button>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="p-strange" tabindex="-1" data-backdrop="false">
+<div class="modal fade" id="p-strange" tabindex="-1" data-bs-keyboard="false" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -111,30 +154,31 @@
       <p class="text-center fs-2">I'm looking for a player</p>
       <div class="dot-flashing" style="align-self: center;"></div>
       <div class="modal-footer">
-        <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal"(click)="closeMatch()">Cancel</button>
+        <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal"
+          (click)="closeMatch()">Cancel</button>
       </div>
     </div>
-    
+
   </div>
 </div>
-<div class="modal fade" id="w-strange" tabindex="-1">
+<div class="modal fade" id="w-strange" tabindex="-1" data-bs-keyboard="false" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="editModalLabel">Watch a strange</h5>
       </div>
-    <div *ngIf="foundwatch">
-      <p class="text-center fs-2">I'm looking for a player</p>
-    
-      <div class="dot-flashing" style="align-self: center;"></div>
-    </div>
-    <div *ngIf="!foundwatch">
-      <p class="text-center fs-2">There is noone to watch</p>
-    </div>
+
+      <p class="text-center fs-2" *ngIf="foundwatch">I'm looking for a player</p>
+
+      <div class="dot-flashing" style="align-self: center;" *ngIf="foundwatch"></div>
+
+      <p class="text-center fs-2" *ngIf="!foundwatch">There is no match to watch</p>
+
       <div class="modal-footer">
-        <button type="button"  class=" btn btn-danger btn-sm mybtn"  data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal"
+          (click)="closeWatch()">Cancel</button>
       </div>
     </div>
-    
+
   </div>
 </div>
