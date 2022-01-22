@@ -281,13 +281,14 @@ app.get("/whoami", auth, (req, res, next) => {
 // Creation of a new user, this endpoint reset statistics and save user information into DB
 app.post('/users', (req, res, next) => {
 
-  const basicStats = new (statistics.getModel())({
-    nGamesWon: 0,
-    nGamesLost: 0,
-    nGamesPlayed: 0,
-    nTotalMoves: 0,
-    ranking: 0
-  })
+  // const basicStats = new (statistics.getModel())({
+  //   nGamesWon: 0,
+  //   nGamesLost: 0,
+  //   nGamesPlayed: 0,
+  //   nTotalMoves: 0,
+  //   ranking: 0
+  // })
+  const basicStats = {}
 
   console.log("Request Body".blue)
   console.log(req.body)
