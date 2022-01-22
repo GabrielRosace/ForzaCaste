@@ -42,7 +42,6 @@ var matchSchema = new mongoose.Schema({
     },
     playground: {
         type: [[mongoose.SchemaTypes.String]],
-        //validate: [arrayLimit, '{PATH} exceeds the limit of 7'],
         required: true
     },
     chat: {
@@ -68,15 +67,9 @@ exports.getModel = getModel;
 function createNewMatch(data) {
     var _matchmodel = getModel();
     var match = new _matchmodel(data);
-    // fillPlayground(match);
     return match;
 }
 exports.createNewMatch = createNewMatch;
-// function fillPlayground(match) {
-//   var i;
-//   for (i = 0; i < 42; i++)
-//     match.playground.push("/");
-// }
 function isMatch(arg) {
     if (!validate(arg)) {
         console.log("Match Validator Error ".red);

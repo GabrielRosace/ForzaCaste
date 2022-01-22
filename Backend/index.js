@@ -138,30 +138,32 @@ app.use((req, res, next) => {
 passport.use(new passportHTTP.BasicStrategy(function (username, password, done) {
     // Delegate function we provide to passport middleware to verify user credentials
     console.log("New login attempt from ".green + username);
+    if (checkOnlineUser(username)) {
+        console.log(`${username} is already logged in...`.red);
+        // return done(null,false, {statusCode: 500, error:true, errormessage: 'You are already logged in'})
+        return done(null, false, { message: 'You are already logged in' });
+    }
     user.getModel().findOne({ username: username }, (err, user) => {
         if (err) {
             return done({ statusCode: 500, error: true, errormessage: err });
         }
         if (!user) {
-            return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid user" });
+            console.log(`${username} -> Invalid user`.red);
+            // return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid user" });
+            return done(null, false, { message: "Invalid user" });
         }
         if (user.validatePassword(password)) {
             return done(null, user);
         }
-        return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid password" });
+        console.log(`${username} -> Invalid password`.red);
+        // return done(null, false, { statusCode: 500, error: true, errormessage: "Invalid password" });
+        return done(null, false, { message: "Invalid password" });
     });
 }));
 // List of available endpoints in specified version
 app.get("/", (req, res) => {
     res.status(200).json({ api_version: "1.0", endpoints: ["/", "/login", "/whoami", "/users", "/rankingstory", "/game", "/gameMessage", "/notification", "/friend", "/message", "/move",] });
 });
-// function getToken(username, id, avatarImgURL, roles, mail, state) {  //! Remove code
-//   return {
-//     username: username,
-//     id: id,
-//     roles: roles
-//   };
-// }
 // ------------------------- User management ---------------------------------
 // In our token we save username, id and role of the logged user
 function getToken(username, id, roles) {
@@ -172,7 +174,6 @@ function getToken(username, id, roles) {
     };
 }
 function signToken(tokendata) {
-    // return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, {expiresIn: '360s'})
     // Making token expiration within 1h, this method is used to make token renewal
     return jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '1h' });
 }
@@ -182,7 +183,6 @@ app.get("/login", passport.authenticate('basic', { session: false }), (req, res,
     // has been injected into req.user
     // We now generate a JWT with the useful user data
     // and return it as response
-    // const tokendata = getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state) //! Remove code
     const tokendata = getToken(req.user.username, req.user.id, req.user.roles);
     console.log("Login granted. Generating token".green);
     var token_signed = signToken(tokendata);
@@ -198,7 +198,6 @@ app.get("/whoami", auth, (req, res, next) => {
     };
     if (req.user.exp * 1000 <= next5Minutes.getTime()) {
         console.log("Your token will expires within 5 minutes, generating new one".blue);
-        // response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.avatarImgURL, req.user.roles, req.user.mail, req.user.state)) //! Remove this
         response["token"] = signToken(getToken(req.user.username, req.user.id, req.user.roles));
     }
     return res.status(200).json(response);
@@ -221,10 +220,6 @@ app.post('/users', (req, res, next) => {
     if (req.body.username == 'cpu') {
         console.log("You cannot register yourself as cpu".red);
         return next({ statusCode: 400, errormessage: "You cannot register yourself as cpu" });
-    }
-    if (checkOnlineUser(req.body.username)) {
-        console.log("You are already online...".red);
-        return next({ statusCode: 400, errormessage: "You are already online..." });
     }
     const doc = createNewUser(basicStats, req.body);
     doc.setUser();
@@ -289,13 +284,14 @@ app.post("/users/mod", auth, (req, res, next) => {
     // Check if user who request is a moderator
     user.getModel().findOne({ username: req.user.username, deleted: false }).then((u) => {
         if (u.hasModeratorRole()) {
-            const basicStats = new (statistics.getModel())({
-                nGamesWon: 0,
-                nGamesLost: 0,
-                nGamesPlayed: 0,
-                nTotalMoves: 0,
-                ranking: 0
-            });
+            // const basicStats = new (statistics.getModel())({
+            //   nGamesWon: 0,
+            //   nGamesLost: 0,
+            //   nGamesPlayed: 0,
+            //   nTotalMoves: 0,
+            //   ranking: 0
+            // })
+            const basicStats = {};
             console.log("Request Body".blue);
             console.log(req.body);
             if (!req.body.password || !req.body.username) {
@@ -321,7 +317,7 @@ app.post("/users/mod", auth, (req, res, next) => {
             return next({ statusCode: 401, errormessage: `Operation not permitted` });
         }
     }).catch((reason) => {
-        console.log(`DB error: ${reason}`.red);
+        console.log(`2 - DB error: ${reason}`.red);
         return next({ statusCode: 401, errormessage: `DB error: ${reason}` });
     });
 });
@@ -333,7 +329,7 @@ function createNewUser(statistics, bodyRequest) {
         surname: bodyRequest.surname,
         avatarImgURL: bodyRequest.avatarImgURL,
         mail: bodyRequest.mail,
-        state: 'logged',
+        // state: 'logged',
         statistics: statistics,
         deleted: false
     });
@@ -436,7 +432,6 @@ app.put("/users", auth, (req, res, next) => {
     });
 });
 // ---------------------------------------------------------------------------------------------------
-// TODO controllare error:true
 // Getting the history of logged in user ranking, it is based on the ranking he had at the time of the game requests he made
 app.get('/rankingstory', auth, (req, res, next) => {
     user.getModel().findOne({ username: req.user.username, deleted: false }).then((u) => {
@@ -1046,151 +1041,6 @@ app.post("/move", auth, (req, res, next) => {
                             console.log(`Wrong turn`.red);
                             return next({ statusCode: 400, errormessage: "Wrong turn" });
                         }
-<<<<<<< HEAD
-=======
-                    }
-                }
-                else {
-                    console.log("Match does not exists".red);
-                    return next({ statusCode: 404, errormessage: "Match does not exists" });
-                }
-            });
-        }
-        else {
-            console.log(`You cannot do it`.red);
-            return next({ statusCode: 403, errormessage: "You cannot do it" });
-        }
-    }).catch((error) => {
-        console.log("ERROR: DB error".red + error);
-        return next({ statusCode: 404, errormessage: "DB error" });
-    });
-});
-app.delete('/game', auth, (req, res, next) => {
-    user.getModel().findOne({ username: req.user.username }).then((user) => {
-        if (user.hasModeratorRole() || user.hasUserRole()) {
-            match.getModel().findOne({ $or: [{ player1: user.username.toString() }, { player2: user.username.toString() }], inProgress: true }).then((match) => {
-                if (match != null) {
-                    match.inProgress = false;
-                    match.winner = user.username.toString() === match.player1.toString() ? match.player2.toString() : match.player1.toString();
-                    match.save().then((data) => {
-                        let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" });
-                        if (data.player2.toString() != "cpu") {
-                            if (socketIOclients[user.username.toString()]) {
-                                socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message));
-                            }
-                        }
-                        else {
-                            socketIOclients[user.username.toString()].broadcast.to(match.player1 + 'Watchers').emit('result', JSON.parse(message));
-                        }
-                        console.log("The match have been deleted correctely".green);
-                        return res.status(200).json({ error: false, message: "The match have been deleted correctely" });
-                    }).catch((reason) => {
-                        console.log("ERROR: match cancellation error \nDB error: ".red + reason);
-                        return next({ statusCode: 404, errormessage: "Match cancellation error" });
-                    });
-                }
-                else {
-                    // Se non esiste un match, allora si annulla la richiesta del match
-                    notification.getModel().findOne({ type: 'randomMatchmaking', sender: user.username.toString(), receiver: null, deleted: false }).then((notification) => {
-                        if (notification != null) {
-                            notification.deleted = true;
-                            notification.save().then((data) => {
-                                console.log("The match request have been deleted correctely".green);
-                                return res.status(200).json({ error: false, message: "The match request have been deleted correctely" });
-                            }).catch((reason) => {
-                                console.log("ERROR: notification cancellation error \nDB error: ".red + reason);
-                                return next({ statusCode: 404, errormessage: "Notification cancellation error" });
-                            });
-                        }
-                        else {
-                            console.log("ERROR: Match request does not exist".red);
-                            return next({ statusCode: 404, errormessage: "Match request does not exists" });
-                        }
-                    }).catch((error) => {
-                        console.log("ERROR: DB error".red + error);
-                        return next({ statusCode: 404, errormessage: "DB error" });
-                    });
-                }
-            }).catch((error) => {
-                console.log("ERROR: DB error".red + error);
-                return next({ statusCode: 404, errormessage: "DB error" });
-            });
-        }
-        else {
-            console.log("ERROR: Unauthorized".red);
-            return next({ statusCode: 401, errormessage: "Unauthorized" });
-        }
-    }).catch((error) => {
-        console.log("ERROR: DB error".red + error);
-        return next({ statusCode: 404, errormessage: "DB error" });
-    });
-});
-app.put('/game', auth, (req, res, next) => {
-    if (req.body.accept === undefined || !req.body.sender) {
-        console.log("ERROR: Bad Request");
-        return next({ statusCode: 400, errormessage: "Bad Request" });
-    }
-    user.getModel().findOne({ username: req.user.username }).then((user) => {
-        if (user.hasModeratorRole() || user.hasUserRole()) {
-            notification.getModel().findOne({ type: "friendlyMatchmaking", receiver: user.username.toString(), deleted: false, sender: req.body.sender }).then((n) => {
-                if (n != null && n.sender != user.username) {
-                    if (req.body.accept === true) {
-                        const randomMatch = createNewRandomMatch(n.sender, n.receiver);
-                        randomMatch.save().then((data) => {
-                            console.log("Match have been created correctely".green);
-                        }).catch((reason) => {
-                            console.log("ERROR: match creation error \nDB error: ".red + reason);
-                            next({ statusCode: 404, errormessage: "Match creation error" });
-                        });
-                        n.deleted = true;
-                        n.inpending = false;
-                        n.save().then((data) => {
-                            console.log("Game request have been updated correctely".green);
-                        }).catch((reason) => {
-                            console.log("ERROR: match request update error \nDB error: ".red + reason);
-                            return next({ statusCode: 404, errormessage: "Match request update error" });
-                        });
-                        let player1 = randomMatch.player1.toString();
-                        let player2 = randomMatch.player2.toString();
-                        let client1 = socketIOclients[player1];
-                        let client2 = socketIOclients[player2];
-                        client1.join(player1);
-                        client2.join(player1);
-                        client1.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player2 });
-                        client2.emit('gameReady', { 'gameReady': true, 'opponentPlayer': player1 });
-                        if (randomMatch.player1.toString() == player1.toString()) {
-                            console.log("starts player1");
-                            let pl1Turn = JSON.stringify({ yourTurn: true });
-                            client1.emit('move', JSON.parse(pl1Turn));
-                            let pl2Turn = JSON.stringify({ yourTurn: false });
-                            client2.emit('move', JSON.parse(pl2Turn));
-                        }
-                        else {
-                            console.log("starts player2");
-                            let pl2Turn = JSON.stringify({ yourTurn: true });
-                            client2.emit('move', JSON.parse(pl2Turn));
-                            let pl1Turn = JSON.stringify({ yourTurn: false });
-                            client1.emit('move', JSON.parse(pl1Turn));
-                        }
-                        let watchersMessage = JSON.stringify({ playerTurn: randomMatch.player1.toString() });
-                        ios.to(randomMatch.player1.toString() + 'Watchers').emit('gameStatus', JSON.parse(watchersMessage));
-                        console.log("Match creation and game request update done".green);
-                        return res.status(200).json({ error: false, message: "Match have been created correctely" });
-                    }
-                    else {
-                        n.inpending = false;
-                        n.deleted = true;
-                        n.save().then((data) => {
-                            console.log("Game request have been updated correctely".green);
-                            if (socketIOclients[n.sender.toString()]) {
-                                socketIOclients[n.sender.toString()].emit("gameReady", { "gameReady": false, "message": "Request refused" });
-                            }
-                            return res.status(200).json({ error: false, message: "Request refused" });
-                        }).catch((reason) => {
-                            console.log("ERROR: match request update error \nDB error: ".red + reason);
-                            return next({ statusCode: 404, errormessage: "Match request update error" });
-                        });
->>>>>>> 95f13806b6fd6d7114125ad39b9956bcc70f431f
                     }
                 }
                 else {
@@ -1258,7 +1108,6 @@ app.post('/gameMessage', auth, (req, res, next) => {
             });
         }
         else {
-            // ! Errore: l'utente non ha ruolo utente o moderatore
             console.log("ERROR: Unauthorized".red);
             return next({ statusCode: 404, errormessage: "Unauthorized" });
         }
@@ -1283,7 +1132,6 @@ app.post('/notification', auth, (req, res, next) => {
                             return next({ statusCode: 404, errormessage: "You are already friend" });
                         }
                         else {
-                            // Accetto la possibilità che un utente possa inviare di nuovo una richiesta, dopo che questa è stata rifiutata
                             notification.getModel().findOne({ type: "friendRequest", $or: [{ sender: u.username, receiver: receiver.username.toString() }, { sender: receiver.username.toString(), receiver: u.username }], deleted: false }).then((n) => {
                                 if (n !== null) {
                                     console.log("ERROR: Request already exist".red);
@@ -1392,7 +1240,6 @@ app.put('/notification', auth, (req, res, next) => {
                             if (req.body.accepted === true) {
                                 u.addFriend(sender.username.toString(), false);
                                 u.save().then((data) => {
-                                    //? ios.emit('friend', { user: [req.user.username, req.body.sender], deleted: false })
                                     sender.addFriend(u.username.toString(), false);
                                     sender.save().then((data) => {
                                         console.log("New friend saved".green);
@@ -1574,7 +1421,7 @@ app.get('/message', auth, (req, res, next) => {
         }
         else {
             console.log("ERROR: Unauthorized".red);
-            return next({ statusCode: 404, errormessage: "User hasn't the necessary roles" });
+            return next({ statusCode: 404, errormessage: "Unauthorized" });
         }
     }).catch((error) => {
         console.log("ERROR: DB error".red + error);
@@ -1594,11 +1441,11 @@ app.post('/message', auth, (req, res, next) => {
                     if (sender.isFriend(receiver.username) || sender.hasModeratorRole()) {
                         let m = createMessage(sender.username.toString(), receiver.username.toString(), req.body.message);
                         m.save().then((data) => {
-                            console.log("Message have been saved correctely: ".green + data);
+                            console.log("Message has been saved correctely: ".green + data);
                             if (socketIOclients[receiver.username.toString()]) {
                                 socketIOclients[receiver.username.toString()].emit('message', data);
                             }
-                            return res.status(200).json({ error: false, errormessage: "Message have been saved correctely" });
+                            return res.status(200).json({ error: false, errormessage: "Message has been saved correctely" });
                         }).catch((reason) => {
                             console.log("ERROR: message creation error\nDB ERROR: " + reason);
                             return next({ statusCode: 404, errormessage: "Message creation error" });
@@ -1640,11 +1487,11 @@ app.post('/message/mod', auth, (req, res, next) => {
                 let msg = createMessage(sender.username.toString(), receiver.username.toString(), message);
                 msg.isAModMessage = true;
                 msg.save().then((savedMsg) => {
-                    console.log("Message from admin have been saved correctely: ".green + savedMsg);
+                    console.log("Message from admin has been saved correctely: ".green + savedMsg);
                     if (socketIOclients[receiver.username.toString()]) {
                         socketIOclients[receiver.username.toString()].emit('message', savedMsg);
                     }
-                    return res.status(200).json({ error: false, errormessage: "Message from admin have been saved correctely" });
+                    return res.status(200).json({ error: false, errormessage: "Message from admin has been saved correctely" });
                 }).catch((error) => {
                     console.log("ERROR: Message creation error\nDB error : " + error);
                     return next({ statusCode: 404, errormessage: "Message creation error" });
@@ -1712,115 +1559,6 @@ app.put('/message', auth, (req, res, next) => {
         return next({ statusCode: 404, errormessage: "DB error" });
     });
 });
-<<<<<<< HEAD
-=======
-app.get('/friend', auth, (req, res, next) => {
-    user.getModel().findOne({ username: req.user.username }).then((u) => {
-        if (u.hasModeratorRole() || u.hasUserRole()) {
-            return res.status(200).json({ error: false, errormessage: "", friendlist: u.friendList });
-        }
-        else {
-            console.log("ERROR: Unauthorized".red);
-            return next({ statusCode: 401, errormessage: "Unauthorized" });
-        }
-    }).catch((error) => {
-        console.log("ERROR: DB error".red + error);
-        return next({ statusCode: 404, errormessage: "DB error" });
-    });
-});
-app.delete('/friend/:username', auth, (req, res, next) => {
-    let friend = req.params.username;
-    if (!friend) {
-        console.log("ERROR: Bad Request".red);
-        return next({ statusCode: 400, errormessage: "Bad Request" });
-    }
-    user.getModel().findOne({ username: req.user.username }).then((u) => {
-        if (u.hasModeratorRole() || u.hasUserRole()) {
-            user.getModel().findOne({ username: friend }).then((friend) => {
-                if (u.isFriend(friend.username.toString())) {
-                    u.deleteFriend(friend.username.toString());
-                    u.save().then((data) => {
-                        friend.deleteFriend(u.username.toString());
-                        friend.save().then((data) => {
-                            console.log("Friend deleted.".blue);
-                            // ios.emit('friend', { user: [req.user.username, friend], deleted: true })
-                            if (socketIOclients[friend.username.toString()]) {
-                                let senderMessage = JSON.stringify({ deletedFriend: u.username.toString() });
-                                socketIOclients[friend.username.toString()].emit('friendDeleted', JSON.parse(senderMessage));
-                            }
-                            return res.status(200).json({ error: false, errormessage: "Friend removed" });
-                        }).catch((reason) => {
-                            console.log("ERROR: DB error".red);
-                            return next({ statusCode: 404, errormessage: "DB error" });
-                        });
-                    }).catch((reason) => {
-                        console.log("ERROR: DB error".red);
-                        return next({ statusCode: 404, errormessage: "DB error" });
-                    });
-                }
-                else {
-                    console.log("ERROR: The user is not friend".red);
-                    return next({ statusCode: 404, errormessage: "The user is not friend" });
-                }
-            }).catch((error) => {
-                console.log("ERROR: DB error".red + error);
-                return next({ statusCode: 404, errormessage: "DB error" });
-            });
-        }
-        else {
-            console.log("ERROR: Unauthorized".red);
-            return next({ statusCode: 401, errormessage: "Unauthorized" });
-        }
-    }).catch((error) => {
-        console.log("ERROR: DB error".red + error);
-        return next({ statusCode: 404, errormessage: "DB error" });
-    });
-});
-app.put('/friend', auth, (req, res, next) => {
-    if (!req.body.username || req.body.isBlocked == undefined) {
-        console.log("ERROR: Bad Request".red);
-        return next({ statusCode: 400, errormessage: "Bad Request" });
-    }
-    user.getModel().findOne({ username: req.user.username }).then((u) => {
-        if (u.hasModeratorRole() || u.hasUserRole()) {
-            user.getModel().findOne({ username: req.body.username }).then((friend) => {
-                u.setIsBlocked(friend.username.toString(), req.body.isBlocked);
-                u.save().then((data) => {
-                    if (req.body.isBlocked) {
-                        console.log("Friend blocked".green);
-                        if (socketIOclients[friend.username.toString()]) {
-                            let isBeingBlocked = JSON.stringify({ blocked: true });
-                            socketIOclients[friend.username.toString()].emit('friendBlocked', JSON.parse(isBeingBlocked));
-                        }
-                        return res.status(200).json({ error: false, errormessage: "User blocked" });
-                    }
-                    else {
-                        console.log("Friend unblocked.".green);
-                        if (socketIOclients[friend.username.toString()]) {
-                            let isBeingBlocked = JSON.stringify({ blocked: false });
-                            socketIOclients[friend.username.toString()].emit('friendBlocked', JSON.parse(isBeingBlocked));
-                        }
-                        return res.status(200).json({ error: false, errormessage: "User unblocked" });
-                    }
-                }).catch((error) => {
-                    console.log("ERROR: DB error".red + error);
-                    return next({ statusCode: 404, errormessage: "DB error" });
-                });
-            }).catch((error) => {
-                console.log("ERROR: DB error".red + error);
-                return next({ statusCode: 404, errormessage: "DB error" });
-            });
-        }
-        else {
-            console.log("ERROR: Unauthorized".red);
-            return next({ statusCode: 401, errormessage: "Unauthorized" });
-        }
-    }).catch((error) => {
-        console.log("ERROR: DB error".red + error);
-        return next({ statusCode: 404, errormessage: "DB error" });
-    });
-});
->>>>>>> 95f13806b6fd6d7114125ad39b9956bcc70f431f
 function createNewGameRequest(bodyRequest, username, ranking, oppositePlayer = null) {
     const model = notification.getModel();
     const id1 = mongoose.Types.ObjectId();
@@ -1837,7 +1575,7 @@ function createNewGameRequest(bodyRequest, username, ranking, oppositePlayer = n
     return doc;
 }
 function createNewRandomMatch(player1, player2) {
-    // choose game start randomically
+    // choose game start randomly
     if (Math.random() < 0.5) {
         let t = player1;
         player1 = player2;
@@ -2034,9 +1772,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
 }).then(() => {
     let server = http.createServer(app);
     const option = {
-        // allowEIO3: true,
         cors: {
-            // origin: ["http://localhost:4200", "http://0.0.0.0:4200", "https://gabrielrosace.github.io"],
             origin: true,
             methods: ["GET", "POST"],
             allowedHeaders: ["enableCORS"],
@@ -2056,12 +1792,9 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                         match.getModel().findOne({ $or: [{ player1: user.username.toString() }, { player2: user.username.toString() }], inProgress: true, winner: null }).then((match) => {
                             if (match != null) {
                                 match.inProgress = false;
-                                // Il match esiste, deve essere interrotto e avvisato l'avversario e gli osservatori
-                                // console.log(socketIOclients[user.username.toString()])
                                 if (user.username.toString() == match.player1.toString()) {
                                     match.winner = match.player2.toString();
                                     let message = JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" });
-                                    // socketIOclients[match.player2.toString()].emit('result', JSON.parse(message))
                                     ios.to(match.player1).emit('result', JSON.parse(message));
                                 }
                                 else {
@@ -2098,7 +1831,7 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                     });
                 });
             }
-            // Quando un client si disconette lo elimino dalla lista dei client connessi
+            // When a client disconnects, I delete it from the list of connected clients.
             for (const [k, v] of Object.entries(socketIOclients)) {
                 if (v == client) {
                     ios.emit('online', { username: k, isConnected: false }); // Inform that username now is disconnected
@@ -2113,14 +1846,6 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
     console.log("Error Occurred during initialization".red);
     console.log(err);
 });
-// function createPrivateChat(user1, user2) {
-//   const model = privateChat.getModel()
-//   const doc = new model({
-//     user1: user1,
-//     user2: user2
-//   })
-//   return doc
-// }
 function createChatMessage(sender, text) {
     const model = message.getModel();
     let timestamp = new Date();
@@ -2233,7 +1958,6 @@ function copyPlayground(playground) {
     }
     return pl;
 }
-// TODO ottimizzare codice
 // Check if player win this match
 function checkWinner(playground, player) {
     let winCheck = false;
