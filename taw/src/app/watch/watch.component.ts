@@ -42,6 +42,7 @@ export class WatchComponent implements OnInit {
   private gameStatus: Subscription;
   private result: Subscription;
   private gameChat: Subscription;
+  public gmMsg:string=""
   constructor(private app: AppComponent, private sio: SocketioService, private us: UserHttpService, private router: Router) {
     if (this.sio.turn == 1) {
       this.txtturno = this.sio.getP1()
@@ -93,6 +94,10 @@ export class WatchComponent implements OnInit {
       if(msg.winner!=undefined){
           this.title=msg.winner.toUpperCase()+ " WIN!!!"
           this.content=msg.winner.toUpperCase()+ " win this game"
+      }
+      if(msg.message!=undefined ){
+        this.gmMsg=msg.message;
+        console.log(this.gmMsg)
       }
       document.getElementById("openstats")!.click();
     });

@@ -141,12 +141,10 @@ export class HomepageComponent implements OnInit {
       this.navigate('watch');
     });
     this.us.get_usersOnline().subscribe((data: any) => {
-      console.log(JSON.stringify(data))
       let found = false
       data.onlineuser.forEach((element: { [x: string]: any; }) => {
         console.log(JSON.stringify(element))
         if (JSON.parse(JSON.stringify(element)) == friend) {
-          console.log("sono dentro")
           found = true
           this.matchmaking = true
           this.us.get_GameinProgress().subscribe(
@@ -163,7 +161,7 @@ export class HomepageComponent implements OnInit {
                     game++
                   }
                   if (u.matches[i].player2 == friend) {
-                    this.sio.setP1(u.matches[i].player2)
+                    this.sio.setP1(u.matches[i].player1)
                     this.sio.setP2(friend)
                     this.sio.switched = true
                     game++
@@ -176,7 +174,6 @@ export class HomepageComponent implements OnInit {
                   this.toastN(friend + " is not playing with anyone")
                 } else {
                   this.us.watchPeople(this.sio.getP1()).subscribe((msg) => {
-                    console.log(msg)
 
                   })
                 }
@@ -220,15 +217,12 @@ export class HomepageComponent implements OnInit {
       }
       
     })
-    console.log(this.friendPlaying)
 
   }
 
   createCPUGame(lv: number) {
     this.us.lv = lv
-    console.log("livello difficolta: " + this.us.lv)
     this.us.createCPUgame().subscribe((msg) => {
-      console.log(JSON.stringify(msg))
       this.navigate('cpu');
     })
   }
@@ -244,7 +238,6 @@ export class HomepageComponent implements OnInit {
       }
     }
     this.enterGameWatchMode = this.sio.enterGameWatchMode().subscribe(msg => {
-      console.log('got a msg enterGameWatchMode: ' + JSON.stringify(msg));
       const rplayground = msg.playground
       if (rplayground != undefined) {
         let x = 5, y = 0
@@ -277,13 +270,12 @@ export class HomepageComponent implements OnInit {
     });
     this.us.get_GameinProgress().subscribe(
       (u) => {
-        console.log(JSON.stringify(u));
+
         const game = this.randomNumber(0, u.matches.length - 1)
         const player = this.randomNumber(1, 2)
-        console.log(" my game", game, " player", player)
+
         if (u.matches.length >= 1) {
           const selectgame = u.matches[game]
-          console.log(selectgame)
           if (player == 1) {
             this.sio.setP1(selectgame.player1)
             this.sio.setP2(selectgame.player2)
@@ -294,7 +286,6 @@ export class HomepageComponent implements OnInit {
             this.sio.switched = true
           }
           this.us.watchPeople(this.sio.getP1()).subscribe((msg) => {
-            console.log(msg)
 
           })
         } else {
