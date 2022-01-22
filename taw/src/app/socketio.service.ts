@@ -181,6 +181,7 @@ export class SocketioService {
   isNull(){
     return this.socket == null
   }
+
   disconnect(): void{
     this.socket.close()
   }
