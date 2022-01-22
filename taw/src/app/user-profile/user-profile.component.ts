@@ -104,6 +104,7 @@ export class UserProfileComponent implements OnInit {
       this.us.logout()
       this.app.toastCust("Please, login again")
       this.closeModalComponent.nativeElement.click()
+      this.us.logout()
       this.router.navigate(['/'])
     }, e => {
       this.app.toastCust("Wrong password, retry")
