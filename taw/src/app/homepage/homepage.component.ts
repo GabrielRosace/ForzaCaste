@@ -218,18 +218,6 @@ export class HomepageComponent implements OnInit {
           }
         })
       }
-      /*for (var i: number = 0; i < u.matches.length; i++){
-         this.friendlist.forEach((data: any) => { 
-          if(data['username'] == u.matches[i].player1 ){
-            this.friendPlaying.push(data['username'])
-          }
-          if(data['username'] == u.matches[i].player2 ){
-            this.friendPlaying.push(data['username'])
-          }
-         
-        })
-
-      }*/
       
     })
     console.log(this.friendPlaying)
