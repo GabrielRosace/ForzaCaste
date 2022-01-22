@@ -218,18 +218,6 @@ export class HomepageComponent implements OnInit {
           }
         })
       }
-      /*for (var i: number = 0; i < u.matches.length; i++){
-         this.friendlist.forEach((data: any) => { 
-          if(data['username'] == u.matches[i].player1 ){
-            this.friendPlaying.push(data['username'])
-          }
-          if(data['username'] == u.matches[i].player2 ){
-            this.friendPlaying.push(data['username'])
-          }
-         
-        })
-
-      }*/
       
     })
     console.log(this.friendPlaying)
@@ -295,6 +283,7 @@ export class HomepageComponent implements OnInit {
         console.log(" my game", game, " player", player)
         if (u.matches.length >= 1) {
           const selectgame = u.matches[game]
+          console.log(selectgame)
           if (player == 1) {
             this.sio.setP1(selectgame.player1)
             this.sio.setP2(selectgame.player2)
