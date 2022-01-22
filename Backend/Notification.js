@@ -23,10 +23,6 @@ const validatorSchema = {
     additionalProperties: true
 };
 const validate = ajv.compile(validatorSchema);
-/*
-export function isNotification(arg: any): arg is Notification {
-    return arg && arg.text && typeof(arg.text) == 'string' && arg.type && Array.isArray(arg.tags) && arg.timestamp && arg.timestamp instanceof Date && arg.authormail && typeof(arg.authormail) == 'string' ;
-}*/
 var notificationSchema = new mongoose.Schema({
     _id: {
         type: mongoose.SchemaTypes.ObjectId,
@@ -55,25 +51,12 @@ var notificationSchema = new mongoose.Schema({
         required: true,
         default: true
     },
-    state: {
-        type: mongoose.SchemaTypes.Boolean,
-        required: false
-    },
     ranking: {
         type: mongoose.SchemaTypes.Number,
         required: false
     }
 });
-// export function isNotification(arg: any): arg is Notification {
-//   console.log(arg && arg.sender && typeof (arg.sender) == 'string');
-//   return arg && arg.sender && typeof (arg.sender) == 'string';
-// }
 notificationSchema.methods.isFriendRequest = function () {
-    // var isFR = false;
-    // if (this.type == "FriendRequest") {
-    //   isFR = true;
-    // }
-    // return isFR;
     return this.type === "FriendRequest";
 };
 function getSchema() { return notificationSchema; }

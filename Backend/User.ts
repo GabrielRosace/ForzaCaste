@@ -11,7 +11,6 @@ export interface User extends mongoose.Document {
   name?: string,
   surname?: string,
   mail?: string,
-  // state?: string,
   avatarImgURL?: string,
   roles: string,
   inbox?: Notification[],
