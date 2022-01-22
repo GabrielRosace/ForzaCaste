@@ -1,7 +1,7 @@
 {
   "configVersion": 1,
-  "timestamp": 1642877067811,
-  "index": "http://forzacaste.live/index.html",
+  "timestamp": 1642877178979,
+  "index": "https://forzacaste.live/index.html",
   "assetGroups": [
     {
       "name": "app",
@@ -11,14 +11,14 @@
         "ignoreVary": true
       },
       "urls": [
-        "http://forzacaste.live/favicon.ico",
-        "http://forzacaste.live/index.html",
-        "http://forzacaste.live/main.1f4e62bf51bab1d7e1da.js",
-        "http://forzacaste.live/manifest.webmanifest",
-        "http://forzacaste.live/polyfills.b5cb80ea832a17ac663c.js",
-        "http://forzacaste.live/runtime.420d6aa5f46f9cb7358c.js",
-        "http://forzacaste.live/scripts.90ee525ce1d9b783eca9.js",
-        "http://forzacaste.live/styles.bf7427ac99517f8c11ee.css"
+        "https://forzacaste.live/favicon.ico",
+        "https://forzacaste.live/index.html",
+        "https://forzacaste.live/main.1f4e62bf51bab1d7e1da.js",
+        "https://forzacaste.live/manifest.webmanifest",
+        "https://forzacaste.live/polyfills.b5cb80ea832a17ac663c.js",
+        "https://forzacaste.live/runtime.420d6aa5f46f9cb7358c.js",
+        "https://forzacaste.live/scripts.90ee525ce1d9b783eca9.js",
+        "https://forzacaste.live/styles.bf7427ac99517f8c11ee.css"
       ],
       "patterns": []
     },
@@ -30,44 +30,44 @@
         "ignoreVary": true
       },
       "urls": [
-        "http://forzacaste.live/assets/icons/icon-128x128.png",
-        "http://forzacaste.live/assets/icons/icon-144x144.png",
-        "http://forzacaste.live/assets/icons/icon-152x152.png",
-        "http://forzacaste.live/assets/icons/icon-192x192.png",
-        "http://forzacaste.live/assets/icons/icon-384x384.png",
-        "http://forzacaste.live/assets/icons/icon-512x512.png",
-        "http://forzacaste.live/assets/icons/icon-72x72.png",
-        "http://forzacaste.live/assets/icons/icon-96x96.png",
-        "http://forzacaste.live/assets/img/logo.png",
-        "http://forzacaste.live/assets/img/rvuoto.png",
-        "http://forzacaste.live/bootstrap-icons.66e4109ec6241c76fdcf.woff2",
-        "http://forzacaste.live/bootstrap-icons.ea6f3dfe4ebb15134576.woff"
+        "https://forzacaste.live/assets/icons/icon-128x128.png",
+        "https://forzacaste.live/assets/icons/icon-144x144.png",
+        "https://forzacaste.live/assets/icons/icon-152x152.png",
+        "https://forzacaste.live/assets/icons/icon-192x192.png",
+        "https://forzacaste.live/assets/icons/icon-384x384.png",
+        "https://forzacaste.live/assets/icons/icon-512x512.png",
+        "https://forzacaste.live/assets/icons/icon-72x72.png",
+        "https://forzacaste.live/assets/icons/icon-96x96.png",
+        "https://forzacaste.live/assets/img/logo.png",
+        "https://forzacaste.live/assets/img/rvuoto.png",
+        "https://forzacaste.live/bootstrap-icons.66e4109ec6241c76fdcf.woff2",
+        "https://forzacaste.live/bootstrap-icons.ea6f3dfe4ebb15134576.woff"
       ],
       "patterns": []
     }
   ],
   "dataGroups": [],
   "hashTable": {
-    "http://forzacaste.live/assets/icons/icon-128x128.png": "c9de76ad3b166c1e923a78f3ced5ab6dc72ccefc",
-    "http://forzacaste.live/assets/icons/icon-144x144.png": "d18d3668da424c8c6036985bfe0017b9af7b55a2",
-    "http://forzacaste.live/assets/icons/icon-152x152.png": "635fa8211367f1e4d345375e432a29cd276ef1e9",
-    "http://forzacaste.live/assets/icons/icon-192x192.png": "965ee8e3e3a785465003dfecce0eeb054ce023a4",
-    "http://forzacaste.live/assets/icons/icon-384x384.png": "54d4873b1cca91e77a514fbe175b26004e74d657",
-    "http://forzacaste.live/assets/icons/icon-512x512.png": "e9c1cddfc1b9d24ae75a91f5bfd6ac42cd3776ac",
-    "http://forzacaste.live/assets/icons/icon-72x72.png": "2d5ff97676f1a5acb15e64c00dc460ea56e408e8",
-    "http://forzacaste.live/assets/icons/icon-96x96.png": "fa5710301852b2a65b0b644b05a5653c75d55787",
-    "http://forzacaste.live/assets/img/logo.png": "cd6b3174780030723e599c72e80572db2b1c17c9",
-    "http://forzacaste.live/assets/img/rvuoto.png": "2799dfffed752d0bcaa39ed0c1fde936925e3204",
-    "http://forzacaste.live/bootstrap-icons.66e4109ec6241c76fdcf.woff2": "e5c03fd4d0715d3a59db5fdba4a19374cf3cc9de",
-    "http://forzacaste.live/bootstrap-icons.ea6f3dfe4ebb15134576.woff": "d9a419a0e36c453d5bca016e11dc3b58fcf4c1c2",
-    "http://forzacaste.live/favicon.ico": "5a2caa71c177abc1e421470d1763940b05c5d431",
-    "http://forzacaste.live/index.html": "6afc51c04f4d865aaecadbe965ae4e196b77708f",
-    "http://forzacaste.live/main.1f4e62bf51bab1d7e1da.js": "0950289013d1117c8745f69994264f1f4056aad1",
-    "http://forzacaste.live/manifest.webmanifest": "7be18c34c7cde968bab7c3fdf34520a0ba923e54",
-    "http://forzacaste.live/polyfills.b5cb80ea832a17ac663c.js": "72d219e90c5ba9738e4bb82ad16e1e7754f7cbe3",
-    "http://forzacaste.live/runtime.420d6aa5f46f9cb7358c.js": "beb7e4211d151ec83b22b1281d295132b24d201e",
-    "http://forzacaste.live/scripts.90ee525ce1d9b783eca9.js": "090ae9647e900ab76a1987c5bb10c59a3edf8259",
-    "http://forzacaste.live/styles.bf7427ac99517f8c11ee.css": "69c111d8bc8f25eafc384b2ac098a954aa45e792"
+    "https://forzacaste.live/assets/icons/icon-128x128.png": "c9de76ad3b166c1e923a78f3ced5ab6dc72ccefc",
+    "https://forzacaste.live/assets/icons/icon-144x144.png": "d18d3668da424c8c6036985bfe0017b9af7b55a2",
+    "https://forzacaste.live/assets/icons/icon-152x152.png": "635fa8211367f1e4d345375e432a29cd276ef1e9",
+    "https://forzacaste.live/assets/icons/icon-192x192.png": "965ee8e3e3a785465003dfecce0eeb054ce023a4",
+    "https://forzacaste.live/assets/icons/icon-384x384.png": "54d4873b1cca91e77a514fbe175b26004e74d657",
+    "https://forzacaste.live/assets/icons/icon-512x512.png": "e9c1cddfc1b9d24ae75a91f5bfd6ac42cd3776ac",
+    "https://forzacaste.live/assets/icons/icon-72x72.png": "2d5ff97676f1a5acb15e64c00dc460ea56e408e8",
+    "https://forzacaste.live/assets/icons/icon-96x96.png": "fa5710301852b2a65b0b644b05a5653c75d55787",
+    "https://forzacaste.live/assets/img/logo.png": "cd6b3174780030723e599c72e80572db2b1c17c9",
+    "https://forzacaste.live/assets/img/rvuoto.png": "2799dfffed752d0bcaa39ed0c1fde936925e3204",
+    "https://forzacaste.live/bootstrap-icons.66e4109ec6241c76fdcf.woff2": "e5c03fd4d0715d3a59db5fdba4a19374cf3cc9de",
+    "https://forzacaste.live/bootstrap-icons.ea6f3dfe4ebb15134576.woff": "d9a419a0e36c453d5bca016e11dc3b58fcf4c1c2",
+    "https://forzacaste.live/favicon.ico": "5a2caa71c177abc1e421470d1763940b05c5d431",
+    "https://forzacaste.live/index.html": "9f21efacb171abfd6f0b346f5f6ba5ff10cde02d",
+    "https://forzacaste.live/main.1f4e62bf51bab1d7e1da.js": "0950289013d1117c8745f69994264f1f4056aad1",
+    "https://forzacaste.live/manifest.webmanifest": "7be18c34c7cde968bab7c3fdf34520a0ba923e54",
+    "https://forzacaste.live/polyfills.b5cb80ea832a17ac663c.js": "72d219e90c5ba9738e4bb82ad16e1e7754f7cbe3",
+    "https://forzacaste.live/runtime.420d6aa5f46f9cb7358c.js": "beb7e4211d151ec83b22b1281d295132b24d201e",
+    "https://forzacaste.live/scripts.90ee525ce1d9b783eca9.js": "090ae9647e900ab76a1987c5bb10c59a3edf8259",
+    "https://forzacaste.live/styles.bf7427ac99517f8c11ee.css": "69c111d8bc8f25eafc384b2ac098a954aa45e792"
   },
   "navigationUrls": [
     {
