@@ -283,6 +283,7 @@ export class HomepageComponent implements OnInit {
         console.log(" my game", game, " player", player)
         if (u.matches.length >= 1) {
           const selectgame = u.matches[game]
+          console.log(selectgame)
           if (player == 1) {
             this.sio.setP1(selectgame.player1)
             this.sio.setP2(selectgame.player2)
