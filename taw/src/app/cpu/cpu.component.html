@@ -1,6 +1,8 @@
 <div class="myContainer">
     <button type="button" id="openstats" [hidden]="true" class="w-100 btn btn-warning btn-lg mybtn"
         data-bs-toggle="modal" data-bs-target="#w-stats"></button>
+        <button type="button" id="opensugg" [hidden]="true" class="w-100 btn btn-warning btn-lg mybtn"
+        data-bs-toggle="modal" data-bs-target="#w-sugg"></button>
     <div class="d-flex flex-column">
         <div class="alert alert-warning alert-dismissible fade show" role="alert" *ngFor="let alert of alerts">
             {{alert.message }}
@@ -66,4 +68,18 @@
       </div>
       
     </div>
-  </div>
+</div>
+<div class="modal fade" id="w-sugg" tabindex="-1" >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel1" >{{title}}</h5>
+        </div>
+        <p class="text-center fs-2">{{content}}</p>
+        <div class="modal-footer">
+          <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+      
+    </div>
+</div>

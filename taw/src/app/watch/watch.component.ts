@@ -107,6 +107,7 @@ export class WatchComponent implements OnInit {
   ngOnDestroy(): void {
     this.gameStatus.unsubscribe()
     this.result.unsubscribe()
+    this.gameChat.unsubscribe()
   }
 
   ngOnInit(): void {
