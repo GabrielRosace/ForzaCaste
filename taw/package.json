@@ -9,7 +9,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test-pwa": "http-server -p 4200 dist/taw",
-    "predeploy": "ng build --base-href=http://forzacaste.live/",
+    "predeploy": "ng build --base-href=https://forzacaste.live/",
     "deploy": "npx angular-cli-ghpages --no-silent --dir=dist/taw"
   },
   "private": true,
