@@ -874,7 +874,7 @@ app.delete('/game', auth, (req, res, next) => {
           match.inProgress = false
           match.winner = user.username.toString() === match.player1.toString() ? match.player2.toString() : match.player1.toString()
           match.save().then((data) => {
-            let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" })
+            let message = user.username.toString() == match.player1.toString() ? JSON.stringify({ winner: match.player2.toString(), message: "Opposite player has left the game" }) : JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" })
             if (data.player2.toString() != "cpu") {
               if (socketIOclients[user.username.toString()]) {
                 socketIOclients[user.username.toString()].broadcast.to(match.player1).emit('result', JSON.parse(message))
@@ -1972,12 +1972,12 @@ mongoose.connect("mongodb+srv://taw:MujMm7qidIDH9scT@cluster0.1ixwn.mongodb.net/
                   match.inProgress = false
                   if (user.username.toString() == match.player1.toString()) {
                     match.winner = match.player2.toString()
-                    let message = JSON.stringify({ winner: match.player2.toString(), message: "Opposite player have left the game" })
+                    let message = JSON.stringify({ winner: match.player2.toString(), message: "Opposite player has left the game" })
                     ios.to(match.player1).emit('result', JSON.parse(message))
                   }
                   else {
                     match.winner = match.player1.toString()
-                    let message = JSON.stringify({ winner: match.player1.toString(), message: "Opposite player have left the game" })
+                    let message = JSON.stringify({ winner: match.player1.toString(), message: "Opposite player has left the game" })
                     ios.to(match.player1).emit('result', JSON.parse(message))
                   }
                   match.save().then((data) => {

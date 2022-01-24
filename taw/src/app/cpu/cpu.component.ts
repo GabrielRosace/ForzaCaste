@@ -120,7 +120,7 @@ export class CpuComponent implements OnInit {
     if(this.win){
       this.title="Error suggestion"
       this.content="Someone have already win"
-      document.getElementById("openstats")!.click();
+      document.getElementById("opensugg")!.click();
     }
     this.us.askSuggestion().subscribe((msg)=>{
       console.log(JSON.stringify(msg))
@@ -135,7 +135,7 @@ export class CpuComponent implements OnInit {
       console.log(err)
       this.title="Error suggestion"
       this.content = err.error.errormessage
-      document.getElementById("openstats")!.click();
+      document.getElementById("opensugg")!.click();
     })
   }
   /* make a turn, when is over, switch the player turn */
