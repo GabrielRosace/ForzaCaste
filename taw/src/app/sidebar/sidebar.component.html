@@ -24,7 +24,6 @@
         </li>
 
         <li class="nav-item" *ngIf="username && !has_nonregmod_role()">
-          <!--Open the modal(modalNot)  <span mat-raised-button >Notification</span>-->
           <button class="nav-link text-white w-100 text-start" (click)="getNotification(true, undefined)"
             id="notification" data-bs-toggle="modal" data-bs-target="#modalNot">
             <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeContent"
@@ -36,7 +35,6 @@
         </li>
         <!--Allow the user to dipslay the message from all moderator-->
         <li class="nav-item" *ngIf="username  && !has_nonregmod_role()">
-          <!--Open the modal(modalNot)  <span mat-raised-button >Notification</span>-->
           <button class="nav-link text-white w-100 text-start" style="text-overflow: ellipsis;"
             (click)="getModeratorList()" id="notification" data-bs-toggle="modal" data-bs-target="#modalMod">
             <mat-icon class="customIcon" color="primary" matBadgeColor="accent" [matBadge]="badgeContMod"
@@ -65,53 +63,6 @@
         </li>
       </ul>
       <hr>
-
-
-      <!--<p *ngIf="msg" ()="toastN('salve')"></p><div class="toast-header">
-          <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-        </div>
-        <div class="toast-body">
-          {{msg}}
-        </div>
-      </div>-->
-
-      <!-- OFFCANVAS
-      <button class="btn btn-primary" id="friendList" type="button" data-bs-toggle="offcanvas"
-        data-bs-target="#friendListCanvas" aria-controls="friendListCanvas" width="32" height="32">FriendList</button>
-
-        <div class="offcanvas offcanvas-end text-black"  data-bs-backdrop="true" data-bs-scroll="true" id="friendListCanvas" aria-labelledby="offcanvasRightLabel">
-          <div class="offcanvas-header">
-            <h5 id="offcanvasRightLabel">Offcanvas right</h5>
-            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-          </div>
-          <div class="offcanvas-body">
-            <label>sADLASDLASLDASLDASL</label>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalReq">
-              Launch static backdrop modal
-            </button>
-            
-            <div class="modal fade" id="modalReq" data-bs-backdrop="false" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalReqLabel" aria-hidden="false">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="modalReqLabel">Modal title</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                    <div class="form-floating">
-                      <input type="text" class="form-control" id="usernameFriend" placeholder="usernameAdd" #usernameAdd required>
-                      <label for="usernameFriend">Username</label>
-                    </div>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" (click)="addFriend(usernameAdd.value, 'friendRequest')" class="btn btn-primary">Send the request</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>-->
 
       <!--ModalNotification Display the list of all the notification except the randomMatchmaking notification-->
       <div class="modal fade text-black" id="modalNot" data-bs-backdrop="true" data-bs-keyboard="false" tabindex="-1"
@@ -176,7 +127,6 @@
                     <button type="button" class="friendListBtn mr-6" data-bs-dismiss="modal"
                       (click)="readMessage(username,mod.username,true);getInpendingMsgMod();navigate('mod-chat/'+mod.username+'')">
                       <span>
-                        <!--matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"-->
                         <mat-icon [matBadge]="mod.badgeNum" matBadgeColor="accent" matBadgeSize="small"
                           matBadgePosition="above after" matBadgeOverlap="true" [matBadgeHidden]="mod.badgeHidden"
                           [ngStyle]="{'color':'white'} ">chat</mat-icon>
@@ -236,10 +186,6 @@
       <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor='let lfriend of friendlist'>
         <span style="right: -2%;position: relative;">{{lfriend.username}}</span>
 
-        <!--
-        <span class="align-items-bottom">
-        <span class="dot bg-dark" ></span>
-      </span> (click)="readMessage(username,lfriend.username);navigate('friend-chat/'+lfriend.username+'')" routerLink="/friend-chat/{{lfriend.username}}" routerLinkActive="active-link"-->
         <span class="align-items-right">
           <button type="button" class="friendListBtn mr-2" (click)="deleteFriend(lfriend.username)" id="btnDel"><span>
               <mat-icon>close</mat-icon>
@@ -247,7 +193,6 @@
           <button type="button" class="friendListBtn mr-6" data-bs-dismiss="offcanvas"
             (click)="readMessage(username,lfriend.username,false);getInpendinMsg();navigate('friend-chat/'+lfriend.username+'')">
             <span>
-              <!--matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"-->
               <mat-icon [matBadge]="lfriend.badgeNum" matBadgeColor="accent" matBadgeSize="small"
                 matBadgePosition="above after" matBadgeOverlap="true" [matBadgeHidden]="lfriend.badgeHidden"
                 [ngStyle]="{'color':'white'} ">chat</mat-icon>

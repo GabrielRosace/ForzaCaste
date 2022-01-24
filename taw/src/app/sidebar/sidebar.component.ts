@@ -72,7 +72,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   public friendListVis: boolean = true
 
   public onlineUser?: any
-  //private subsctiptionNot: Subscription
   public role: string = ""
   public type: string = ""
   public friendlist: any[] = []
