@@ -21,7 +21,7 @@ export class UserHttpService {
 
   private token = ''
   // public url = 'http://localhost:8080' //TODO cambiare indirizzo
-  public url = 'http://forzacaste.herokuapp.com' //TODO cambiare indirizzo
+  public url = 'https://forzacaste.herokuapp.com' //TODO cambiare indirizzo
   private subjectName = new Subject<any>()
   private subjBadge = new Subject<any>()
   private subjFS = new Subject<any>()

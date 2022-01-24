@@ -28,11 +28,24 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
 
   public gameReady!: Subscription
+  private subUserList!: Subscription
+  private subFriendList!: Subscription
+  private subModList!: Subscription
+  private subOnline!: Subscription
+  private subFriendReq!: Subscription
+  private subDelFriend!: Subscription
+  private subBlock!: Subscription
+  private notGameReq!: Subscription
+  private notFriendReqA!: Subscription
+  private notFriendDel!: Subscription
+  private subAddFriend!: Subscription
+  private subReadMsg!: Subscription
   private subscriptionName: Subscription
   private subscriptionReq!: Subscription
   private subscriptionNot!: Subscription
   private subscriptionMsg!: Subscription
   private subscriptionIn!: Subscription
+  private subscriptionInMod!: Subscription
   private subscriptionChat!: Subscription
   private subscriptionRoute!: Subscription
 
@@ -116,30 +129,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
       console.log(msg.value)
       this.friendListVis = msg.value
     })
-
-    /*
-        this.us.get_friendlist().subscribe((u) => {
-          this.friendlist = []
-          console.log()
-          u.friendlist.forEach((element: { [x: string]: any; }) => {
-            console.log(1)
-            this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: element['isBlocked'] })
-            console.log(this.friendlist);
-          });
-          console.log(this.friendlist);
-        })*/
-
-    /*
-    this.subsctiptionNot =  this.us.get_notification().subscribe((u) => {
-      this.notification = []
-      console.log()
-      u.notification.forEach((element: { [x: string]: any; }) => {
-        console.log(1)
-        this.notification.push({ id: element['_id'], username: element['sender'], type: element['type'] })
-        console.log(this.notification);
-      });
-      console.log(this.notification);
-    })*/
   }
 
   ngOnInit(): void {
@@ -158,11 +147,26 @@ export class SidebarComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     /* Delete the subscription from the socket's listener */
     this.subscriptionName.unsubscribe()
+    this.subUserList.unsubscribe()
     this.subscriptionReq.unsubscribe()
     this.subscriptionNot.unsubscribe()
     this.subscriptionMsg.unsubscribe()
     this.gameReady.unsubscribe();
+    this.subFriendList.unsubscribe();
+    this.subModList.unsubscribe();
     this.subscriptionChat.unsubscribe()
+    this.subOnline.unsubscribe()
+    this.subFriendReq.unsubscribe()
+    this.subModList.unsubscribe()
+    this.subReadMsg.unsubscribe()
+    this.notFriendDel.unsubscribe()
+    this.notFriendReqA.unsubscribe()
+    this.notGameReq.unsubscribe()
+    this.subBlock.unsubscribe()
+    this.subDelFriend.unsubscribe()
+    this.subAddFriend.unsubscribe()
+    this.subscriptionIn.unsubscribe()
+    this.subscriptionInMod.unsubscribe()
   }
 
   setName(username: string) {
@@ -174,7 +178,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get_userlist() {
-    this.us.get_userlist().subscribe((elem: any) => {
+    this.subUserList = this.us.get_userlist().subscribe((elem: any) => {
       console.log(elem)
       this.list = elem.userlist.filter((u: any) => { return u.username != this.us.get_username() })
     })
@@ -193,21 +197,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
     return false
   }
-  /*
-    toastN(msg: string) {
-      this.toast.show(msg, {
-        classname: 'bg-info text-light',
-        delay: 3000,
-        autohide: true
-      });
-    }*/
-
+  
   getNotification(makeNotificationRead: boolean, inpending?: boolean) {
     this.subscriptionNot = this.us.get_notification(makeNotificationRead, inpending).subscribe((u) => {
       this.notification = []
-      //console.log("inpending: "+inpending)
+      //Filter the notification using the type of it
       u.notification.forEach((element: { [x: string]: any; }) => {
-        //console.log(1)
         if (!(element['type'] == 'randomMatchmaking') && !(element['type'] == 'friendMessage')) {
           let msg
           if (element['type'] == 'friendlyMatchmaking') {
@@ -216,7 +211,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
             msg = "New Friend Request from " + element['sender']
           }
           this.notification.push({ id: element['_id'], sender: element['sender'], type: element['type'], msg: msg })
-          //console.log(this.notification);
           if (inpending == true) {
             this.badgeContent++
           }
@@ -232,8 +226,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
       } else {
         this.hideMatBadge = true
       }
-      //console.log(this.notification);
-      console.log("badgeContent: " + this.badgeContent)
     })
   }
 
@@ -247,43 +239,30 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   getFriendlist() {
     console.log("GetFriendlist")
-    //this.messageInpending = this.getInpendinMsg()
     this.getInpendinMsg()
     let g = this.router.url
     console.log(g)
-    //console.log(this.messageInpending)
-    this.us.get_friendlist().subscribe((u) => {
+    //Generate the friend List
+    this.subFriendList = this.us.get_friendlist().subscribe((u) => {
       this.friendlist = []
       u.friendlist.forEach((element: { [x: string]: any; }) => {
         let countMsg: number = 0
         let msgHide: boolean = true
         let col
+        //Check for all the friend in the friendList if there is a in pending message from that friend
         this.us.get_friend(element['username']).subscribe((friend) => {
           this.messageInpending.forEach((msg: any) => {
             if (msg.sender == element['username']) {
               //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
               countMsg++
-              //console.log(this.num)
             }
           })
-          /*
-          let sos = this.onlineUser.filter((data: any) => {
-            if (data.username == friend.username) {
-              return true
-            } else {
-              return false
-            }
-          })*/
-          //console.log(this.onlineUser)
           let sos = this.onlineUser.find((data: any) => { return data == element['username'] })
-          //console.log("Sos")
-          //console.log(sos)
           if (sos == element['username']) {
             col = "#88D498"
           } else {
             col = "#A4A5AE"
           }
-          //console.log(countMsg)
           if (countMsg != 0) {
             msgHide = false
           }
@@ -298,10 +277,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   getModeratorList() {
-    this.us.get_userlist().subscribe((elem: any) => {
+    this.subModList = this.us.get_userlist().subscribe((elem: any) => {
       this.modlist = []
       this.list = elem.userlist
-      console.log(this.list)
+      //Generate the lis of moderator
       this.list.forEach((element: { [x: string]: any; }) => {
         var countMsg: number = 0
         var msgHide: boolean = true
@@ -309,7 +288,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
           if (msg.sender == element['username']) {
             //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
             countMsg++
-            //console.log(this.num)
           }
         })
         if (countMsg != 0) {
@@ -319,12 +297,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
           this.modlist.push({ id: element['_id'], username: element['username'], badgeNum: countMsg, badgeHidden: msgHide, /*color: col */ })
         }
       })
-      console.log(this.modlist)
     })
   }
 
   getUsOnline() {
-    let online = this.us.get_usersOnline().subscribe((elem: any) => {
+    this.subOnline = this.us.get_usersOnline().subscribe((elem: any) => {
       console.log("Online")
       console.log(elem.onlineuser)
       this.onlineUser = elem.onlineuser
@@ -332,9 +309,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
   //Used to send a new friendRequest
   addFriend(receiver: string, type: string) {
-    console.log("receiver: ", receiver)
     this.errMsg = ""
-    this.us.add_friendRequest(receiver).subscribe((data) => {
+    this.subFriendReq = this.us.add_friendRequest(receiver).subscribe((data) => {
       this.app.toastCust("Request Forwarded")
       //this.toastN("Request Forwarded")
     }, (err) => {
@@ -345,8 +321,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   deleteFriend(friend: string) {
-    console.log("friend: ", friend)
-    this.us.delete_friend(friend).subscribe((data) => {
+    this.subDelFriend = this.us.delete_friend(friend).subscribe((data) => {
       this.app.toastCust("Friend deleted")
       //this.toastN("Friend deleted")
       this.getFriendlist()
@@ -356,15 +331,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   notifyFriendReq() {
     if (!this.sio.isNull()) {
+      //Notify the user via a toast if there are new friend requests, this happen when the user is online
       this.subscriptionReq = this.sio.request().subscribe(msg => {
         this.msg = JSON.parse(JSON.stringify(msg)).type
         let user = JSON.parse(JSON.stringify(msg)).sender
-        console.log(JSON.parse(JSON.stringify(msg)).type)
-        //console.log('got a msg: ' + msg);
         if (msg) {
           this.app.toastCust("New " + this.msg + " by " + user)
           //this.toastN("New " + this.msg + " by " + user)
-          //console.log('got a msg: ' + msg);
         }
         this.badgeContent = 0
         this.getNotification(false, true)
@@ -372,20 +345,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
       });
     }
   }
-
+  /*This function is used to block or unblock a friend, if the friend is blocked he can't send new messagge to the user*/
   blockUnblock(username: string, block: string) {
     let index = this.friendlist.findIndex((obj => obj.username == username))
-    console.log(this.friendlist[index])
     if (block == "bi bi-person-check-fill") {
-      this.us.block_unblock_friend(username, false).subscribe((data) => {
-        //this.btnVal = "Block"
+      this.subBlock = this.us.block_unblock_friend(username, false).subscribe((data) => {
         this.friendlist[index].isBlocked = "bi bi-person-x-fill"
         this.app.toastCust("FRIEND UNBLOCKED")
         //this.toastN("FRIEND UNBLOCKED")
       })
     } else if (block == "bi bi-person-x-fill") {
-      this.us.block_unblock_friend(username, true).subscribe((data) => {
-        //his.btnVal = "UnBlocked"
+      this.subBlock = this.us.block_unblock_friend(username, true).subscribe((data) => {
         this.friendlist[index].isBlocked = "bi bi-person-check-fill"
         this.app.toastCust("FRIEND BLOCKED")
         //this.toastN("FRIEND BLOCKED")
@@ -419,15 +389,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
   notifyGameReq() {
     if (!this.sio.isNull()) {
-      this.subscriptionReq = this.sio.gameRequest().subscribe(msg => {
+      this.notGameReq = this.sio.gameRequest().subscribe(msg => {
         this.msg = JSON.parse(JSON.stringify(msg)).type
         let user = JSON.parse(JSON.stringify(msg)).player
-        console.log(JSON.parse(JSON.stringify(msg)).type)
-        //console.log('got a msg: ' + msg);
         if (msg) {
           this.app.toastCust("New " + this.msg + " by " + user)
           //this.toastN("New " + this.msg + " by " + user)
-          //console.log('got a msg: ' + msg);
         }
         this.badgeContent = 0
         this.getNotification(false, true)
@@ -438,11 +405,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   notifyFriendReqAccepted() {
     if (!this.sio.isNull()) {
-      this.subscriptionReq = this.sio.friendRequYN().subscribe(msg => {
-        //this.msg = JSON.parse(JSON.stringify(msg)).type
+      this.notFriendReqA = this.sio.friendRequYN().subscribe(msg => {
         let user = JSON.parse(JSON.stringify(msg)).newFriend
-        //console.log(JSON.parse(JSON.stringify(msg)).type)
-        console.log('user: ' + user);
         if (msg) {
           if (user) {
             this.app.toastCust("You are now friend with " + user)
@@ -450,7 +414,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
             this.app.toastCust("Your friend request has been rejected")
           }
           //this.toastN("You are now friend with " + user)
-          //console.log('got a msg: ' + msg);
         }
         this.getFriendlist()
       });
@@ -459,15 +422,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   notifyFriendDeleted() {
     if (!this.sio.isNull()) {
-      this.subscriptionReq = this.sio.friendDeleted().subscribe(msg => {
+      this.notFriendDel = this.sio.friendDeleted().subscribe(msg => {
         this.msg = JSON.parse(JSON.stringify(msg)).deletedFriend
-        //let user = JSON.parse(JSON.stringify(msg)).newFriend
-        //console.log(JSON.parse(JSON.stringify(msg)).type)
         console.log('msg Deleted Friend: ' + this.msg[0]);
         if (msg) {
           this.app.toastCust("The friend " + this.msg + " has removed you from the friendlist.")
           //this.toastN("The friend " + this.msg + " has removed you from the friendlist.")
-          //console.log('got a msg: ' + msg);
         }
         this.getFriendlist()
       });
@@ -477,7 +437,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   //Is used to add a new friend in the friendlist, when the friendRequest is accepted 
   addFriendToFriendlist(sender: string, accepted: boolean) {
     console.log("sender: ", sender)
-    this.us.add_friend(sender, accepted).subscribe((data) => {
+    this.subAddFriend = this.us.add_friend(sender, accepted).subscribe((data) => {
       if(accepted){
         this.app.toastCust("Request Accepted")
       }else{
@@ -487,7 +447,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.getFriendlist()
     })
   }
-  //Is used to add a new friend in the friendlist, when the friendRequest is accepted 
+
   async acceptGamerequest(sender: string) {
     console.log("sender: ", sender)
     if (!this.sio.isNull()) {
@@ -505,7 +465,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.us.acceptFriendgame(sender, false).subscribe((msg) => { })
     }
   }
-
+  /*This function allows to take all the inpending message between the user and his friends*/
   getInpendinMsg() {
     this.subscriptionIn = this.us.get_userMessage().subscribe((elem: any) => {
       console.log("InpendingMsg:")
@@ -524,27 +484,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
       } else {
         this.hideMatBadgeMsg = false
       }
-      /*
-      console.log("GetInpending: ")
-      console.log(this.messageInpending)
-      this.us.get_friend(username).subscribe((friend) => {
-        this.messageInpending.forEach((element: any) => {
-          if (element.sender == username) {
-            //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
-            console.log("Sono gabbriel")
-            numb++
-            //console.log(this.num)
-          }
-        })
-      })*/
     })
-    //return this.messageInpending
   }
-
+ /*This function allows to take all the inpending message between the user and all the moderator*/
   getInpendingMsgMod() {
-    this.subscriptionIn = this.us.get_userMessage(true).subscribe((elem: any) => {
+    this.subscriptionInMod = this.us.get_userMessage(true).subscribe((elem: any) => {
       console.log("InpendingMsgMod:")
-      console.log(elem.inPendingMessages)
       this.badgeContMod = 0
       this.messageInMod = elem.inPendingMessages
       this.messageInMod.forEach((element: any) => {
@@ -552,8 +497,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
           this.badgeContMod++;
         }
       });
-      console.log("badgeMod")
-      console.log(this.badgeContMod)
       if(this.us.has_moderator_role()){
         this.badgeAllUs = this.badgeContMod
         this.badgeContMod = 0
@@ -573,65 +516,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   readMessage(myus: string, username: string, modMessage: boolean) {
     console.log(this.router.parseUrl(this.router.url))
-    this.us.readMessage(myus, username, modMessage).subscribe()
+    this.subReadMsg = this.us.readMessage(myus, username, modMessage).subscribe()
   }
 
-  /*
-    getFriendListEnorme() {
-      this.subscriptionIn = this.us.get_userMessage().subscribe((elem: any) => {
-        //console.log(elem.inPendingMessages)
-        this.badgeContentMsg = 0
-        this.messageInpending = elem.inPendingMessages
-        this.us.get_friendlist().subscribe((u) => {
-          this.friendlist = []
-          u.friendlist.forEach((element: { [x: string]: any; }) => {
-            let countMsg: number = 0
-            let msgHide: boolean = true
-            let col
-            this.us.get_friend(element['username']).subscribe((friend) => {
-              this.messageInpending.forEach((msg: any) => {
-                if (msg.sender == element['username']) {
-                  countMsg++
-                }
-                if (msg.receiver == this.us.get_username() && msg.sender == element['username']) {
-                  this.badgeContentMsg++;
-                }
-              })
-              //console.log(countMsg)
-              //console.log(this.onlineUser)
-              let sos = this.onlineUser.find((data: any) => { return data == element['username'] })
-              //console.log("Sos")
-              //console.log(sos)
-              if (sos == element['username']) {
-                col = "yellow"
-              } else {
-                col = "red"
-              }
-              if (countMsg != 0) {
-                msgHide = false
-              }
-              if (element['isBlocked']) {
-                this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: "bi bi-person-check-fill", badgeNum: countMsg, badgeHidden: msgHide, color: col })
-              } else {
-                this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: "bi bi-person-x-fill", badgeNum: countMsg, badgeHidden: msgHide, color: col })
-              }
-              if (this.badgeContentMsg == 0) {
-                this.hideMatBadgeMsg = true
-              } else {
-                this.hideMatBadgeMsg = false
-              }
-            })
-          });
-        })
-      })
-    }*/
+
   notifyNewMsg() {
     if (!this.sio.isNull()) {
-      //let g = this.router.parseUrl(this.router.url).root.children.primary.segments[0].path
-      //if (g) {
       this.subscriptionMsg = this.sio.newMessage().subscribe((msg) => {
         console.log("Notify New Msg")
-        console.log(msg)
         let isAModMessage = JSON.parse(JSON.stringify(msg)).isAModMessage
         let rec = JSON.parse(JSON.stringify(msg)).receiver
         let send = JSON.parse(JSON.stringify(msg)).sender
@@ -642,16 +534,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
           if (this.router.parseUrl(this.router.url).root.children.primary.segments[1] != undefined) {
             g1 = this.router.parseUrl(this.router.url).root.children.primary.segments[1].path
           }
-          //console.log("NotifyNewMsg")
-          console.log(g1)
           if ("mod-chat" != g || g1 != send) {
-
-            //console.log("NotifyNewMsg")
             if (inpend) {
               this.getInpendingMsgMod()
             }
-            //console.log(g)
-            //console.log(inpend)
             this.modlist.forEach((element: { [x: string]: any; }) => {
               if (inpend) {
                 if (element['username'] == send) {
@@ -671,16 +557,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
           if (this.router.parseUrl(this.router.url).root.children.primary.segments[1] != undefined) {
             g1 = this.router.parseUrl(this.router.url).root.children.primary.segments[1].path
           }
-          //console.log("NotifyNewMsg")
-          console.log(g1)
           if ("friend-chat" != g || g1 != send) {
 
-            //console.log("NotifyNewMsg")
             if (inpend) {
               this.getInpendinMsg()
             }
-            //console.log(g)
-            //console.log(inpend)
             this.friendlist.forEach((element: { [x: string]: any; }) => {
               if (inpend) {
                 if (element['username'] == send) {
@@ -693,48 +574,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
                 }
               }
             })
-            //this.getFriendlist()
-            /*
-            this.friendlist.forEach((element: { [x: string]: any; }) => {
-              let countMsg: number = 0
-              let msgHide: boolean = true
-              let col
-              this.us.get_friend(element['username']).subscribe((friend) => {
-                this.messageInpending.forEach((msg: any) => {
-                  if (msg.sender == element['username']) {
-                    countMsg++
-                  }
-                  if (msg.receiver == this.us.get_username() && msg.sender == element['username']) {
-                    this.badgeContentMsg++;
-                  }
-                })
-                //console.log(countMsg)
-                console.log(this.onlineUser)
-                let sos = this.onlineUser.find((data: any) => { return data == element['username'] })
-                console.log("Sos")
-                console.log(sos)
-                if (sos == element['username']) {
-                  col = "yellow"
-                } else {
-                  col = "red"
-                }
-                if (countMsg != 0) {
-                  msgHide = false
-                }
-                if (element['isBlocked']) {
-                  this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: "bi bi-person-check-fill", badgeNum: countMsg, badgeHidden: msgHide, color: col })
-                } else {
-                  this.friendlist.push({ id: element['_id'], username: element['username'], isBlocked: "bi bi-person-x-fill", badgeNum: countMsg, badgeHidden: msgHide, color: col })
-                }
-                if (this.badgeContentMsg == 0) {
-                  this.hideMatBadgeMsg = true
-                } else {
-                  this.hideMatBadgeMsg = false
-                }
-              })
-            })*/
-            //})
-            //this.getFriendListEnorme()
           }
         }
       })
@@ -743,7 +582,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
 
-
+  /*Notify the user when one of his friend is online*/
   notifyOnline() {
     if (!this.sio.isNull()) {
       this.subscriptionMsg = this.sio.isOnline().subscribe((msg) => {
@@ -751,8 +590,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
         let usern = JSON.parse(JSON.stringify(msg)).username
         let conn = JSON.parse(JSON.stringify(msg)).isConnected
-        //console.log("NotifyOnline")
-        //console.log(this.onlineUser)
         this.friendlist.forEach((element: { [x: string]: any; }) => {
           //console.log(element['username'])
           //console.log(usern)
@@ -769,29 +606,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
               element['color'] = "#A4A5AE"
             }
           }
-          //console.log(element['color'])
         })
-        /*
-        this.us.get_friendlist().subscribe((elem) => {
-          
-          elem.friendlist.forEach((element: { [x: string]: any; }) => {
-            console.log(element['username'])
-            console.log(usern)
-            if(element['username'] == usern){
-              if(conn){
-                element['color'] = "yellow"
-                element['username'] = "Gigio"
-              }else{
-                element['color'] = "red"
-              }
-            }
-            console.log(element['color'])
-          })*/
-        /*
-        let sis = elem.find((data: any) => { return data.username == msg })
-        console.log("uSERNAD")
-        console.log(sis)
-      })*/
       })
     }
   }

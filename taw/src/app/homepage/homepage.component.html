@@ -40,7 +40,7 @@
             <div class="row">
               <div class="col-sm">
                 <button type="button" class="w-100 btn btn-primary btn-lg mybtn" data-bs-target="#p-strange"
-                  data-bs-toggle="modal">Play with strange</button>
+                  data-bs-toggle="modal" (click)="findmatch()">Play with strange</button>
               </div>
               <div class="col-sm">
                 <button type="button" class="w-100 btn btn-warning btn-lg mybtn" data-bs-toggle="modal"
@@ -127,7 +127,7 @@
           <button type="button" class=" btn btn-warning mybtn"
             (click)="findMatchWatchFriend(lfriend)">Watch</button>
         </li>
-        <p class="text-center fs-2" *ngIf="friendPlaying.length==0">Noone of your friend is playing</p>
+        <p class="text-center fs-2" *ngIf="friendPlaying.length==0">None of your friend is playing</p>
       </ul>
     </div>
 

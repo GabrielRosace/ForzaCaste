@@ -58,8 +58,6 @@ export class GameComponent implements OnInit {
     this.us.friendGame=false
     this.gameChat=this.sio.gameChat().subscribe(msg => {
 
-      console.log('got a msg gameChat: ' + JSON.stringify(msg));
-
       if(msg.error){
         this.app.toastCust(msg.errorMessage)
         //this.alerts.push({message:msg.errorMessage});
@@ -68,13 +66,11 @@ export class GameComponent implements OnInit {
       if(msg.sender.length>0){
         var img:string="https://static.educalingo.com/img/it/800/mondo.jpg";
         this.us.get_Otheruser(msg.sender).subscribe(fmsg=>{
-          console.log('from photo: ' + JSON.stringify(fmsg));
           img=fmsg.avatarImgURL;
           var frm:string=msg.sender;
           var time:string=new Date(msg.timestamp).toLocaleTimeString();
           var txt:string=msg.content;
           this.chat.push({imgUrl:img,from:frm,text:txt,time:time});
-          console.log('ur message parsed: ' + JSON.stringify({imgUrl:img,from:frm,text:txt,time:time}));
         });
 
 
@@ -84,20 +80,20 @@ export class GameComponent implements OnInit {
 
     this.result=this.sio.result().subscribe(msg => {
 
-      console.log('got a msg result: ' + JSON.stringify(msg));
+
       var response=JSON.parse(JSON.stringify(msg));
-      console.log(msg.winner)
+
 
       if(msg.winner){
-        console.log("Hai vinto")
+
         this.win="Nice! You Win!";
       }
       if(msg.winner!=undefined &&msg.winner==null){
-        console.log("Pareggio")
+
         this.win="oh, it's a draw!";
       }
       if(msg.winner!=undefined && !msg.winner){
-        console.log("Hai perso")
+
         this.win="oh you looose :(";
       }
       if(msg.message!=undefined ){
@@ -112,10 +108,8 @@ export class GameComponent implements OnInit {
 
     });
     this.gameReady=this.sio.gameReady().subscribe(msg => {
-      console.log('got a msg lobby: ' + msg);
     });
     this.move=this.sio.move().subscribe(msg => {
-      console.log('got a msg move from game: ' + JSON.stringify(msg));
       var response=JSON.parse(JSON.stringify(msg));
       if(response.error==false){
         if(this.urturn){
@@ -190,7 +184,7 @@ export class GameComponent implements OnInit {
       for(var i:number=5;i>=0;i--){
         if(this.game[i][c]==0){
           this.game[i][c]=this.boss;
-          console.log("valore: ",this.game[i][c]);
+
           this.visibility="none";
           this.opacity=0.5;
           this.txtturno="It's turn of your opponent";
@@ -202,7 +196,7 @@ export class GameComponent implements OnInit {
       for(var i:number=5;i>=0;i--){
         if(this.game[i][c]==0){
           this.game[i][c]=this.boss==2?1:2;
-          console.log("valore: ",this.game[i][c]);
+
           this.visibility="";
           this.opacity=1;
           this.txtturno="It's your turn";
@@ -215,7 +209,6 @@ export class GameComponent implements OnInit {
   /* Call the function for make a move */
   makemove(col:number){
     this.us.makemove(col).subscribe((msg)=>{
-      console.log("ricevuto da make move: ",msg);
     });
     this.calledcol=col;
   }
@@ -228,7 +221,7 @@ export class GameComponent implements OnInit {
       //this.alerts.push({message:"you have to write something for send it"});
     }else{
       this.us.sendMessage(text).subscribe((msg)=>{
-        console.log("ricevuto da sendMessage: ",msg);
+
         var response=JSON.parse(JSON.stringify(msg));
         if(response.error==false&&response.error!=undefined){
           var time = new Date();
@@ -246,7 +239,7 @@ export class GameComponent implements OnInit {
       document.getElementById("opensugg")!.click();
     }
     this.us.askSuggestion().subscribe((msg)=>{
-      console.log(JSON.stringify(msg))
+
       if(msg.error){
         this.title="Error suggestion"
       this.content=msg.errormessage
@@ -255,7 +248,7 @@ export class GameComponent implements OnInit {
         this.suggestedcollum=msg.move["0"]
       }
     }, (err) => {
-      console.log(err)
+
       this.title="Error suggestion"
       this.content = err.error.errormessage
       document.getElementById("opensugg")!.click();
@@ -265,7 +258,6 @@ export class GameComponent implements OnInit {
   isTosuggest(collumn:number){
 
     if(collumn==this.suggestedcollum){
-      console.log(collumn)
       return "#F56476"
     }else{
       return "transparent"

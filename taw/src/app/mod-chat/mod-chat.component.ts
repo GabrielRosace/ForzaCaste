@@ -30,9 +30,13 @@ export class ModChatComponent implements OnInit {
   public avatarImgURL: string = ""
   public friend: string = ""
   private tok: string = ""
-  private subscriptionName!: Subscription
-  public subscriptionMsg!: Subscription
-  public subscriptionBlck!: Subscription
+
+  private subscriptionChat!: Subscription
+  private subscriptionMsg!: Subscription
+  private subSendMsg!: Subscription
+  private subMsgIn!: Subscription
+  private subReadMsg!: Subscription
+
   public hideBadgeMod: boolean = false
   public badgeContMod: number = 0
   public role: string = ""
@@ -61,8 +65,11 @@ export class ModChatComponent implements OnInit {
 
   ngOnDestroy(): void {
     if (this.tok) {
-      this.subscriptionName.unsubscribe()
+      this.subscriptionChat.unsubscribe()
       this.subscriptionMsg.unsubscribe()
+      this.subReadMsg.unsubscribe()
+      this.subMsgIn.unsubscribe()
+      this.subSendMsg.unsubscribe()
     }
   }
 
@@ -75,7 +82,7 @@ export class ModChatComponent implements OnInit {
       this.app.toastCust("You have to write something for send it")
     } else {
       console.log("Mesg inviato")
-      this.us.send_ModMsg(this.activeRoute.snapshot.params['user'], message).subscribe((data) => {
+      this.subSendMsg = this.us.send_ModMsg(this.activeRoute.snapshot.params['user'], message).subscribe((data) => {
         let date = new Date();
         date.setTime(date.getTime()+60*60*1000)
         this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: message, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth() + 1}/${date.getFullYear()}` });
@@ -85,7 +92,7 @@ export class ModChatComponent implements OnInit {
 
 
   openChat(username: string) {
-    this.subscriptionName = this.us.get_userMessage(true).subscribe((elem: any) => {
+    this.subscriptionChat = this.us.get_userMessage(true).subscribe((elem: any) => {
       console.log("OpenChat")
       this.messagelist = elem.allMessages
       this.messageInpending = elem.inPendingMessages
@@ -121,14 +128,14 @@ export class ModChatComponent implements OnInit {
   }
 
   readMessage(myus: string, username: string) {
-    this.us.readMessage(myus, username, true).subscribe(() => {
+    this.subReadMsg = this.us.readMessage(myus, username, true).subscribe(() => {
       console.log("Read Message")
       this.us.update_badge("read mod-chat")
     })
   }
 
   getInpendinMsg(username: string) {
-    this.subscriptionName = this.us.get_userMessage(true).subscribe((elem: any) => {
+    this.subMsgIn = this.us.get_userMessage(true).subscribe((elem: any) => {
       this.messageInpending = elem.inPendingMessages
       this.badgeContMod = 0
       this.us.get_Otheruser(username).subscribe((user) => {

@@ -88,6 +88,9 @@
         <h5 class="modal-title" id="editModalLabel1" >{{title}}</h5>
       </div>
       <p class="text-center fs-2">{{content}}</p>
+      <div *ngIf="gmMsg" class="alert alert-warning" role="alert">
+        Game message: {{gmMsg}}
+      </div>
       <div class="modal-footer">
         <button type="button" class=" btn btn-danger btn-sm mybtn" data-bs-dismiss="modal" (click)="closeMatch()">Close</button>
       </div>

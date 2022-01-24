@@ -31,9 +31,16 @@ export class FriendChatComponent implements OnInit {
   public avatarImgURL: string = ""
   private tok: string = ""
   public imBlock!: boolean
-  private subscriptionName!: Subscription
-  public subscriptionMsg!: Subscription
-  public subscriptionBlck!: Subscription
+
+  private subscriptionChat!: Subscription
+  private subscriptionMsg!: Subscription
+  private subscriptionBlck!: Subscription
+  private subSendMsg!: Subscription
+  private notBlock!: Subscription
+  private subMsgIn!: Subscription
+  private subReadMsg!: Subscription
+
+
   public badgeContentMsg: number = 0
   public hideMatBadgeMsg: boolean = false
   public role: string = ""
@@ -41,48 +48,6 @@ export class FriendChatComponent implements OnInit {
 
   constructor(private app: AppComponent, private sio: SocketioService, private us: UserHttpService, private router: Router, private activeRoute: ActivatedRoute, private cdRef: ChangeDetectorRef) {
 
-    /*
-     this.subscriptionName = this.us.get_userMessage().subscribe((elem: any) => {
-       console.log("OpenChat")
-       let username = this.activeRoute.snapshot.params['friend']
-       this.messagelist = elem.allMessages
-       this.messageInpending = elem.inPendingMessages
-       this.us.get_friend(username).subscribe((friend) => {
-         this.messagelist.forEach((element: any) => {
-           let date = new Date(element.timestamp);
-           if (element.sender == username) {
-             //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
-             this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
-           } else if (element.receiver == username) {
-             this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString() });
-           }
-         })
-         /*
-         let date = new Date(element.timestamp);
-         if (element.sender == username) {
-           this.us.readMessage(this.us.get_username(), username)
-           this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
-         } else if (element.receiver == username) {
-           this.us.readMessage(username, this.us.get_username())
-           this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString()});
-         }
-       })
- 
-       this.badgeContentMsg = 0
-       //console.log("MsgList: ")
-       //console.log(this.messageInpending)
-       this.messageInpending.forEach((element: any) => {
-         if (element.receiver == this.us.get_username()) {
-           this.badgeContentMsg++;
-         }
-       });
- 
-       //console.log("badgeContent")
-       //console.log(this.badgeContentMsg)
-       if (this.badgeContentMsg == 0) {
-         this.hideMatBadgeMsg = true
-       }
-     })*/
   }
 
   ngOnInit(): void {
@@ -108,8 +73,13 @@ export class FriendChatComponent implements OnInit {
 
   ngOnDestroy(): void {
     if (this.tok) {
-      this.subscriptionName.unsubscribe()
+      this.subscriptionChat.unsubscribe()
       this.subscriptionMsg.unsubscribe()
+      this.subscriptionBlck.unsubscribe()
+      this.notBlock.unsubscribe()
+      this.subReadMsg.unsubscribe()
+      this.subMsgIn.unsubscribe()
+      this.subSendMsg.unsubscribe()
     }
   }
 
@@ -121,7 +91,7 @@ export class FriendChatComponent implements OnInit {
     if (message == "") {
       this.app.toastCust("You have to write something for send it")
     } else {
-      this.us.send_chatMsg(this.activeRoute.snapshot.params['friend'], message).subscribe((data) => {
+      this.subSendMsg = this.us.send_chatMsg(this.activeRoute.snapshot.params['friend'], message).subscribe((data) => {
         let date = new Date();
         date.setTime(date.getTime()+60*60*1000)
         this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: message, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth() + 1}/${date.getFullYear()}` })
@@ -130,7 +100,7 @@ export class FriendChatComponent implements OnInit {
   }
 
   imBlocked() {
-    this.us.get_friend(this.activeRoute.snapshot.params['friend']).subscribe((friend) => {
+    this.subscriptionBlck = this.us.get_friend(this.activeRoute.snapshot.params['friend']).subscribe((friend) => {
       let fr: any
       friend.friendList.filter((u: any) => {
         if (u.username == this.us.get_username()) {
@@ -145,7 +115,7 @@ export class FriendChatComponent implements OnInit {
   }
 
   openChat(username: string) {
-    this.subscriptionName = this.us.get_userMessage().subscribe((elem: any) => {
+    this.subscriptionChat = this.us.get_userMessage().subscribe((elem: any) => {
       console.log("OpenChat")
       this.messagelist = elem.allMessages
       this.messageInpending = elem.inPendingMessages
@@ -189,13 +159,13 @@ export class FriendChatComponent implements OnInit {
   }
 
   readMessage(myus: string, username: string) {
-    this.us.readMessage(myus, username, false).subscribe(() => {
+    this.subReadMsg = this.us.readMessage(myus, username, false).subscribe(() => {
       this.us.update_badge("read friend-chat")
     })
   }
 
   getInpendinMsg(username: string) {
-    this.subscriptionName = this.us.get_userMessage().subscribe((elem: any) => {
+    this.subMsgIn = this.us.get_userMessage().subscribe((elem: any) => {
       this.messageInpending = elem.inPendingMessages
       this.badgeContentMsg = 0
       this.us.get_friend(username).subscribe((friend) => {
@@ -213,7 +183,7 @@ export class FriendChatComponent implements OnInit {
 
   notifyBlocked() {
     if (!this.sio.isNull()) {
-      this.sio.beingBlocked().subscribe((msg) => {
+      this.notBlock = this.sio.beingBlocked().subscribe((msg) => {
         this.imBlock = JSON.parse(JSON.stringify(msg)).blocked
       })
     }

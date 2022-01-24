@@ -42,9 +42,11 @@ export class WatchComponent implements OnInit {
   private gameStatus: Subscription;
   private result: Subscription;
   private gameChat: Subscription;
+  public gmMsg:string=""
   constructor(private app: AppComponent, private sio: SocketioService, private us: UserHttpService, private router: Router) {
     if (this.sio.turn == 1) {
       this.txtturno = this.sio.getP1()
+      
       this.urturn=1
     }
     else {
@@ -93,6 +95,10 @@ export class WatchComponent implements OnInit {
           this.title=msg.winner.toUpperCase()+ " WIN!!!"
           this.content=msg.winner.toUpperCase()+ " win this game"
       }
+      if(msg.message!=undefined ){
+        this.gmMsg=msg.message;
+        console.log(this.gmMsg)
+      }
       document.getElementById("openstats")!.click();
     });
   }
@@ -101,6 +107,7 @@ export class WatchComponent implements OnInit {
   ngOnDestroy(): void {
     this.gameStatus.unsubscribe()
     this.result.unsubscribe()
+    this.gameChat.unsubscribe()
   }
 
   ngOnInit(): void {
@@ -116,7 +123,9 @@ export class WatchComponent implements OnInit {
         }
       }
       this.p1 = this.sio.getP1()
+      console.log("player 1: "+this.p1)
       this.p2 = this.sio.getP2()
+      console.log("player 2: "+this.p2)
       this.game = this.sio.getGame()
     }
   }

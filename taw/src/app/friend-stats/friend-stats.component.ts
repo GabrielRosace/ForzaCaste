@@ -5,6 +5,7 @@ import { registerables, Chart, ChartType } from 'chart.js';
 // import { Chart } from 'chart.js/auto';
 import { UserHttpService } from '../user-http.service';
 import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-friend-stats',
@@ -23,6 +24,8 @@ export class FriendStatsComponent implements OnInit {
   public mail: string = ''
   public role: string = ''
   private statistics: any[] = []
+
+  private subFriend!: Subscription
 
   public lineChartData: any[] = [];
   public lineChartLabels: any[] = [];
@@ -48,7 +51,7 @@ export class FriendStatsComponent implements OnInit {
       this.router.navigate(['/'])
     } else {
       console.log("Friend-stats: " + this.activeRoute.snapshot.params['friend'])
-      this.us.get_friend(this.activeRoute.snapshot.params['friend']).subscribe((u) => {
+      this.subFriend = this.us.get_friend(this.activeRoute.snapshot.params['friend']).subscribe((u) => {
         this.username = u.username
         this.avatarImg = u.avatarImgURL
         this.mail = u.mail
@@ -94,6 +97,10 @@ export class FriendStatsComponent implements OnInit {
         }
       })
     }
+  }
+
+  ngOnDestroy(): void {
+    this.subFriend.unsubscribe()
   }
 }
 
