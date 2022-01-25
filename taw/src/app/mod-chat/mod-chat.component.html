@@ -3,7 +3,6 @@
         <p class="text-center fs-2 fw-bold">Moderator chat with {{friend}}</p>
         <div class="container">
             <div class="mychat">
-              <!--#scrollMe [scrollTop]="scrollMe.scrollHeight"-->
                 <div class="chatcontainer" #scrollMe [scrollTop]="scrollMe.scrollHeight">
                   <div class="elements" *ngFor='let message of singleChat'>
                     <div class="containerchat" *ngIf="message.from=='me'">
@@ -19,12 +18,10 @@
                   </div>
               </div>
               <form class="form-inline" style="padding-left: 1vw;padding-right: 1vw; padding-top: 1vw;" (submit)="sendMessage(tosend.value);tosend.value = '';false">
-                <!--(submit)="sendmessage(tosend.value); tosend.value = '';false"-->
                 <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Write something" #tosend>
               
                 <button type="button" class="w-100 btn btn-lg btn-primary" (click)="sendMessage(tosend.value);tosend.value = ''">Send</button>
               </form>
-              <!--(click)="sendmessage(tosend.value); tosend.value = ''"-->
             </div>
           </div>
     </div>
