@@ -165,7 +165,7 @@ export class GameComponent implements OnInit {
     this.result.unsubscribe();
     this.gameReady.unsubscribe();
     this.gameChat.unsubscribe();
-    this.deleteMatch();
+    this.closeMatch();
   }
   /* Create random number - USELESS */
   randomNumber(min:number, max:number) {

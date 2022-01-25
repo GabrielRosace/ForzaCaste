@@ -10,11 +10,11 @@ import { NULL_EXPR } from '@angular/compiler/src/output/output_ast';
 export class SocketioService {
 
   private socket!: Socket
-  private p1!:string
-  private p2!:string
-  private game:number[][]=[]
-  public turn:number=0;
-  public switched:boolean=false;
+  private p1!: string
+  private p2!: string
+  private game: number[][] = []
+  public turn: number = 0;
+  public switched: boolean = false;
 
   constructor(private us: UserHttpService) {
   }
@@ -27,26 +27,26 @@ export class SocketioService {
       }
     })
   }
-  getGame(){
+  getGame() {
     return this.game;
   }
-  setGame(game:number[][]){
-    this.game=game;
+  setGame(game: number[][]) {
+    this.game = game;
   }
-  getP1(){
+  getP1() {
     return this.p1;
   }
-  
-  setP1(p1:string){
-    this.p1=p1;
+
+  setP1(p1: string) {
+    this.p1 = p1;
   }
-  getP2(){
+  getP2() {
     return this.p2;
   }
-  setP2(p2:string){
-    this.p2=p2;
+  setP2(p2: string) {
+    this.p2 = p2;
   }
-  gameChat():Observable<any>{
+  gameChat(): Observable<any> {
 
     console.log(" Created gameChat")
     return new Observable(observer => {
@@ -55,7 +55,7 @@ export class SocketioService {
       });
     });
   }
-  result():Observable<any>{
+  result(): Observable<any> {
 
     console.log(" Created result")
     return new Observable(observer => {
@@ -64,7 +64,7 @@ export class SocketioService {
       });
     });
   }
-  gameStatus():Observable<any>{
+  gameStatus(): Observable<any> {
     console.log(" Created gameStatus")
     return new Observable(observer => {
       this.socket.on('gameStatus', msg => {
@@ -72,7 +72,7 @@ export class SocketioService {
       });
     });
   }
-  move(){
+  move() {
     console.log(" Created move")
     return new Observable(observer => {
       this.socket.on('move', msg => {
@@ -87,19 +87,26 @@ export class SocketioService {
     console.log(this.us.get_username())
     this.socket.emit('move',{username:this.us.get_username(),move:col})
   }*/
-  gameReady():Observable<any>{
+  gameReady(): Observable<any> {
     console.log("Created gameReady")
     return new Observable(observer => {
-      this.socket.on('gameReady', msg => {
-        observer.next(msg);
-      });
+      try {
+        if (this.socket != undefined) {
+          this.socket.on('gameReady', msg => {
+            observer.next(msg);
+          });
+        }
+
+      } catch (error) {
+      }
+
     });
   }
   creatematchroomemit(): void {
     console.log("createMatchRoom emit")
-    this.socket.emit('createMatchRoom',{username:this.us.get_username()})
+    this.socket.emit('createMatchRoom', { username: this.us.get_username() })
   }
-  enterGameWatchMode():Observable<any>{
+  enterGameWatchMode(): Observable<any> {
     console.log("Created enterGameWatchMode")
     return new Observable(observer => {
       this.socket.on('enterGameWatchMode', msg => {
@@ -107,32 +114,32 @@ export class SocketioService {
       });
     });
   }
-/*
-  addFriend(receiver: String, type: String): void{
-    console.log("Add friend", this.us.get_username())
-    let clientMessage = JSON.stringify({error : false, username: this.us.get_username(), receiver: receiver, type: type})
-    console.log(clientMessage)
-    this.socket.emit('notification',JSON.parse(clientMessage))
-  } */
+  /*
+    addFriend(receiver: String, type: String): void{
+      console.log("Add friend", this.us.get_username())
+      let clientMessage = JSON.stringify({error : false, username: this.us.get_username(), receiver: receiver, type: type})
+      console.log(clientMessage)
+      this.socket.emit('notification',JSON.parse(clientMessage))
+    } */
 
-  request(){
-    return new Observable<string>(observer =>{
+  request() {
+    return new Observable<string>(observer => {
       this.socket.on('newNotification', msg => {
         observer.next(msg);
       });
     })
   }
-  
-  friendRequYN(){
-    return new Observable<string>(observer =>{
+
+  friendRequYN() {
+    return new Observable<string>(observer => {
       this.socket.on('request', msg => {
         observer.next(msg);
       });
     })
   }
 
-  gameRequest(){
-    return new Observable<string>(observer =>{
+  gameRequest() {
+    return new Observable<string>(observer => {
       this.socket.on('gameRequest', msg => {
         observer.next(msg);
       });
@@ -148,41 +155,41 @@ export class SocketioService {
     })
   }*/
 
-  newMessage(){
-    return new Observable<string>(observer =>{
+  newMessage() {
+    return new Observable<string>(observer => {
       this.socket.on('message', msg => {
         observer.next(msg);
       });
     })
   }
-  friendDeleted(){
-    return new Observable<string>(observer =>{
+  friendDeleted() {
+    return new Observable<string>(observer => {
       this.socket.on('friendDeleted', msg => {
         observer.next(msg);
       });
     })
   }
 
-  isOnline(){
-    return new Observable<string>(observer =>{
+  isOnline() {
+    return new Observable<string>(observer => {
       this.socket.on('online', msg => {
         observer.next(msg);
       });
     })
   }
 
-  beingBlocked(){
-    return new Observable<string>(observer =>{
+  beingBlocked() {
+    return new Observable<string>(observer => {
       this.socket.on('friendBlocked', msg => {
         observer.next(msg);
       });
     })
   }
-  isNull(){
+  isNull() {
     return this.socket == null
   }
 
-  disconnect(): void{
+  disconnect(): void {
     this.socket.close()
   }
 }

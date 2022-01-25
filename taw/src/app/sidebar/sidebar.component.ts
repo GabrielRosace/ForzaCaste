@@ -27,7 +27,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private tok: string = ""
 
 
-  public gameReady!: Subscription
+  public gameReady!: Subscription;
   private subUserList!: Subscription
   private subFriendList!: Subscription
   private subModList!: Subscription
@@ -117,9 +117,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.subscriptionChat = this.us.get_badge().subscribe((msg) => {
       console.log("Chat get_badge")
       msg = msg.text
-      if(msg == "read friend-chat"){
+      if (msg == "read friend-chat") {
         this.getInpendinMsg()
-      }else if(msg == "read mod-chat"){
+      } else if (msg == "read mod-chat") {
         this.getInpendingMsgMod()
       }
     })
@@ -150,7 +150,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.subscriptionReq.unsubscribe()
     this.subscriptionNot.unsubscribe()
     this.subscriptionMsg.unsubscribe()
-    this.gameReady.unsubscribe();
     this.subFriendList.unsubscribe();
     this.subModList.unsubscribe();
     this.subscriptionChat.unsubscribe()
@@ -166,13 +165,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.subAddFriend.unsubscribe()
     this.subscriptionIn.unsubscribe()
     this.subscriptionInMod.unsubscribe()
+    this.gameReady.unsubscribe();
+
   }
 
   setName(username: string) {
     this.friendUsername = username
   }
 
-  setErr(){
+  setErr() {
     this.errMsg = ""
   }
 
@@ -196,7 +197,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
     return false
   }
-  
+
   getNotification(makeNotificationRead: boolean, inpending?: boolean) {
     this.subscriptionNot = this.us.get_notification(makeNotificationRead, inpending).subscribe((u) => {
       this.notification = []
@@ -362,11 +363,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
   }
 
-  foundGame(){
-     /* Subscribe to a socket's listener, the lobby, for know if i find a match */
-     this.gameReady = this.sio.gameReady().subscribe(msg => {
-      console.log('got a msg lobby: ' + JSON.stringify(msg));
-      if (msg.gameReady) {
+  foundGame() {
+    /* Subscribe to a socket's listener, the lobby, for know if i find a match */
+
+    this.gameReady = this.sio.gameReady().subscribe(msg => {
+
+      if (msg.gameReady != undefined && msg.gameReady) {
         //rimuove il backdrop dei modal (bug di bootstrap)
         this.sio.setP2(msg.opponentPlayer)
         Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
@@ -380,16 +382,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
         document.getElementById("closepstrange")!.click();
         document.getElementById("closewfriend")!.click();
         document.getElementById("closewstrange")!.click();
-        
         Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
           item.parentElement?.removeChild(item);
         });
         this.app.toastCust("Friendly match refused")
-        this.router.navigate(['home']);
       }
     });
+
   }
-  
+
   notifyGameReq() {
     if (!this.sio.isNull()) {
       this.notGameReq = this.sio.gameRequest().subscribe(msg => {
@@ -441,9 +442,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   addFriendToFriendlist(sender: string, accepted: boolean) {
     console.log("sender: ", sender)
     this.subAddFriend = this.us.add_friend(sender, accepted).subscribe((data) => {
-      if(accepted){
+      if (accepted) {
         this.app.toastCust("Request Accepted")
-      }else{
+      } else {
         this.app.toastCust("Request Rejected")
       }
       //this.toastN("Request Accepted")
@@ -454,9 +455,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   async acceptGamerequest(sender: string) {
     console.log("sender: ", sender)
     if (!this.sio.isNull()) {
-      this.us.friendGame=true
+      this.us.friendGame = true
       await this.router.navigate(['/home'])
-      this.us.acceptFriendgame(sender,true).subscribe((msg)=>{
+      this.us.acceptFriendgame(sender, true).subscribe((msg) => {
       })
 
 
@@ -489,7 +490,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       }
     })
   }
- /*This function allows to take all the inpending message between the user and all the moderator*/
+  /*This function allows to take all the inpending message between the user and all the moderator*/
   getInpendingMsgMod() {
     this.subscriptionInMod = this.us.get_userMessage(true).subscribe((elem: any) => {
       console.log("InpendingMsgMod:")
@@ -500,13 +501,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
           this.badgeContMod++;
         }
       });
-      if(this.us.has_moderator_role()){
+      if (this.us.has_moderator_role()) {
         this.badgeAllUs = this.badgeContMod
         this.badgeContMod = 0
       }
-      if(this.badgeAllUs == 0){
+      if (this.badgeAllUs == 0) {
         this.hideBadgeAll = true
-      }else{
+      } else {
         this.hideBadgeAll = false
       }
       if (this.badgeContMod == 0) {
