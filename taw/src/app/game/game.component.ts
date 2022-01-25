@@ -4,6 +4,7 @@ import { UserHttpService } from '../user-http.service';
 import { SocketioService } from '../socketio.service';
 import { Subscription } from 'rxjs';
 import { AppComponent } from '../app.component';
+import { ToastService } from '../_services/toast.service';
 
 interface Alert {
   type: string;
@@ -21,30 +22,40 @@ interface Message {
   styleUrls: ['./game.component.css']
 })
 export class GameComponent implements OnInit {
-  public game:number[][]=[];
-  public chat:Message[]=[];
-  public txtturno:string="Waiting...";
-  public visibility:string="none";//default="none"
-  public opacity: number=0.5;//default=0.5
-  public alerts: any[]=[];
-  public boss:number=0;
-  public calledcol:number=0;
-  public urturn:boolean=false;
   private move: Subscription;
   private gameReady: Subscription;
   private result: Subscription;
   private gameChat: Subscription;
-  public win:string="";
+
+  public game:number[][]=[];
+  public chat:Message[]=[];
+  public alerts: any[]=[];
+
+  public txtturno:string="Waiting...";
+  public visibility:string="none";//default="none"
+  public opacity: number=0.5;//default=0.5
+  
+  public boss:number=0;
+  public calledcol:number=0;
   public rank!:number;
+  public suggestedcollum:number=-1
+
+  public urturn:boolean=false;
+  public isFriend:boolean=true
+
+  public win:string="";
   public inputtext:string="";
   public opponent:string="Unknown"
   public title: string = "";
   public content: string = "";
   public suggestion:string="Ask for some suggestion";
-  public suggestedcollum:number=-1
-  public isFriend:boolean=true
   public gmMsg:string=""
-  constructor(private app:AppComponent, private sio: SocketioService,private us: UserHttpService, private router: Router) {
+  
+  
+  
+  
+
+  constructor(private toast: ToastService,private app:AppComponent, private sio: SocketioService,private us: UserHttpService, private router: Router) {
       this.us.get_friendlist().subscribe((u) => {
 
         u.friendlist.forEach((element: { [x: string]: any; }) => {
@@ -56,6 +67,7 @@ export class GameComponent implements OnInit {
 
       })
     this.us.friendGame=false
+    /*Listen the socket gamechat if it receive a message, it add it to the Chat list*/
     this.gameChat=this.sio.gameChat().subscribe(msg => {
 
       if(msg.error){
@@ -77,7 +89,7 @@ export class GameComponent implements OnInit {
 
       }
     });
-
+    /*Listen the socket result, if it receive a message, check who win, and close the match,and display the winner or loser, or draw with rank */
     this.result=this.sio.result().subscribe(msg => {
 
 
@@ -107,8 +119,13 @@ export class GameComponent implements OnInit {
       document.getElementById("openstats")!.click();
 
     });
+
     this.gameReady=this.sio.gameReady().subscribe(msg => {
     });
+
+    /*
+    Listen to the socket move, if it receive a message, it validate the move that the user made and add the opponent move
+    */
     this.move=this.sio.move().subscribe(msg => {
       var response=JSON.parse(JSON.stringify(msg));
       if(response.error==false){
@@ -232,6 +249,7 @@ export class GameComponent implements OnInit {
     }
 
   }
+  /*Call the http function for ask a suggestion and make it visible to the user */
   askSuggestion(){
     if(this.rank!=undefined){
       this.title="Error suggestion"
@@ -254,7 +272,7 @@ export class GameComponent implements OnInit {
       document.getElementById("opensugg")!.click();
     })
   }
-
+  /*Return the color of the column if it has to be selected*/
   isTosuggest(collumn:number){
 
     if(collumn==this.suggestedcollum){
@@ -263,11 +281,12 @@ export class GameComponent implements OnInit {
       return "transparent"
     }
   }
-
+  /*Call the http function for delete the match*/
   deleteMatch(){
     this.us.delete_match().subscribe((data) => {
     })
   }
+  /* Call the function in http for close the match with the player and navigate to the home */
   closeMatch(){
     if(this.us.friendGame){
       if(this.rank==undefined){
@@ -282,11 +301,10 @@ export class GameComponent implements OnInit {
       }
     }
   }
+  /*Call the http function for add the opponent as friend */
   addFriend(){
     this.us.add_friendRequest(this.opponent).subscribe((data) => {
-      // miss toast service
-      // CASTE FIX THIS
-      //this.toastN("Request Forwarded")
+      this.toastN("Request Forwarded")
     })
 
   }
@@ -313,6 +331,14 @@ export class GameComponent implements OnInit {
     }else{
       return false;
     }
+  }
+
+  toastN(msg: string) {
+    this.toast.show(msg, {
+      classname: 'bg-info text-light',
+      delay: 7000,
+      autohide: true
+    });
   }
 
 }

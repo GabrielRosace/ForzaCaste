@@ -361,8 +361,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
       })
     }
   }
+
   foundGame(){
-     /* Subscribe to a socket's listener, the lobby, for knwo if i find a match */
+     /* Subscribe to a socket's listener, the lobby, for know if i find a match */
      this.gameReady = this.sio.gameReady().subscribe(msg => {
       console.log('got a msg lobby: ' + JSON.stringify(msg));
       if (msg.gameReady) {
@@ -374,18 +375,21 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.router.navigate(['game']);
       }
       if (msg.gameReady != undefined && !msg.gameReady) {
+        // close al the modal dialog opened 
         document.getElementById("closepfriend")!.click();
         document.getElementById("closepstrange")!.click();
         document.getElementById("closewfriend")!.click();
         document.getElementById("closewstrange")!.click();
-        //chiudere il modal
+        
         Array.from(document.getElementsByClassName('modal-backdrop')).forEach((item) => {
           item.parentElement?.removeChild(item);
         });
         this.app.toastCust("Friendly match refused")
+        this.router.navigate(['home']);
       }
     });
   }
+  
   notifyGameReq() {
     if (!this.sio.isNull()) {
       this.notGameReq = this.sio.gameRequest().subscribe(msg => {

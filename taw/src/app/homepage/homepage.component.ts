@@ -18,14 +18,16 @@ export class HomepageComponent implements OnInit {
 
   public friendlist: any[] = []
   public friendPlaying: any[] = []
+
   public username: string = ''
+
   public foundwatch: boolean = true
   public matchmaking: boolean = false;
 
   constructor(private toast: ToastService, private sio: SocketioService, private us: UserHttpService, private router: Router) {
     this.notifyOnline()
   }
-
+  /* When component is destroyed it will unsubscribe from the sockets */
   ngOnDestroy(): void {
     if(this.subscriptionMsg!=undefined){
       this.subscriptionMsg.unsubscribe()
@@ -46,9 +48,9 @@ export class HomepageComponent implements OnInit {
       this.getUsOnline()
       this.updateFriendList()
     }
-
-
   }
+
+  /*Update the friendList with who is online or not */
   updateFriendList(){
     this.us.get_friendlist().subscribe((u) => {
       this.friendlist = []
@@ -69,16 +71,19 @@ export class HomepageComponent implements OnInit {
     })
     
   }
+  /*Close the request for watching a game */
   closeWatch():void{
     this.matchmaking=false
     this.enterGameWatchMode.unsubscribe()
   }
+  /*Close the request for matchmaking */
   closeMatch(): void {
     this.us.delete_match().subscribe((data) => {
-      console.log(data)
+
       this.matchmaking = false
     })
   }
+  
   toastN(msg: string) {
     this.toast.show(msg, {
       classname: 'bg-info text-light',
@@ -90,12 +95,12 @@ export class HomepageComponent implements OnInit {
   findmatch() {
     this.us.create_matchmaking().subscribe(
       (u) => {
-        console.log(u);
         this.sio.creatematchroomemit();
 
       }
     )
   }
+  /*Watch a game that a friend is playing */
   findMatchWatchFriend(friend: string) {
     let game: number[][] = []
 
@@ -108,7 +113,6 @@ export class HomepageComponent implements OnInit {
       }
     }
     this.enterGameWatchMode = this.sio.enterGameWatchMode().subscribe(msg => {
-      console.log('got a msg enterGameWatchMode: ' + JSON.stringify(msg));
       const rplayground = msg.playground
       if (rplayground != undefined) {
         let x = 5, y = 0
@@ -143,13 +147,13 @@ export class HomepageComponent implements OnInit {
     this.us.get_usersOnline().subscribe((data: any) => {
       let found = false
       data.onlineuser.forEach((element: { [x: string]: any; }) => {
-        console.log(JSON.stringify(element))
+
         if (JSON.parse(JSON.stringify(element)) == friend) {
           found = true
           this.matchmaking = true
           this.us.get_GameinProgress().subscribe(
             (u) => {
-              console.log(JSON.stringify(u));
+
 
               if (u.matches.length >= 1) {
                 let game = 0
@@ -198,6 +202,7 @@ export class HomepageComponent implements OnInit {
     })
 
   }
+  /*Get the list of friends that is playing and put it in a List */
   getFriendplaying(){
     this.friendPlaying=[]
     this.updateFriendList()
@@ -205,7 +210,7 @@ export class HomepageComponent implements OnInit {
       //u.matches[i].player1
       
       for (var i: number = 0; i < u.matches.length; i++){
-        console.log("sono qui dentro")
+
         this.friendlist.forEach((data:any)=>{
           if(data.username == u.matches[i].player1 ){
             this.friendPlaying.push(data['username'])
@@ -219,13 +224,15 @@ export class HomepageComponent implements OnInit {
     })
 
   }
-
+/*Create a match vs the CPU and navigate to the gameboard */
   createCPUGame(lv: number) {
     this.us.lv = lv
     this.us.createCPUgame().subscribe((msg) => {
       this.navigate('cpu');
     })
   }
+  /*Find a game thats is in progress and try to enter, and select randomly which user to view
+  When a game is found, it will redirect to the watch page */
   findMatchWatch() {
     let game: number[][] = []
 
@@ -300,16 +307,16 @@ export class HomepageComponent implements OnInit {
   randomNumber(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
-
+/*Invite a friend for a match, and start to wait the player, if the friend refuse it stop */
   inviteFriendToMatch(username: string) {
     this.us.get_usersOnline().subscribe((data: any) => {
-      console.log(JSON.stringify(data))
+
       let found = false
       data.onlineuser.forEach((element: { [x: string]: any; }) => {
         if (JSON.parse(JSON.stringify(element)) == username) {
           found = true
           this.matchmaking = true
-          console.log("Opposite Player: " + username)
+
           this.us.create_friendlymatchmaking(username).subscribe((data) => {
             this.toastN("Request Forwarded")
           })
@@ -323,6 +330,7 @@ export class HomepageComponent implements OnInit {
     })
 
   }
+  /*Start the listener for know when a friend go online or offline*/
   notifyOnline() {
     if (!this.sio.isNull()) {
       this.subscriptionMsg = this.sio.isOnline().subscribe((msg) => {
@@ -347,10 +355,9 @@ export class HomepageComponent implements OnInit {
       })
     }
   }
+  /*Get the users that is online and put them on a list */
   getUsOnline() {
     let online = this.us.get_usersOnline().subscribe((elem: any) => {
-      console.log("Online")
-      console.log(elem.onlineuser)
       this.onlineUser = elem.onlineuser
     })
   }

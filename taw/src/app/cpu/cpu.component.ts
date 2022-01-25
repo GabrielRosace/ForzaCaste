@@ -33,6 +33,7 @@ export class CpuComponent implements OnInit {
   public suggestedcollum:number=-1
   constructor(private app: AppComponent, private sio: SocketioService,private us: UserHttpService, private router: Router) { 
     this.us.friendGame=false
+    /*Understand which level is selected */
     if(this.us.lv!=undefined){
 
       if(this.us.lv==2){
@@ -83,6 +84,7 @@ export class CpuComponent implements OnInit {
     this.us.delete_match().subscribe((data) => {
     })
   }
+  /* Call the function in http for close the match with the cpu and navigate to the home */
   closeMatch(){
     if(this.us.friendGame){
       if(this.win){
@@ -90,7 +92,7 @@ export class CpuComponent implements OnInit {
 
       }else{
       this.us.delete_match().subscribe((data) => {
-        console.log(data)
+
         this.us.lv=undefined
       })}
     }else{
@@ -99,23 +101,24 @@ export class CpuComponent implements OnInit {
         this.router.navigate(['/home'])
       }else{
       this.us.delete_match().subscribe((data) => {
-        console.log(data)
+
         this.us.lv=undefined
         this.router.navigate(['/home'])
       })}
     }
     
   }
+  /*Return the color of the column if it has to be selected*/
   isTosuggest(collumn:number){
     
     if(collumn==this.suggestedcollum){
-      console.log(collumn)
+
       return "#F56476"
     }else{
       return "transparent"
     }
   }
-
+/*Call the http function for ask a suggestion and make it visible to the user */
   askSuggestion(){
     if(this.win){
       this.title="Error suggestion"
@@ -123,7 +126,7 @@ export class CpuComponent implements OnInit {
       document.getElementById("opensugg")!.click();
     }
     this.us.askSuggestion().subscribe((msg)=>{
-      console.log(JSON.stringify(msg))
+
       if(msg.error){
         this.title="Error suggestion"
       this.content=msg.errormessage
@@ -132,7 +135,7 @@ export class CpuComponent implements OnInit {
         this.suggestedcollum=msg.move["0"]
       }
     }, (err) => {
-      console.log(err)
+
       this.title="Error suggestion"
       this.content = err.error.errormessage
       document.getElementById("opensugg")!.click();
@@ -144,7 +147,7 @@ export class CpuComponent implements OnInit {
     this.us.moveCPUgame(c).subscribe((msg)=>{
       let stopme=false
       let stopcpu=false
-      console.log(JSON.stringify(msg))
+
       if(msg.error!=undefined){
         if(msg.error){
           this.app.toastCust(msg.errormessage)
@@ -156,7 +159,7 @@ export class CpuComponent implements OnInit {
         if(!stopme){
           if(this.game[i][c]==0){
             this.game[i][c]=1;
-            console.log("valore: ",this.game[i][c]);
+
             this.visibility="none";
             this.opacity=0.5;
             stopme=true
@@ -169,7 +172,6 @@ export class CpuComponent implements OnInit {
         if(!stopcpu){
           if(this.game[i][colonna]==0){
             this.game[i][colonna]=2;
-            console.log("valore: ",this.game[i][colonna]);
             this.visibility="";
             this.opacity=1;
             stopcpu=true
