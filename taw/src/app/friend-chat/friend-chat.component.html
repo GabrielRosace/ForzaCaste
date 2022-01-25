@@ -4,7 +4,6 @@
         <p class="text-center fs-2 fw-bold">Friend chat with {{friend}}</p>
         <div class="container">
             <div class="mychat">
-              <!--#scrollMe [scrollTop]="scrollMe.scrollHeight"-->
                 <div class="chatcontainer" #scrollMe [scrollTop]="scrollMe.scrollHeight">
                   <div class="elements" *ngFor='let message of singleChat'>
                     <div class="containerchat" *ngIf="message.from=='me'">
@@ -20,16 +19,13 @@
                   </div>
               </div>
               <form class="form-inline" style="padding-left: 1vw;padding-right: 1vw; padding-top: 1vw;" *ngIf="!imBlock" (submit)="sendMessage(tosend.value);tosend.value = '';false">
-                <!--(submit)="sendmessage(tosend.value); tosend.value = '';false"-->
                 <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Write something" #tosend>
               
                 <button type="button" class="w-100 btn btn-lg btn-primary" (click)="sendMessage(tosend.value);tosend.value = ''">Send</button>
               </form>
               <form class="form-inline" style="padding-left: 1vw;padding-right: 1vw; padding-top: 1vw;" *ngIf="imBlock">
-                <!--(submit)="sendmessage(tosend.value); tosend.value = '';false"-->
                 <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="You have been blocked by your friend" disabled #tosend>
               </form>
-              <!--(click)="sendmessage(tosend.value); tosend.value = ''"-->
             </div>
           </div>
     </div>

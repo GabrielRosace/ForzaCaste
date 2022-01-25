@@ -26,7 +26,7 @@ export class FriendChatComponent implements OnInit {
   public messagelist?: any
   public messageInpending?: any
   public singleChat: Message[] = []
-  public username: string = "" //TODO tipo user
+  public username: string = ""
   public friend: string = ""
   public avatarImgURL: string = ""
   private tok: string = ""
@@ -54,7 +54,6 @@ export class FriendChatComponent implements OnInit {
     this.tok = this.us.get_token()
     console.log("Sono ngInit Friend")
     if (!this.tok) {
-      // TODO aggiungi un messaggio, magari con una funzione nel servizio per non replicare codice
       this.router.navigate(['/'])
     } else {
       this.username = this.us.get_username()
@@ -67,7 +66,6 @@ export class FriendChatComponent implements OnInit {
       this.notifyNewMsg()
       this.notifyBlocked()
       console.log(this.router.parseUrl(this.router.url).root.children.primary.segments[0].path)
-      //this.getNotification(false, true)
     }
   }
 
@@ -130,28 +128,15 @@ export class FriendChatComponent implements OnInit {
             this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: `${date.getUTCHours()}:${date.getMinutes()}:${date.getUTCSeconds()} - ${date.getUTCDate()}/${date.getUTCMonth() + 1}/${date.getFullYear()}` });
           }
         })
-        /*
-        let date = new Date(element.timestamp);
-        if (element.sender == username) {
-          this.us.readMessage(this.us.get_username(), username)
-          this.singleChat.push({ imgUrl: friend.avatarImgURL, from: friend.username, text: element.content, time: date.toUTCString() });
-        } else if (element.receiver == username) {
-          this.us.readMessage(username, this.us.get_username())
-          this.singleChat.push({ imgUrl: this.us.get_avatarImgURL(), from: "me", text: element.content, time: date.toUTCString()});
-        }*/
       })
 
       this.badgeContentMsg = 0
-      //console.log("MsgList: ")
-      //console.log(this.messageInpending)
       this.messageInpending.forEach((element: any) => {
         if (element.receiver == this.us.get_username()) {
           this.badgeContentMsg++;
         }
       });
 
-      //console.log("badgeContent")
-      //console.log(this.badgeContentMsg)
       if (this.badgeContentMsg == 0) {
         this.hideMatBadgeMsg = true
       }
