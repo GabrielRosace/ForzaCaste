@@ -69,6 +69,7 @@
 
 const result = require('dotenv').config()
 
+// TODO
 // if (result.error) {
 //   console.log("Unable to load '.env' file. Please provide one to store the JWT secret key");
 //   process.exit(-1);
@@ -145,10 +146,6 @@ var app = express();
 var socketIOclients = {}
 // This dictionary contains the match rooms: when an user creates a game requests in order to play a game
 // he creates a room, named with his username (since the username is unique, cannot exists rooms with the same key)
-// A match room contains the two player and all the users that want to watch the match.
-// var matchRooms = {}
-// This dictionary contains all the users that are watching a game. It is used for managing the chat of a game.
-// var matchWatcherRooms = {}
 
 
 
@@ -527,7 +524,7 @@ app.put("/users", auth, (req, res, next) => {
 })
 
 
-// ---------------------------------------------------------------------------------------------------
+// ---------------------------Game--------------------------------------------------------------------
 
 // Getting the history of logged in user ranking, it is based on the ranking he had at the time of the game requests he made
 app.get('/rankingstory', auth, (req, res, next) => {
@@ -563,11 +560,14 @@ app.get('/rankingstory/:username', auth, (req, res, next) => {
   })
 })
 
-
 function getRankingList(username: string) {
   return notification.getModel().find({ deleted: true, sender: username, $or: [{ type: "randomMatchmaking" }, { type: "friendlyMatchmaking" }] }, 'ranking')
 }
 
+// The function depends on the body value:
+// - 'randomMatchmaking': if there is no game request already present then create a game request, otherwise join the other player
+// - 'friendlyMatchmaking': send a game request to a friend
+// - 'watchGame': join a match as observer
 app.post('/game', auth, (req, res, next) => {
   if(!req.body.type){
     console.log("ERROR: Bad Request")
@@ -775,6 +775,7 @@ app.post('/game', auth, (req, res, next) => {
   }
 })
 
+// Accept or refuse a game request received by a friend
 app.put('/game', auth, (req, res, next) => {
   if(req.body.accept === undefined || !req.body.sender){
     console.log("ERROR: Bad Request")
@@ -866,6 +867,7 @@ app.put('/game', auth, (req, res, next) => {
   })
 })
 
+// Deletes a game in progress that the user who sent the HTTP request is playing, if there is no game in progress, then it deletes a sent game request, if it does not exist either it raises an error
 app.delete('/game', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
     if (user.hasModeratorRole() || user.hasUserRole()) {
@@ -926,6 +928,7 @@ app.delete('/game', auth, (req, res, next) => {
   })
 })
 
+// Returns all game in progress
 app.get('/game', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((user: User) => {
     if (user.hasModeratorRole() || user.hasUserRole()) {
@@ -1191,6 +1194,7 @@ app.post("/move", auth, (req, res, next) => {
   })
 })
 
+// Send a message into the game chat all user involved in that match received the message
 app.post('/gameMessage', auth, (req, res, next) => {
   if(!req.body.player || !req.body.message){
     console.log("ERROR: Bad Request")
@@ -1251,6 +1255,8 @@ app.post('/gameMessage', auth, (req, res, next) => {
     return next({statusCode: 502, errormessage: "DB error"})
   })
 })
+
+// ----------------------------------------------------Notification management------------------------------------------------------------------------------------
 
 // Create a new friend request
 app.post('/notification', auth, (req, res, next) => {
@@ -1429,6 +1435,7 @@ app.put('/notification', auth, (req, res, next) => {
   })
 })
 
+// Delete a friend from your friend list
 app.delete('/friend/:username', auth, (req, res, next) => {
   let friend = req.params.username
   if (!friend) {
@@ -1444,7 +1451,6 @@ app.delete('/friend/:username', auth, (req, res, next) => {
             friend.deleteFriend(u.username.toString());
             friend.save().then((data) => {
               console.log("Friend deleted.".blue)
-              // ios.emit('friend', { user: [req.user.username, friend], deleted: true })
               if (socketIOclients[friend.username.toString()]) {
                 let senderMessage = JSON.stringify({ deletedFriend: u.username.toString() })
                 socketIOclients[friend.username.toString()].emit('friendDeleted', JSON.parse(senderMessage))
@@ -1478,6 +1484,7 @@ app.delete('/friend/:username', auth, (req, res, next) => {
   })
 })
 
+// Block or unblock a friend
 app.put('/friend', auth, (req, res, next) => {
   if(!req.body.username || req.body.isBlocked == undefined){
     console.log("ERROR: Bad Request".red)
@@ -1522,6 +1529,7 @@ app.put('/friend', auth, (req, res, next) => {
   })
 })
 
+// Returns the friendlist
 app.get('/friend', auth, (req, res, next) => {
   user.getModel().findOne({ username: req.user.username }).then((u: User) => {
     if (u.hasModeratorRole() || u.hasUserRole()) {
@@ -1536,6 +1544,8 @@ app.get('/friend', auth, (req, res, next) => {
     return next({statusCode: 502, errormessage: "DB error"})
   })
 })
+
+//--------------------------------------------Message management--------------------------------------------------------------------------------
 
 // Returns all the messages
 app.get('/message', auth, (req, res, next) => {
