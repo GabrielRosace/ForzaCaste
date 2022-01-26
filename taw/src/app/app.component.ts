@@ -47,8 +47,8 @@ export class AppComponent{
     this.updateFriendListVS()
     this.checkCurrentSession()
   }
-  // ! DA TOGLIERE
-
+  
+/*
   showStandard() {
     console.log("salve")
     this.toastService.show('I am a standard toast', {
@@ -72,7 +72,7 @@ export class AppComponent{
       autohide: true,
       headertext: 'Error!!!'
     });
-  }
+  }*/
 
   toastCust(customTpl: string) {
     let constoptions= { positionClass:'toast-custom' };
