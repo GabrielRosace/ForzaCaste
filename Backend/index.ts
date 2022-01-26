@@ -1022,7 +1022,7 @@ app.get('/move', auth, (req, res, next) => {
     })
   }).catch((err) => {
     console.log(`DB error: ${err}`.red)
-    return next({statusCode: 502, errormessage: `DB error: ${err}` })
+    return next({statusCode: 502, errormessage: "DB error" })
   })
 })
 
@@ -1139,7 +1139,7 @@ app.post('/move/cpu', auth, (req, res, next) => {
       }
     }).catch((err) => {
       console.log(`DB error: ${err}`.red)
-      return next({statusCode: 502, errormessage: `DB error: ${err}` })
+      return next({statusCode: 502, errormessage: "DB error"})
     })
   }).catch((error) => {
     console.log("ERROR: DB error\n".red + error)
