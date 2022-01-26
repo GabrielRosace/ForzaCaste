@@ -13,6 +13,9 @@ This will initialize the key used to sign the JWT.
 
 Then the instructions differ if you use docker or not.
 
+
+N.B. You have to change the URL into taw/src/app/user-http.service.ts to connect Angular to the chosen server. By default, the server hosted on heroku will be used.
+
 Using docker
 ------------
 

@@ -9,10 +9,7 @@ import { Router } from '@angular/router';
 interface TokenData {
   username: string,
   roles: string,
-  // mail: string,
-  id: string,
-  // state: string,
-  // avatarImgURL: string
+  id: string
 }
 
 
@@ -20,8 +17,9 @@ interface TokenData {
 export class UserHttpService {
 
   private token = ''
-  // public url = 'http://localhost:8080' //TODO cambiare indirizzo
-  public url = 'https://forzacaste.herokuapp.com' //TODO cambiare indirizzo
+  //TODO Change url to connect to different server
+  // public url = 'http://localhost:8080' // localhost
+  public url = 'https://forzacaste.herokuapp.com' // served on heroku
   private subjectName = new Subject<any>()
   private subjBadge = new Subject<any>()
   private subjFS = new Subject<any>()
