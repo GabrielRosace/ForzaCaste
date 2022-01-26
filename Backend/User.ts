@@ -38,9 +38,6 @@ export interface User extends mongoose.Document {
 }
 
 var userSchema = new mongoose.Schema<User>({
-  // _id: {
-  //   type: mongoose.Schema.Types.ObjectId  
-  // },
   username: {
     type: mongoose.SchemaTypes.String,
     required: true,
@@ -80,7 +77,6 @@ var userSchema = new mongoose.Schema<User>({
     required: false,
   },
   friendList: {
-    // type: [mongoose.SchemaTypes.String],
     type: [{username: "string", isBlocked: "boolean"}],
     required: false,
   },
@@ -130,23 +126,7 @@ userSchema.methods.validatePassword = function (pwd: string): boolean {
   return (this.digest === digest);
 }
 
-// userSchema.methods.hasAdminRole = function (): boolean {
-//   // for (var roleidx in this.roles) {
-//   //   if (this.roles[roleidx] === 'ADMIN')
-//   //     return true;
-//   // }
-//   // return false;
-//   // return this.roles.includes("ADMIN")
-//   return this.roles === "ADMIN"
-// }
-
-
 userSchema.methods.hasModeratorRole = function (): boolean {
-  // for (var roleidx in this.roles) {
-  //   if (this.roles[roleidx] === 'MODERATOR')
-  //     return true;
-  // }
-  // return false;
   return this.roles === "MODERATOR"
 }
 
@@ -158,34 +138,20 @@ userSchema.methods.hasUserRole = function (): boolean {
   return this.roles === "USER"
 }
 
-// userSchema.methods.setAdmin = function () {
-//   if (!this.hasAdminRole()) {
-//     // this.roles = []
-//     // this.roles.push("ADMIN");
-//     this.roles = "ADMIN"
-//   }
-// }
-
 userSchema.methods.setModerator = function () {
   if (!this.hasModeratorRole()) {
-    //   this.roles = []
-    //   this.roles.push("MODERATOR")
     this.roles = "MODERATOR"
   }
 }
 
 userSchema.methods.setNonRegisteredMod = function () {
   if (!this.hasNonRegisteredModRole()) {
-    // this.roles = []
-    // this.roles.push("NONREGMOD")
     this.roles = "NONREGMOD"
   }
 }
 
 userSchema.methods.setUser = function () {
   if (!this.hasUserRole()) {
-    // this.roles = []
-    // this.roles.push("USER")
     this.roles = "USER"
   }
 }
@@ -194,9 +160,6 @@ userSchema.methods.deleteUser = function () {
   this.deleted = true
 }
 
-// userSchema.methods.addFriend = function (username: string) {
-//   this.friendList.push(username);
-// }
 userSchema.methods.addFriend = function (username: string, isBlocked: boolean) {
   this.friendList.push({ username: username, isBlocked: isBlocked });
 }
