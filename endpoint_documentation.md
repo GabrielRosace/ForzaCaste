@@ -17,10 +17,10 @@ If the login is successful, it will return a response with HTTP status code 200,
 
 where token field contains the jwt_token.
 
-If the login fails, it will return a response with HTTP status code 500, with this body:
+If the login fails, it will return a response with HTTP status code 401, with this body:
 
 ``` json
-{ statusCode: 500, error: true, errormessage: "..." }
+{ statusCode: 401, errormessage: "Unauthorized" }
 
 ```
 
@@ -83,8 +83,8 @@ This method responds:
 
 *   HTTP code 400 with this body `{ statusCode: 400, errormessage: "Some field missing, sign up cannot be possible" }` if all attributes have not been specified in the body
 *   HTTP code 400 with this body `{ statusCode: 400, errormessage: "You cannot register yourself as cpu" }` if you try to register yourself as cpu
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "User already exists" }` if the username is already taken
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "DB error: " + reason.errmsg }` if an error occurs in the DB
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "User already exists" }` if the username is already taken
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "DB error: " + reason.errmsg }` if an error occurs in the DB
 *   HTTP code 200 with this body `{ error: false, errormessage: "", id: data._id }` if everything ok
     
 
@@ -123,9 +123,9 @@ When the moderator is created he is in the status of unregistered moderator and 
 This method responds:
 
 *   HTTP status code 400 with this body `{ statusCode: 400, errormessage: "Some field missing, signup cannot be possible" }` if all attributes have not been specified in the body
-*   HTTP status code 400 with this body `{ statusCode: 400, errormessage: "User already exists" }` if the username specified already exists
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: "DB error: " + reason.errmsg }` if an error occurs in the DB
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: "Operation not permitted" }` if the user who made the request does not have permission to do it
+*   HTTP status code 502 with this body `{ statusCode: 502, errormessage: "User already exists" }` if the username specified already exists
+*   HTTP status code 502 with this body `{ statusCode: 502, errormessage: "DB error: " + reason.errmsg }` if an error occurs in the DB
+*   HTTP status code 403 with this body `{ statusCode: 403, errormessage: "Operation not permitted" }` if the user who made the request does not have permission to do it
 *   HTTP status code 200 with this body `{ error: false, errormessage: "", id: modCreated._id }` if everything ok
     
 
@@ -167,10 +167,10 @@ Not registered moderator after this request becomes moderator.
 
 This method responds:
 
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: 'Wrong password, you aren't allowed to do it' }` if the old password does not match
+*   HTTP status code 403 with this body `{ statusCode: 401, errormessage: 'Wrong password, you aren't allowed to do it' }` if the old password does not match
 *   HTTP status code 400 with this body `{ statusCode: 400, errormessage: "Old password is missing" }` if the user has not specified the old password
 *   HTTP status code 400 with this body `{ statusCode: 400, errormessage: "Some field are missing" }` if the user is a not registered moderator who did not specify all fields
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
+*   HTTP status code 502 with this body `{ statusCode: 401, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
 *   HTTP status code 200 with this body `{ error: false, errormessage: "" }` if everything ok
     
 
@@ -220,9 +220,9 @@ This request allows the moderator to logically delete a standard player specifie
 
 This method responds:
 
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: "You cannot delete a mod" }` if the user you want to delete is a moderator
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: "You cannot do it, you aren't a mod!" }` if the user who make the request is not a moderator
+*   HTTP status code 403 with this body `{ statusCode: 403, errormessage: "You cannot delete a mod" }` if the user you want to delete is a moderator
+*   HTTP status code 502 with this body `{ statusCode: 502, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
+*   HTTP status code 403 with this body `{ statusCode: 403, errormessage: "You cannot do it, you aren't a mod!" }` if the user who make the request is not a moderator
 *   HTTP status code 200 with this body `{ error: false, errormessage: "" }` if everything ok
 ### Method: DELETE
 >```
@@ -249,7 +249,7 @@ This request allows the user to obtain information about another user by specify
 
 This method responds:
 
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
+*   HTTP status code 502 with this body `{ statusCode: 502, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
 *   HTTP status code 200 with this body
     
     ``` json
@@ -281,8 +281,8 @@ This request allows the user to get all the useful information about the players
 
 This method responds:
 
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: "You cannot get user list" }` if you are a non registered moderator
+*   HTTP status code 502 with this body `{ statusCode: 502, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
+*   HTTP status code 403 with this body `{ statusCode: 403, errormessage: "You cannot get user list" }` if you are a non registered moderator
 *   HTTP status code 200 with this body
     
 
@@ -336,8 +336,8 @@ This request allows you to get all online users with a web socket (specifically 
 
 This method responds:
 
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: 'You cannot do it' }` if the user who requested this resource is not authorized to receive it
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
+*   HTTP status code 403 with this body `{ statusCode: 403, errormessage: 'You cannot do it' }` if the user who requested this resource is not authorized to receive it
+*   HTTP status code 502 with this body `{ statusCode: 502, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
 *   HTTP status code 200 with this body
     
 
@@ -371,8 +371,8 @@ This request allows the logged in user to get the history of his ranking, it is 
 
 This method responds:
 
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage:'You cannot do it' }` if the user logged in is a non registered moderator
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
+*   HTTP status code 403 with this body `{ statusCode: 403, errormessage:'You cannot do it' }` if the user logged in is a non registered moderator
+*   HTTP status code 502 with this body `{ statusCode: 502, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
 *   HTTP status code 200 with this body
     
 
@@ -416,12 +416,12 @@ This method responds:
 ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
 
 ## End-point: Getting ranking history of the specified user
-This request allows the logged in user to get the ranking history of the user specified in the request parameters with the username, it is based on the ranking he had at the time of the game requests he made  
-  
+This request allows the logged in user to get the ranking history of the user specified in the request parameters with the username, it is based on the ranking he had at the time of the game requests he made
+
 This method responds:
 
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage:'You cannot do it' }` if the user logged in is a non registered moderator
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
+*   HTTP status code 403 with this body `{ statusCode: 403, errormessage:'You cannot do it' }` if the user logged in is a non registered moderator
+*   HTTP status code 502 with this body `{ statusCode: 502, errormessage: 'DB error: ${err}'}` if an error occurs in the DB
 *   HTTP status code 200 with this body
     
 
@@ -491,23 +491,22 @@ The random matchmaking works that if there are several users waiting to play, th
 
 ###### Available listener
 
-*   ***gameReady*** event, user receive `{ 'gameReady': true, 'opponentPlayer': ""}` to inform both clients that game requests have been accepted and the match will start soon
-*   ***move*** event, player receive `{ 'yourTurn': bool }` that inform the user if it's his turn (`true`) or if it's opponent turn (`false`)
-*   ***gameStatus*** event, received by the observer of the match, that receive `{playerTurn: ""}` that informs the observators which player will do the first move
+*   ***gameReady*** event, user receive `{ gameReady: true, opponentPlayer: "username"}` to inform both clients that game requests have been accepted and the match will start soon
+*   ***move*** event, player receive `{ yourTurn: bool }` that inform the user if it's his turn (`true`) or if it's opponent turn (`false`)
+*   ***gameStatus*** event, received by the observer of the match, that receive `{playerTurn: "username"}` that informs the observators which player will do the first move
     
 
 ###### Possible responses
 
 This method respond:
 
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "Match creation error"}` if an error occurs during the creation of the match document
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Match request update error" }` if an error occurs during the update of the notification document
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Match request already exists" }` if already exists a request for a match against a random user from the same user
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Random game request creation error" }` if an error occurs during the creation of the notification document
-*   HTTP code 400 with this body `{ statusCode: 400, errormessage: "Invalid request" }` if the value of he field `"type"` is incorrect
-*   HTTP code 400 with this body `{statusCode: 400, errormessage: "Bad Request"}` if `type` is not included in the request body
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raises an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "Match creation error"}` if an error occurs during the creation of the match document
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Match request update error" }` if an error occurs during the update of the notification document
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Match request already exists" }` if already exists a request for a match against a random user from the same user
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Random game request creation error" }` if an error occurs during the creation of the notification document
+*   HTTP code 400 with this body `{statusCode: 400, errormessage: "Bad Request"}` if `type` is not included in the request body or if the field value is incorrect
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raises an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
 *   HTTP code 200 with this body `{ error: false, message: "Match request has been created correctely" }` if the match has been created correctely. It means that the game document has been created and the notification document for the game request has been updated.
 *   HTTP code 200 with this body `{ error: false, errormessage: "Match has been created correctely" }` if the match have been created so the players will play the match soon
     
@@ -552,11 +551,10 @@ This method responds:
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "The opposite player is not a friend" }` if the user with the username specified in the body is not a friend
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "The opposite player is not online" }` if the friend specified in the body by the username is not online at the moment
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Friendly game request creation error" }` if an error occurs during the creation of the notification document
-*   HTTP code 400 with this body `{ error: true, errormessage: "Invalid request" }` if the value of he field `"type"` is incorrect
-*   HTTP code 400 with this body `{statusCode: 400, errormessage: "Bad Request"}` if `type` is not included in the request body
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: {statusCode:404, errormessage: "Friendly game request already exist"}` if a game request to that friend from the same user already exists
+*   HTTP code 400 with this body `{statusCode: 400, errormessage: "Bad Request"}` if type is not included in the request body or if the field value is incorrect
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Friendly game request already exist"}` if a game request to that friend from the same user already exists
 *   HTTP code 200 with this body `{ error: false, message: "Request sended to friend" }` if everything is ok
     
 
@@ -603,10 +601,9 @@ This method responds:
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "SocketIO client is not connected" }` if the Socket.IO client socket is not connected to the server
 *   HTTP code 200 with this body `{ error: false, message: "Match joined as observator" }` if everything is ok
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "The specified match does not exist" }` if there is no match with the specified user as player
-*   HTTP code 400 with this body `{ statusCode: 400, errormessage: "Invalid request" }` if the value of he field `"type"` is incorrect
 *   HTTP code 400 with this body `{statusCode: 400, errormessage: "Bad Request"}` if type is not included in the request body
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
     
 
 ### Below is an example of the body for this request, all specified fields are mandatory
@@ -642,24 +639,23 @@ If the `"accept"` field is true, the match request is accepted, otherwise if it 
 
 ###### Available listener
 
-*   ***gameReady*** event, user receive `{ 'gameReady': true, 'opponentPlayer': ""}` to inform both clients that game request have been accepted correctely and the match will start soon
-*   ***move*** event, player receive `{ 'yourTurn': bool }` that inform the user if it's his turn (`true`) or if it's opponent turn (`false`)
-*   ***gameStatus*** event, received by the observer of the match, that receive `{'playerTurn': ""}` that inform the observators which player will do the first move
+*   ***gameReady*** event, user receive `{ gameReady: true, opponentPlayer: "username"}` to inform both clients that game request have been accepted correctely and the match will start soon
+*   ***move*** event, player receive `{ yourTurn: bool }` that inform the user if it's his turn (`true`) or if it's opponent turn (`false`)
+*   ***gameStatus*** event, received by the observer of the match, that receive `{playerTurn: "username"}` that inform the observators which player will do the first move
     
 
 ###### Possible responses
 
 This method respond:
 
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "Match creation error"}` if an error occurs during the creation of the match document
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Match request update error" }` if an error occurs during the update of the notification document
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "Match creation error"}` if an error occurs during the creation of the match document
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Match request update error" }` if an error occurs during the update of the notification document
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Match request does not exists" }` if there is no game request by the user specified in the body
 *   HTTP code 200 with this body `{ error: false, errormessage: "Match has been created correctely" }` if the `"accept"` field is `true` so the match have been created correctely and the players will start the match soon
 *   HTTP code 200 with this body `{ error: false, message: "Request refused" }` if the `"accept"` field is `false` so the request is refused
 *   HTTP code 400 with this body `{statusCode: 400, errormessage: "Bad Request"}` if `accept` is not included in the request body
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Match request update error" }` if an error occurs while updating the math request
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
     
 
 ### Below is an example of the body for this request, all specified fields are mandatory
@@ -693,20 +689,20 @@ This endpoint allows the user to quit and delete a match he is playing. Otherwis
 
 ###### Available listeners
 
-*   ***result*** event, the opponent player and the observators receive `{'winner': "", 'message': "Opposite player have left the game"}` that informs the player have left the game
+*   ***result*** event, the opponent player and the observators receive `{winner: "username", message: "Opposite player has left the game"}` that informs the player have left the game
     
 
 ###### Possible responses
 
 This method responds:
 
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Match cancellation error" }` if an error occurs while deleting a match document from the DB
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Match cancellation error" }` if an error occurs while deleting a match document from the DB
 *   HTTP code 200 with this body `{ error: false, message: "The match has been deleted correctely" }` if the match have been deleted correctely from the DB
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Notification cancellation error" }` if an error occurs while deleting the notification document from the DB
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Notification cancellation error" }` if an error occurs while deleting the notification document from the DB
 *   HTTP code 200 with this body `{ error: false, message: "The match request has been deleted correctely" }` if the notification have been deleted correctely from the DB
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Match request does not exists" }` if a match request sent by this user doesn't exist
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
     
 
 ### This request have no body because can be only one match or match request active at any moment
@@ -734,9 +730,9 @@ This endpoint allows the client to retrieve all the in progress matches.
 This method responds:
 
 *   HTTP code 200 with this body `{ error: false, matches: matches }` where `matches` is an array of matches
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Error getting matches" }` if an error occurs in the query to get the in progress matches from the DB
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Error getting matches" }` if an error occurs in the query to get the in progress matches from the DB
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
     
 
 ``` json
@@ -809,7 +805,6 @@ This method responds:
             "nTurns": 1,
             "__v": 0
         }
-
     ]
 }
 
@@ -837,11 +832,11 @@ This endpoint allows the user to play a game against the CPU.
 
 This method respons:
 
-*   HTTP code 403 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` the user that send the HTTP request haven't necessary roles
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Socket.IO error" }` if occurs an error while joining the match room
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` the user that send the HTTP request haven't necessary roles
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Socket.IO error" }` if occurs an error while joining the match room
 *   HTTP code 200 with this body `{ error: false, errormessage: "Single player match has been created" }` if everything is ok
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Match saving error" }` if an error occurs while saving the match into the DB
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Match saving error" }` if an error occurs while saving the match into the DB
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
     
 
 ### The body for this request is empty
@@ -870,7 +865,7 @@ This method responds:
 *   HTTP code 403 with this body `{statusCode: 403, errormessage:"You cannot do it" }` if the user is a non registered moderator
 *   HTTP code 403 with this body `{statusCode: 403, errormessage:"You have to improve your ranking before doing that!" }` if the user has a ranking lower than 100
 *   HTTP code 404 with this body `{statusCode: 404, errormessage: "Match not found" }` if the user is not playing a match
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "DB error: " + reason.errmsg }` if an error occurs in the DB
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "DB error"}` if an error occurs in the DB
 *   HTTP code 200 with this body `{ error: false, errormessage: "", move: {"0": 4, "1": 9} }` where `move[0]` represent the suggested column, while `move[1]` represent the weight that this move has on the game
 ### Method: GET
 >```
@@ -914,7 +909,7 @@ If the client is listening on:
 This method responds:
 
 *   HTTP status code 400 with this body `{ statusCode: 400, errormessage: "Bad request, you should pass your move" }` if the request is uncorrecly formed
-*   HTTP status code 400 with this body `{ statusCode: 400, errormessage: "Wrong turn" }` if the player is trying to play even if it is not his turn
+*   HTTP status code 403 with this body `{ statusCode: 403, errormessage: "Wrong turn" }` if the player is trying to play even if it is not his turn
 *   HTTP status code 404 with this body `{ statusCode: 404, errormessage: "Match does not exists" }` if the user is not playing a match
 *   HTTP status code 403 with this body `{ statusCode: 403, errormessage: "You cannot do it" }` if the user is a non registered moderator
 *   HTTP status code 400 with this body `{ statusCode: 400, errormessage: "This column is full, choose another one" }` or `{ statusCode: 400, errormessage: "Move not allowed, out of playground, choose another one" }` if the player is trying to insert an invalid move
@@ -969,10 +964,10 @@ If the client is listening on:
 
 This method responds:
 
-*   HTTP status code 401 with this body `{ statusCode: 401, errormessage: "Bad request, you should pass your move" }` if the request is uncorrecly formed
-*   HTTP status code 400 with this body `{ statusCode: 400, errormessage: "Wrong turn" }` if the player is trying to play even if it is not his turn
+*   HTTP status code 400 with this body `{ statusCode: 400, errormessage: "Incorrectely formed request" }` if the request is uncorrecly formed
 *   HTTP status code 404 with this body `{ statusCode: 404, errormessage: "Match does not exists" }` if the user is not playing a match
-*   HTTP status code 403 with this body `{ statusCode: 403, errormessage: "You cannot do it" }` if the user is a non registered moderator
+*   HTTP status code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user is a non registered moderator
+*   HTTP status code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an error occurs in the database
 *   HTTP status code 400 with this body `{ statusCode: 400, errormessage: "This column is full, choose another one" }` or `{ statusCode: 400, errormessage: "Move not allowed, out of playground, choose another one" }` if the player is trying to insert an invalid move
 *   HTTP status code 200 with this body:
     *   `{ error: false, errormessage: "The match ended up in a draw" }` if the game ended up in a draw
@@ -1018,14 +1013,14 @@ The match chat works that if the sender of a message is a player or a modertor, 
 
 This method responds:
 
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "SocketIO client is not connected" }` if the Socket.IO client socket is not connected to the server
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "SocketIO client is not connected" }` if the Socket.IO client socket is not connected to the server
 *   HTTP code 200 with this body `{ error: false, message: "Message have been send and saved correctely" }` if everything is ok
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Send message error" }` if an error occurs while saving the message into the DB
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Send message error" }` if an error occurs while saving the message into the DB
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "SocketIO client is not in the match room" }` if the user that send the HTTP request is not an observator
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Match not found" }` if the match with the player specified in the body does not exist
 *   HTTP code 400 with this body `{statusCode: 400, errormessage: "Bad Request"}` if `player` username or `message` fields are not included in the request body
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
     
 
 ### Below is an example of the body for this request, all specified fields are mandatory
@@ -1068,15 +1063,15 @@ This endpoint allows the user to send a friend request to another user, who is n
 
 The method respond:
 
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "You are already friend" }` if the the two users are already friends
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Request already exist" }` if a friend request for the specified user already exists
+*   HTTP code 400 with this body `{ statusCode: 400, errormessage: "You are already friend" }` if the the two users are already friends
+*   HTTP code 400 with this body `{ statusCode: 400, errormessage: "Request already exist" }` if a friend request for the specified user already exists
 *   HTTP code 200 with this body `{ error: false, message: "Request forwarded" }` if everything is ok
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Notification creation error"}` if an error occurs while creating the notification into the DB
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Notification creation error"}` if an error occurs while creating the notification into the DB
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Specified user does not exist" }` if the user specified in the body does not exist
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Type of the notification not accepted" }` if the value of the filed `"type"` is not valid. In this case the only valid type is "friendRequest"
+*   HTTP code 400 with this body `{ statusCode: 400, errormessage: "Type of the notification not accepted" }` if the value of the filed `"type"` is not valid. In this case the only valid type is "friendRequest"
 *   HTTP code 400 with this body `{statusCode: 400, errormessage: "Bad Request"}` if type is not included in the request body
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
     
 
 ### Below is an example of the body for this request, all specified fields are mandatory
@@ -1112,8 +1107,8 @@ This endpoint allows the client to ask the server all the inbox notification of 
 
 This method respond:
 
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
 *   HTTP code 200 with this body `{ error: false, notification: n }` where notification contains all the notification, so friend request and match request, received by the user
     
 
@@ -1166,12 +1161,12 @@ This endpoint allows a user to accept or refuse a friend request. In particular 
 This method respond:
 
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Notification does not exist" }` if the notification that you want to accept or refuse does not exist
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Friend addition error" }` if an error occur adding the user to the friend list of the other user in the DB
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Friend addition error" }` if an error occur adding the user to the friend list of the other user in the DB
 *   HTTP code 200 with this body `{ error: false, errormessage: "Data saved successfully" }` if everything is ok
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Notification update error" }` if an error occurs while updating the notification in the DB
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Notification update error" }` if an error occurs while updating the notification in the DB
 *   HTTP code 400 with this body `{statusCode: 400, errormessage: "Bad Request"}` if `accpeted` field is not included in the request body
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request or the user that received the request are not authorized for that operation
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request or the user that received the request are not authorized for that operation
     
 
 ### Below is an example of the body for this request, all specified fields are mandatory
@@ -1217,8 +1212,8 @@ The method respond:
 *   HTTP code 200 with this body `{ error: false, errormessage: "Friend removed" }` if the friend is deleted from the user friend list correctely
 *   HTTP code 404 with this body `{statusCode: 404, errormessage: "The user is not friend"}` if the specified user is not a friend
 *   HTTP code 400 with this body `{statusCode: 400, errormessage: "Bad Request"}` if the `username` parameter is not included in the request body
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
 ### Method: DELETE
 >```
 >localhost:8080/friend/<username>
@@ -1254,8 +1249,8 @@ This method respond:
 *   HTTP code 200 with this body `{ error: false, errormessage: "User blocked" }` if the friend has been blocked correctely
 *   HTTP code 200 with this body `{ error: false, errormessage: "User unblocked" }` if the friend has been unblocked correctely
 *   HTTP code 400 with this body `{statusCode: 400, errormessage: "Bad Request"}` if both `username` and `isBlocked` fields are not included in the body of the request
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
     
 
 ### Below is an example of the body for this request, all specified fields are mandatory
@@ -1290,8 +1285,9 @@ In addition, two parameters are available, one for filtering which returns only 
 
 This method responds:
 
-*   HTTP status code 404 with this body `{ statusCode: 404, errormessage: "DB error: " + reason }` if an operation on the DB raise an error
+*   HTTP status code 502 with this body `{ statusCode: 502, errormessage: "DB error: " + reason }` if an operation on the DB raise an error
 *   HTTP status code 200 with this body(*request forwarded without params*)
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
     
 
 ``` json
@@ -1361,13 +1357,13 @@ This endpoint allows the user to send a message to a friend. The payload of the 
 
 This method responds:
 
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Message creation error" }` if an error occurs while saving the message in the DB.
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Message creation error" }` if an error occurs while saving the message in the DB.
 *   HTTP code 200 with this body `{ error: false, errormessage: "Message has been saved correctely" }` if the message has been saved and sent correctely
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "The user is not a friend" }` if the user specified in the body is not a friend
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "The user does not exist" }` if the user specified in the body does not exist
 *   HTTP code 400 with this body `{statusCode: 400, errormessage: "Bad Request"}` if both `receiver` and `message` fields are not included in the body of the request
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
     
 
 ### Below is an example of the body for this request, all specified fields are mandatory
@@ -1404,11 +1400,11 @@ This endpoint is used by the user to notify to the server that the inpending mes
 This method responds:
 
 *   HTTP code 400 with this body `{ statusCode: 400, errormessage: "Bad Request" }` if the `sender` field is not specified
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Message update error" }` if an error occurs while updating the messages
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Message update error" }` if an error occurs while updating the messages
 *   HTTP code 200 with this body `{ error: false, errormessage: "Messages have been updated" }` if everything is ok
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "There are no messages to be update" }` if there are no messages to read
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
     
 
 ### Below is an example of the body for this request, sender is mandatory.
@@ -1453,10 +1449,10 @@ This method responds:
 
 *   HTTP code 400 with this body `{ statusCode: 400, errormessage: 'You should send receiver and message body' }` if the `receiver` or the `message` field is missing
 *   HTTP code 200 with this body `{ error: false, errormessage: "Message from admin has been saved correctely" }` if the messahe has been saved and sent correctely
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "The opposite player is not a friend" }` if the receiver with the username specified in the body is not a friend
+*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "The user is not a friend" }` if the receiver with the username specified in the body is not a friend
 *   HTTP code 404 with this body `{ statusCode: 404, errormessage: "The user does not exist" }` if the friend specified in the body by the username does not exist
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Message creation error" }` if during the creation of the message into the database there was an error
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Message creation error" }` if during the creation of the message into the database there was an error
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
     
 
 ### Below is an example of the body for this request, all specified fields are mandatory
@@ -1495,9 +1491,9 @@ This endpoint returns to the user all the in pending messages and all messages, 
 This method respond:
 
 *   HTTP code 200 with this body `{ error: false, inPendingMessages: inPendingMessages, allMessages: allMessages }` if everything is ok
-*   HTTP code 404 with this body `{ statusCode: 404, errormessage: "Error getting messages from DB"}` if an error occurs while getting messages from the DB
-*   HTTP code 401 with this body `{ statusCode: 401, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
-*   HTTP code 404 with this body `{statusCode: 404, errormessage: "DB error"}` if an operation on the DB raise an error
+*   HTTP code 502 with this body `{ statusCode: 502, errormessage: "Error getting messages from DB"}` if an error occurs while getting messages from the DB
+*   HTTP code 403 with this body `{ statusCode: 403, errormessage: "Unauthorized" }` if the user that made the request is not authorized for that operation
+*   HTTP code 502 with this body `{statusCode: 502, errormessage: "DB error"}` if an operation on the DB raise an error
 ### Method: GET
 >```
 >localhost:8080/message?ModMessage=<bool>

@@ -75,8 +75,6 @@ function is_terminal_node(board, PLAYER_PIECE, AI_PIECE) {
   return winning_move(board, PLAYER_PIECE) || winning_move(board, AI_PIECE) || get_valid_locations(board).length == 0
 }
 
-
-// crea count che conta i pezzi dentro all'array
 function count(window, piece) {
   let c = 0
   for (let ele of window) {
