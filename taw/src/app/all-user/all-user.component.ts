@@ -35,7 +35,6 @@ export class AllUserComponent implements OnInit {
 
   ngOnInit(): void {
     if (!this.us.get_token() || !this.us.has_moderator_role()) {
-      // TODO aggiungi un messaggio, magari con una funzione nel servizio per non replicare codice
       this.router.navigate(['/'])
     }
     this.getInpendinMsg()
@@ -67,7 +66,6 @@ export class AllUserComponent implements OnInit {
             if (msg.sender == element['username']) {
               //date.getUTCDay().toString()+"-"+date.getUTCMonth().toString()+"-"+date.getFullYear().toString()+" "+date.getUTCHours().toString()+":"+date.getUTCMinutes().toString()
               countMsg++
-              //console.log(this.num)
             }
           })
           if (countMsg != 0) {
@@ -88,9 +86,9 @@ export class AllUserComponent implements OnInit {
     this.router.navigate([route])
   }
 
-  readMessage(myus: string, username: string){
-      this.us.readMessage(myus, username, true).subscribe()
-    }
+  readMessage(myus: string, username: string) {
+    this.us.readMessage(myus, username, true).subscribe()
+  }
 
   getInpendinMsg() {
     this.subscriptionIn = this.us.get_userMessage(true).subscribe((elem: any) => {
@@ -115,42 +113,32 @@ export class AllUserComponent implements OnInit {
 
   notifyNewMsg() {
     if (!this.sio.isNull()) {
-      //let g = this.router.parseUrl(this.router.url).root.children.primary.segments[0].path
-      //if (g) {
       this.subscriptionMsg = this.sio.newMessage().subscribe((msg) => {
         let g = this.router.parseUrl(this.router.url).root.children.primary.segments[0].path
         let g1 = ""
         if (this.router.parseUrl(this.router.url).root.children.primary.segments[1] != undefined) {
           g1 = this.router.parseUrl(this.router.url).root.children.primary.segments[1].path
         }
-        //console.log("NotifyNewMsg")
         console.log(g1)
         let rec = JSON.parse(JSON.stringify(msg)).receiver
         let send = JSON.parse(JSON.stringify(msg)).sender
         let inpend = JSON.parse(JSON.stringify(msg)).inpending
-        // if ("friend-chat" != g || g1 != send) {
-
-          //console.log("NotifyNewMsg")
+        if (inpend) {
+          this.getInpendinMsg()
+        }
+        this.userList.forEach((element: { [x: string]: any; }) => {
           if (inpend) {
-            this.getInpendinMsg()
-          }
-          //console.log(g)
-          //console.log(inpend)
-          this.userList.forEach((element: { [x: string]: any; }) => {
-            if (inpend) {
-              if (element['username'] == send) {
-                element['badgeNum']++
-              }
-              if (element['badgeNum'] != 0) {
-                element['badgeHidden'] = false
-              } else {
-                element['badgeHidden'] = true
-              }
+            if (element['username'] == send) {
+              element['badgeNum']++
             }
-          })
-        // }
+            if (element['badgeNum'] != 0) {
+              element['badgeHidden'] = false
+            } else {
+              element['badgeHidden'] = true
+            }
+          }
+        })
       })
-      // }
     }
   }
 }

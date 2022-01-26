@@ -264,11 +264,7 @@ export class UserHttpService {
       headers: new HttpHeaders({
         'authorization': `Bearer ${this.get_token()}`,
       }),
-    }/*
-    const query = {
-      inpending: inpending,
-      makeNotificationRea: makeNotificationRea,
-    }*/
+    }
     if (inpending != undefined) {
       return this.http.get(`${this.url}/notification?inpending=${inpending}&makeNotificationRead=${makeNotificationRead}`, options)
     } else {

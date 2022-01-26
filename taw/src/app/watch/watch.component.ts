@@ -22,28 +22,35 @@ interface Message {
   styleUrls: ['./watch.component.css']
 })
 export class WatchComponent implements OnInit {
+  private gameStatus: Subscription;
+  private result: Subscription;
+  private gameChat: Subscription;
+
   public game: number[][] = [];
   public chat: Message[] = [];
+  public alerts: any[] = [];
+
   public txtturno: string = "Waiting...";
   public p1: string = "";
   public p2: string = "";
   public title: string = "";
   public content: string = "";
   public visibility: string = "none";//default="none"
+  public win: string = "";
+  public inputtext: string = "";
+
   public opacity: number = 1;//default=0.5
-  public alerts: any[] = [];
+  public rank: number = 0;
   public boss: number = 0;
   public calledcol: number = 0;
   public urturn: number=0;
+
   public switched: boolean = false;
-  public win: string = "";
-  public rank: number = 0;
-  public inputtext: string = "";
-  private gameStatus: Subscription;
-  private result: Subscription;
-  private gameChat: Subscription;
+  
+
   public gmMsg:string=""
   constructor(private app: AppComponent, private sio: SocketioService, private us: UserHttpService, private router: Router) {
+    /*Initiliaze the turn */
     if (this.sio.turn == 1) {
       this.txtturno = this.sio.getP1()
       
@@ -54,9 +61,10 @@ export class WatchComponent implements OnInit {
       this.urturn=2
     }
     this.switched=this.sio.switched
+    /*Listen the socket gameStatus if it receive a message, it add the move and switch the turn*/
     this.gameStatus = this.sio.gameStatus().subscribe(msg => {
 
-      console.log('got a msg gameStatus: ' + JSON.stringify(msg));
+     
       if(msg.move!=undefined){
         this.add(msg.move)
       }
@@ -64,9 +72,10 @@ export class WatchComponent implements OnInit {
         this.txtturno=msg.nextTurn
       }
     });
+    /*Listen the socket gamechat if it receive a message, it add it to the Chat list*/
     this.gameChat=this.sio.gameChat().subscribe(msg => {
 
-      console.log('got a msg gameChat: ' + JSON.stringify(msg));
+      
 
       if(msg.error){
         this.alerts.push({message:msg.errorMessage});
@@ -75,29 +84,34 @@ export class WatchComponent implements OnInit {
       if(msg.sender.length>0){
         var img:string="https://static.educalingo.com/img/it/800/mondo.jpg";
         this.us.get_Otheruser(msg.sender).subscribe(fmsg=>{
-          console.log('from photo: ' + JSON.stringify(fmsg));
+          
           img=fmsg.avatarImgURL;
           var frm:string=msg.sender;
           var time:string=new Date(msg.timestamp).toLocaleTimeString();
           var txt:string=msg.content;
           this.chat.push({imgUrl:img,from:frm,text:txt,time:time});
-          console.log('ur message parsed: ' + JSON.stringify({imgUrl:img,from:frm,text:txt,time:time}));
+          
         });
 
         
 
       }
     });
+    /*Listen the socket result, if it receive a message it display the winner or loser, or draw */
     this.result = this.sio.result().subscribe(msg => {
 
-      console.log('got a msg result: ' + JSON.stringify(msg));
-      if(msg.winner!=undefined){
+     
+      if(msg.winner!=undefined &&msg.winner==null){
+        this.title="oh, it's a draw!"
+        this.content="None win this game"
+      }
+      if(msg.winner!=undefined&&msg.winner!=null){
           this.title=msg.winner.toUpperCase()+ " WIN!!!"
           this.content=msg.winner.toUpperCase()+ " win this game"
       }
       if(msg.message!=undefined ){
         this.gmMsg=msg.message;
-        console.log(this.gmMsg)
+        
       }
       document.getElementById("openstats")!.click();
     });
@@ -123,9 +137,9 @@ export class WatchComponent implements OnInit {
         }
       }
       this.p1 = this.sio.getP1()
-      console.log("player 1: "+this.p1)
+      
       this.p2 = this.sio.getP2()
-      console.log("player 2: "+this.p2)
+      
       this.game = this.sio.getGame()
     }
   }
@@ -134,10 +148,9 @@ export class WatchComponent implements OnInit {
     if (text == "") {
       this.alerts = [];
       this.app.toastCust("You have to write something for send it")
-      //this.alerts.push({ message: "you have to write something for send it" });
     } else {
       this.us.sendMessageSpect(text,(this.p1=="cpu")?this.p2:this.p1).subscribe((msg) => {
-        console.log("ricevuto da sendMessage: ", msg);
+        
         var response = JSON.parse(JSON.stringify(msg));
         if (response.error == false && response.error != undefined) {
           var time = new Date();
@@ -148,9 +161,9 @@ export class WatchComponent implements OnInit {
     }
 
   }
-
+  /* make a turn, when is over, switch the player turn */
   add(c:number){
-    console.log("questo è il tuo turno: ",this.urturn)
+    
     if(this.urturn==2){
       for(var i:number=5;i>=0;i--){
         if(this.game[i][c]==0){
@@ -169,19 +182,9 @@ export class WatchComponent implements OnInit {
       }
     }
   }
-  
+  /* Navigate to the home */
   closeMatch(){
-
       this.router.navigate(['/home'])
-
-  }
-  addFriend() {
-    this.us.add_friendRequest(this.p2).subscribe((data) => {
-      // miss toast service
-      // CASTE FIX THIS
-      //this.toastN("Request Forwarded")
-    })
-
   }
 
   /* Check if there is some players's move */

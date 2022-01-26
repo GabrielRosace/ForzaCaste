@@ -15,7 +15,6 @@
           <button type="button" class="friendListBtn mr-6" 
           (click)="readMessage(myUsername,user.username);getInpendinMsg();navigate('mod-chat/'+user.username+'')">
             <span>
-              <!--matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"-->
               <mat-icon   [matBadge]="user.badgeNum"
               matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after" matBadgeOverlap="true"
               [matBadgeHidden]="user.badgeHidden" [ngStyle]="{'color':'white'} ">chat</mat-icon>

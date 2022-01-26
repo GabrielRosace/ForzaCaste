@@ -48,7 +48,6 @@ export class ModChatComponent implements OnInit {
     this.tok = this.us.get_token()
     console.log("Sono ngInit Friend")
     if (!this.tok) {
-      // TODO aggiungi un messaggio, magari con una funzione nel servizio per non replicare codice
       this.router.navigate(['/'])
     } else {
       this.username = this.us.get_username()
@@ -59,7 +58,6 @@ export class ModChatComponent implements OnInit {
       this.openChat(this.activeRoute.snapshot.params['user'])
       this.notifyNewMsg()
       console.log(this.router.parseUrl(this.router.url).root.children.primary.segments[0].path)
-      //this.getNotification(false, true)
     }
   }
 
@@ -111,8 +109,6 @@ export class ModChatComponent implements OnInit {
       })
 
       this.badgeContMod = 0
-      //console.log("MsgList: ")
-      //console.log(this.messageInpending)
       this.messageInpending.forEach((element: any) => {
         if (element.receiver == this.us.get_username()) {
           this.badgeContMod++;
