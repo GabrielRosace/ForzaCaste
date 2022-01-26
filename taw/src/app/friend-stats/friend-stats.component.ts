@@ -46,7 +46,6 @@ export class FriendStatsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Aggiungi in user-http.service.ts un metodo get_user ma con username passato get_user(username)
     if (!this.us.get_token()) {
       this.router.navigate(['/'])
     } else {
