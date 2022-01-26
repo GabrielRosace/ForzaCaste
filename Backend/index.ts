@@ -69,7 +69,7 @@
 
 const result = require('dotenv').config()
 
-// TODO
+
 // if (result.error) {
 //   console.log("Unable to load '.env' file. Please provide one to store the JWT secret key");
 //   process.exit(-1);
@@ -103,9 +103,6 @@ const { Server } = require("socket.io");
 
 // Declaration of variabile to store connected socket
 let ios = null
-
-
-
 
 // * Import application module *
 import { User } from './User';
