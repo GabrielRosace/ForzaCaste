@@ -80,13 +80,7 @@ export class SocketioService {
       });
     });
   }
-  /*TO REMOVE
 
-  makemove(col:String){
-    console.log(" Created makemove")
-    console.log(this.us.get_username())
-    this.socket.emit('move',{username:this.us.get_username(),move:col})
-  }*/
   gameReady(): Observable<any> {
     console.log("Created gameReady")
     return new Observable(observer => {
@@ -114,14 +108,6 @@ export class SocketioService {
       });
     });
   }
-  /*
-    addFriend(receiver: String, type: String): void{
-      console.log("Add friend", this.us.get_username())
-      let clientMessage = JSON.stringify({error : false, username: this.us.get_username(), receiver: receiver, type: type})
-      console.log(clientMessage)
-      this.socket.emit('notification',JSON.parse(clientMessage))
-    } */
-
   request() {
     return new Observable<string>(observer => {
       this.socket.on('newNotification', msg => {
@@ -145,15 +131,6 @@ export class SocketioService {
       });
     })
   }
-
-  /*
-  friendReqAccepted(){
-    return new Observable<string>(observer =>{
-      this.socket.on('acceptedRequest', msg => {
-        observer.next(msg);
-      });
-    })
-  }*/
 
   newMessage() {
     return new Observable<string>(observer => {
